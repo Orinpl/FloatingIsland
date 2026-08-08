@@ -1,0 +1,17 @@
+{
+    "name": "Game.App",
+    "rootNamespace": "FloatingIsLand.App",
+    "references": [
+        "Game.Domain",
+        "Game.Config"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

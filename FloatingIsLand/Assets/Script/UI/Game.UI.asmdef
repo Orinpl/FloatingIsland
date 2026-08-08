@@ -1,0 +1,19 @@
+{
+    "name": "Game.UI",
+    "rootNamespace": "FloatingIsLand.UI",
+    "references": [
+        "Game.App",
+        "Game.Domain",
+        "Game.Config",
+        "UnityEngine.UI"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

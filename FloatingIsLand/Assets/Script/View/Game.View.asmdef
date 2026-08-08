@@ -1,0 +1,18 @@
+{
+    "name": "Game.View",
+    "rootNamespace": "FloatingIsLand.View",
+    "references": [
+        "Game.App",
+        "Game.Domain",
+        "Game.Config"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

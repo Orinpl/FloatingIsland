@@ -1,0 +1,22 @@
+{
+    "name": "Game.Tool.Editor",
+    "rootNamespace": "FloatingIsLand.EditorTools",
+    "references": [
+        "Game.App",
+        "Game.UI",
+        "Game.Config",
+        "Game.Input",
+        "UnityEngine.UI"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

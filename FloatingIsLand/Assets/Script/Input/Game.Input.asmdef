@@ -1,0 +1,17 @@
+{
+    "name": "Game.Input",
+    "rootNamespace": "FloatingIsLand.GameInput",
+    "references": [
+        "Game.App",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
