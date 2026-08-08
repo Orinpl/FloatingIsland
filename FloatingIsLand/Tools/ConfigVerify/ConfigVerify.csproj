@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- 冒烟验证工程：脱离 Unity，链接编译读表层 + 转表生成的 Tables.g.cs，并真实加载全部 JSON。
+       提交前跑一次即可确认「转出来的东西编得过、读得动」。
+       注意 LangVersion 9 —— 读表层与生成代码都锁 C# 9（Unity 2022 兼容口径），这里保持同一口径，
+       生成代码一旦用了更高版本语法会在这里先炸，而不是等到 Unity 里才发现。 -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>9</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <RootNamespace>ConfigVerify</RootNamespace>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 非递归通配：只取读表层核心三个文件，天然排除 Unity/（引 UnityEngine）与 Editor/ -->
+    <Compile Include="../../Assets/Script/Config/*.cs" LinkBase="Config" />
+    <Compile Include="../../Assets/Script/Config/Generated/Tables.g.cs" LinkBase="Generated" />
+  </ItemGroup>
+
+</Project>

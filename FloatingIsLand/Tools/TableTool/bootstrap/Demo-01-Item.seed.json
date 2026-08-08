@@ -1,0 +1,21 @@
+{
+  "workbook": "Demo",
+  "sheetOrder": 1,
+  "table": "Item",
+  "kind": "rows",
+  "fields": [
+    { "name": "itemId", "type": "string", "desc": "道具 Id（主键，首列 = 主键，须 int 或 string）" },
+    { "name": "nameCn", "type": "string", "desc": "显示名" },
+    { "name": "priceG", "type": "int", "desc": "售价（金币）" },
+    { "name": "weight", "type": "float", "desc": "重量（kg）" },
+    { "name": "stackable", "type": "bool", "desc": "可堆叠（TRUE/FALSE/1/0/是/否 都认）" },
+    { "name": "tags", "type": "string[]", "desc": "标签（数组：Excel 里用 | 分隔）" }
+  ],
+  "rows": [
+    { "itemId": "potion_small", "nameCn": "小型药水", "priceG": 50, "weight": 0.3, "stackable": true, "tags": ["consumable", "heal"] },
+    { "itemId": "potion_large", "nameCn": "大型药水", "priceG": 180, "weight": 0.8, "stackable": true, "tags": ["consumable", "heal", "rare"] },
+    { "itemId": "sword_iron", "nameCn": "铁剑", "priceG": 320, "weight": 4.5, "stackable": false, "tags": ["weapon"] },
+    { "itemId": "shield_wood", "nameCn": "木盾", "priceG": 120, "weight": 3.0, "stackable": false, "tags": ["armor"] },
+    { "itemId": "gem_ruby", "nameCn": "红宝石", "priceG": 900, "weight": 0.1, "stackable": true, "tags": ["material", "rare"] }
+  ]
+}

@@ -1,0 +1,3 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Assets/SoulGames/Easy%20Grid%20Builder%20Pro%202/Scripts/Grid%20Visuals%20Scripts/Editor/BuildableObjectEffectsEditor.uss?fileID=7433441132597879392&amp;guid=60824e81c06cb0f408e7138facc77cda&amp;type=3#BuildableObjectEffectsEditor" />
+</ui:UXML>

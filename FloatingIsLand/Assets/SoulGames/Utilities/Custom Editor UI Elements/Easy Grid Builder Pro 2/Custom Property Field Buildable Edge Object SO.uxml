@@ -1,0 +1,4 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <Style src="project://database/Assets/SoulGames/Utilities/Custom%20Editor%20UI%20Elements/Easy%20Grid%20Builder%20Pro%202/Custom%20Property%20Field.uss?fileID=7433441132597879392&amp;guid=135ead106512618499ba0f1bdfa0049c&amp;type=3#Custom Property Field" />
+    <uie:PropertyField binding-path="buildableEdgeObjectSOList" name="Buildable_Edge_Object_SO_List" />
+</ui:UXML>

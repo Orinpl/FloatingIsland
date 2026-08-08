@@ -1,0 +1,173 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1841314260037879146
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7170738214514372574}
+  - component: {fileID: 92141037443091614}
+  - component: {fileID: 8203291236048288849}
+  m_Layer: 31
+  m_Name: EGB Pro 2 Grid XZ
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7170738214514372574
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1841314260037879146}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &92141037443091614
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1841314260037879146}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 658af28100a96d147b46008951600c17, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gridUniqueID: 68bdd250-26a4-4df4-861d-59440c0815e4
+  updateInEditor: 0
+  buildableGridObjectSOList: []
+  buildableEdgeObjectSOList: []
+  buildableCornerObjectSOList: []
+  buildableFreeObjectSOList: []
+  gridWidth: 10
+  gridLength: 10
+  cellSize: 2
+  activeGridOrigin: {x: 0, y: 0, z: 0}
+  updateGridPositionRuntime: 0
+  gridOriginType: 0
+  updateGridWidthAndLengthRuntime: 0
+  activeGridMode: 0
+  activeCameraMode: 0
+  verticalGridsCount: 1
+  verticalGridHeight: 2
+  switchVerticalGridWithInput: 1
+  autoDetectVerticalGrid: 0
+  customSurfaceLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
+  autoDetectionLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
+  colliderSizeMultiplier: 2
+  lockColliderAtBottomGrid: 0
+  displayCanvasGrid: 0
+  canvasGridSettings:
+    canvasGridPrefab: {fileID: 7023326040891081457, guid: b008e2f959515844dac4c16b66bf9c2b, type: 3}
+    cellImageSprite: {fileID: 21300000, guid: 2eacf68fc32face47bf4335fb2cc57c1, type: 3}
+    gridShowColor: {r: 0, g: 0, b: 0, a: 1}
+    gridHideColor: {r: 0, g: 0, b: 0, a: 1}
+    colorTransitionSpeed: 20
+    displayOnDefaultMode: 1
+    displayOnBuildMode: 1
+    displayOnDestroyMode: 1
+    displayOnSelectMode: 1
+    displayOnMoveMode: 1
+    onlyShowActiveVerticalGrid: 1
+    alwaysLockAtFirstGrid: 0
+  displayObjectGrid: 1
+  objectGridSettings:
+    objectGridPrefab: {fileID: 7479507480647996310, guid: ea0cb4e7dd567334897e6a7875ed61a8, type: 3}
+    cellImageTexture: {fileID: 2800000, guid: 2eacf68fc32face47bf4335fb2cc57c1, type: 3}
+    gridShowColor: {r: 0, g: 0, b: 0, a: 1}
+    gridHideColor: {r: 0, g: 0, b: 0, a: 1}
+    gridShowColorHDR: {r: 0, g: 0, b: 0, a: 1}
+    gridHideColorHDR: {r: 0, g: 0, b: 0, a: 1}
+    colorTransitionSpeed: 20
+    displayOnDefaultMode: 1
+    displayOnBuildMode: 1
+    displayOnDestroyMode: 1
+    displayOnSelectMode: 1
+    displayOnMoveMode: 1
+    onlyShowActiveVerticalGrid: 1
+    alwaysLockAtFirstGrid: 0
+    useAlphaMask: 0
+    alphaMaskSprite: {fileID: 2800000, guid: c1c139fee87c87c49a5e18ad75605899, type: 3}
+    alphaMaskSize: 20
+    alphaMaskWorldPosition: {x: 0, y: 0}
+    alphaMaskFollowCursor: 1
+    alphaMaskFollowGhostObject: 1
+    alphaMaskAddGhostObjectScale: 1
+    customSurfaceLayerMask:
+      serializedVersion: 2
+      m_Bits: 0
+    activateOnDefaultMode: 1
+    activateOnBuildMode: 1
+    activateOnDestroyMode: 1
+    activateOnSelectMode: 1
+    activateOnMoveMode: 1
+    useScrollingNoise: 0
+    noiseTexture: {fileID: 2800000, guid: c1bc6445cd95c014b835635eebaecd27, type: 3}
+    textureTiling: {x: 10, y: 10}
+    textureScrolling: {x: 0, y: 0.1}
+  displayRuntimeTextGrid: 0
+  runtimeTextGridSettings:
+    textPrefab: {fileID: 4352932560077707256, guid: afccfc4561eb6f14e8010b838880caf5, type: 3}
+    displayCellPositionText: 1
+    textSizePercentage: 60
+    textGridCustomOffset: {x: 0, y: 0, z: 0}
+    textColorOverride: {r: 0, g: 0, b: 0, a: 1}
+    displayOnDefaultMode: 1
+    displayOnBuildMode: 1
+    displayOnDestroyMode: 1
+    displayOnSelectMode: 1
+    displayOnMoveMode: 1
+    onlyShowActiveVerticalGrid: 1
+    onlySpawnFirstVerticalGrid: 1
+    alwaysLockAtFirstGrid: 0
+  displayRuntimeProceduralGrid: 0
+  runtimeProceduralGridSettings:
+    seed: 2000312772
+    preserveSeedPostGeneration: 0
+    usePerlinNoise: 1
+    scrollNoiseHorizontally: 0
+    scrollNoiseVertically: 0
+    noiseScale: 20
+    nodeObjects: []
+    borderNodeObjects: []
+    borderTilesAmount: 0
+    delayBetweenSpawns: 0.01
+    spawnRowByRow: 0
+    displayOnDefaultMode: 1
+    displayOnBuildMode: 1
+    displayOnDestroyMode: 1
+    displayOnSelectMode: 1
+    displayOnMoveMode: 1
+    onlyShowActiveVerticalGrid: 0
+    onlySpawnFirstVerticalGrid: 1
+    alwaysLockAtFirstGrid: 0
+  activeVerticalGridIndex: 0
+  activeBuildableObjectSO: {fileID: 0}
+--- !u!114 &8203291236048288849
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1841314260037879146}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b00dcadce33777f419e19d7fae47dc68, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

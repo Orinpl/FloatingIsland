@@ -1,0 +1,29 @@
+.unity-toggle__checkmark {
+    background-image: url("project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/55.png?fileID=2800000&guid=224790c4abfdfc24a96d2d34b3a8d004&type=3#55");
+    background-color: rgb(88, 88, 88);
+    width: 24px;
+    height: 24px;
+    border-left-color: rgb(25, 22, 25);
+    border-right-color: rgb(25, 22, 25);
+    border-top-color: rgb(25, 22, 25);
+    border-bottom-color: rgb(25, 22, 25);
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+}
+
+Toggle:checked .unity-toggle__checkmark {
+    background-image: url("project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/54.png?fileID=2800000&guid=70ce258f89a75eb42ae15218654e40ab&type=3#54");
+    background-color: rgb(40, 40, 40);
+    width: 24px;
+    height: 24px;
+    border-left-color: rgb(25, 22, 25);
+    border-right-color: rgb(25, 22, 25);
+    border-top-color: rgb(25, 22, 25);
+    border-bottom-color: rgb(25, 22, 25);
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+}

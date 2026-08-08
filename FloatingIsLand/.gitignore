@@ -93,3 +93,17 @@ InitTestScene*.unity*
 
 # 取消下行注释可忽略 Asset Store Tools 插件
 # /[Aa]ssets/AssetStoreTools*
+
+# ---------- 第三方资产：只入库核心，示例不入库 ----------
+# Easy Grid Builder Pro 2 的示例包：20 个 Demo 场景 + 89M 示例美术，104M，仅供参考
+# 核心插件（Assets/SoulGames/Easy Grid Builder Pro 2/、Utilities/）照常入库
+# 已验证核心目录未引用示例目录中的任何 GUID，排除后核心功能不受影响
+/[Aa]ssets/SoulGames/EGBPro 2 Examples/
+/[Aa]ssets/SoulGames/EGBPro 2 Examples.meta
+
+# ---------- Tools/ 下的 dotnet 工程（配表工具链） ----------
+# 上面的 *.csproj 是为 Unity 自动生成的工程文件设的；Tools/ 里的 csproj 是手写源码，必须提交
+!/[Tt]ools/**/*.csproj
+# 但它们的编译产物不进库
+/[Tt]ools/**/[Bb]in/
+/[Tt]ools/**/[Oo]bj/

@@ -1,0 +1,4 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/SoulGames/Utilities/Custom%20Editor%20UI%20Elements/Easy%20Grid%20Builder%20Pro%202/Custom%20Toggle%20Lock%20Auto%20Calculate%20Relative%20Scale%20&amp;%20Pivot.uss?fileID=7433441132597879392&amp;guid=974403992f62d5f4ea8c23b56cd3e3fa&amp;type=3#Custom Toggle Lock Auto Calculate Relative Scale &amp; Pivot" />
+    <ui:Toggle name="Lock_Auto_Generation_And_Values" binding-path="lockAutoGenerationAndValues" value="false" />
+</ui:UXML>

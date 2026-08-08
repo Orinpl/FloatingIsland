@@ -1,0 +1,207 @@
+.unity-foldout__checkmark {
+    background-image: url("project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/46.png?fileID=2800000&guid=2fc3d013ad5b0cb48a3e902a26ceb7d7&type=3#46");
+    border-left-color: rgb(25, 22, 25);
+    border-right-color: rgb(25, 22, 25);
+    border-top-color: rgb(25, 22, 25);
+    border-bottom-color: rgb(25, 22, 25);
+    background-color: rgb(126, 178, 19);
+}
+
+Foldout > Toggle:checked .unity-foldout__checkmark {
+    background-image: url("project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/47.png?fileID=21300000&guid=df52782ec4ac40243b1af512f2d4d878&type=3#47");
+    border-left-color: rgb(25, 22, 25);
+    border-right-color: rgb(25, 22, 25);
+    border-top-color: rgb(25, 22, 25);
+    border-bottom-color: rgb(25, 22, 25);
+    background-color: rgb(126, 178, 19);
+}
+
+.unity-foldout__toggle {
+    border-left-color: rgb(25, 22, 25);
+    border-right-color: rgb(25, 22, 25);
+    border-top-color: rgb(25, 22, 25);
+    border-bottom-color: rgb(25, 22, 25);
+    margin-left: 6px;
+    width: 99%;
+    margin-bottom: 0;
+}
+
+.unity-foldout__content {
+    margin-top: 0;
+    border-left-color: rgb(25, 22, 25);
+    border-right-color: rgb(25, 22, 25);
+    border-top-color: rgb(25, 22, 25);
+    border-bottom-color: rgb(25, 22, 25);
+    margin-left: 6px;
+    align-items: stretch;
+    flex-wrap: nowrap;
+    width: 99%;
+}
+
+.unity-text-field__input {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+    border-right-width: 0;
+    border-bottom-width: 0;
+    border-left-width: 1px;
+    border-left-color: rgb(25, 22, 25);
+    border-right-color: rgb(25, 22, 25);
+    border-top-color: rgb(25, 22, 25);
+    border-bottom-color: rgb(25, 22, 25);
+    height: 22px;
+    padding-right: 0;
+    padding-left: 8px;
+    font-size: 13px;
+    -unity-font-style: normal;
+    background-color: var(--unity-colors-default-background);
+    margin-left: 0;
+    align-self: flex-end;
+    margin-top: 0;
+}
+
+.unity-button {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+    border-top-width: 0;
+    border-right-width: 0;
+    border-bottom-width: 0;
+    border-left-width: 0;
+}
+
+.unity-list-view__footer {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-width: 0;
+    margin-right: 0;
+    border-right-width: 0;
+}
+
+.unity-scroll-view {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+    border-top-width: 0;
+    border-right-width: 0;
+    border-bottom-width: 1px;
+    border-left-width: 0;
+}
+
+.unity-list-view__reorderable-item {
+    padding-right: 6px;
+    margin-right: 0;
+}
+
+.unity-list-view__reorderable-handle {
+    margin-left: -27px;
+    margin-right: 0;
+    height: 24px;
+    margin-top: 6px;
+    margin-bottom: 6px;
+}
+
+.unity-list-view__reorderable-handle-bar {
+    background-color: rgba(0, 0, 0, 0);
+    margin-left: 4px;
+}
+
+.unity-property-field {
+}
+
+.unity-object-field {
+    width: 95%;
+    left: 2.5%;
+}
+
+.unity-object-field__label {
+}
+
+.unity-object-field__input {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.unity-object-field__object {
+}
+
+.unity-object-field-display__icon {
+}
+
+.unity-object-field-display__label {
+}
+
+.unity-object-field__selector {
+    border-left-color: rgb(25, 22, 25);
+    border-right-color: rgb(25, 22, 25);
+    border-top-color: rgb(25, 22, 25);
+    border-bottom-color: rgb(25, 22, 25);
+    margin-right: -1px;
+    margin-left: 0;
+    border-left-width: 1px;
+    -unity-background-image-tint-color: rgb(162, 255, 0);
+}
+
+.unity-base-field {
+    margin-top: 4px;
+}
+
+.unity-base-slider__text-field {
+    margin-top: -1px;
+    border-left-color: rgb(25, 22, 25);
+    border-right-color: rgb(25, 22, 25);
+    border-top-color: rgb(25, 22, 25);
+    border-bottom-color: rgb(25, 22, 25);
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    background-color: var(--unity-colors-default-background);
+    border-right-width: 1px;
+    border-left-width: 0;
+    height: 21px;
+    margin-bottom: 4px;
+}
+
+.unity-base-slider {
+    width: 95%;
+    left: 2.5%;
+    align-self: stretch;
+    margin-top: 4px;
+}
+
+.unity-text-element--inner-input-field-component {
+}
+
+.unity-list-view__size-field--with-footer {
+    margin-top: 3px;
+    margin-right: 24px;
+}
+
+.unity-toggle__label {
+    left: 2.5%;
+    margin-top: 4px;
+    padding-top: 0;
+    padding-bottom: 4px;
+}
+
+.unity-vector3-field {
+    width: 95%;
+    left: 2.5%;
+}
+
+.unity-vector2-field {
+    width: 95%;
+    left: 2.5%;
+}
+
+.unity-float-field {
+    width: 95%;
+    left: 2.5%;
+    margin-bottom: 4px;
+}

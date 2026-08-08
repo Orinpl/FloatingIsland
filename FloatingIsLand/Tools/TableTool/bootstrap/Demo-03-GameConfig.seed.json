@@ -1,0 +1,22 @@
+{
+  "workbook": "Demo",
+  "sheetOrder": 3,
+  "table": "GameConfig",
+  "kind": "singleton",
+  "fields": [
+    { "name": "startGold", "type": "int", "desc": "初始金币" },
+    { "name": "maxLevel", "type": "int", "desc": "等级上限" },
+    { "name": "expCurveMul", "type": "float", "desc": "经验曲线系数" },
+    { "name": "enablePvp", "type": "bool", "desc": "是否开启 PVP" },
+    { "name": "startItems", "type": "string[]", "desc": "开局赠送道具（引用 Item 表主键）" }
+  ],
+  "rows": [
+    {
+      "startGold": 500,
+      "maxLevel": 60,
+      "expCurveMul": 1.25,
+      "enablePvp": false,
+      "startItems": ["potion_small", "sword_iron"]
+    }
+  ]
+}

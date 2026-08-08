@@ -1,0 +1,828 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:Template name="Custom Property Field Buildable Grid Object SO" src="project://database/Assets/SoulGames/Utilities/Custom%20Editor%20UI%20Elements/Easy%20Grid%20Builder%20Pro%202/Custom%20Property%20Field%20Buildable%20Grid%20Object%20SO.uxml?fileID=9197481963319205126&amp;guid=210d3da1df36d37499ffa9bfde2a7b98&amp;type=3#Custom Property Field Buildable Grid Object SO" />
+    <ui:Template name="Custom Property Field Buildable Edge Object SO" src="project://database/Assets/SoulGames/Utilities/Custom%20Editor%20UI%20Elements/Easy%20Grid%20Builder%20Pro%202/Custom%20Property%20Field%20Buildable%20Edge%20Object%20SO.uxml?fileID=9197481963319205126&amp;guid=f7297462dac29104d87eac952856f47b&amp;type=3#Custom Property Field Buildable Edge Object SO" />
+    <ui:Template name="Custom Property Field Buildable Corner Object SO" src="project://database/Assets/SoulGames/Utilities/Custom%20Editor%20UI%20Elements/Easy%20Grid%20Builder%20Pro%202/Custom%20Property%20Field%20Buildable%20Corner%20Object%20SO.uxml?fileID=9197481963319205126&amp;guid=5a1da2798b5d2404ea7367ba19315ebf&amp;type=3#Custom Property Field Buildable Corner Object SO" />
+    <ui:Template name="Custom Property Field Buildable Free Object SO" src="project://database/Assets/SoulGames/Utilities/Custom%20Editor%20UI%20Elements/Easy%20Grid%20Builder%20Pro%202/Custom%20Property%20Field%20Buildable%20Free%20Object%20SO.uxml?fileID=9197481963319205126&amp;guid=819864d07a922f34bb8e0cc9790f4343&amp;type=3#Custom Property Field Buildable Free Object SO" />
+    <ui:Template name="Custom Property Field Node Objects" src="project://database/Assets/SoulGames/Utilities/Custom%20Editor%20UI%20Elements/Easy%20Grid%20Builder%20Pro%202/Custom%20Property%20Field%20Node%20Objects.uxml?fileID=9197481963319205126&amp;guid=6328b6659fd4ebf4e81095d09dbb026a&amp;type=3#Custom Property Field Node Objects" />
+    <ui:Template name="Custom Property Field Node Objects Border" src="project://database/Assets/SoulGames/Utilities/Custom%20Editor%20UI%20Elements/Easy%20Grid%20Builder%20Pro%202/Custom%20Property%20Field%20Node%20Objects%20Border.uxml?fileID=9197481963319205126&amp;guid=8fb1fff7b5dcaec4fbb7ebc4090c5499&amp;type=3#Custom Property Field Node Objects Border" />
+    <Style src="project://database/Assets/SoulGames/Easy%20Grid%20Builder%20Pro%202/Scripts/Core%20Grid%20Scripts/Grid%20Core/Editor/EasyGridBuilderProXYEditor.uss?fileID=7433441132597879392&amp;guid=9d55c5be3c89144489d9d7cc12334381&amp;type=3#EasyGridBuilderProXYEditor" />
+    <ui:VisualElement name="Component_Header" style="align-items: center; justify-content: space-around; -unity-font: url(&quot;project://database/Assets/SoulGames/Easy%20Grid%20Builder%20Pro%202/Misc%20Assets/Font/Roboto-Regular.ttf?fileID=12800000&amp;guid=7ff194cb43c9688469ee6afb24c0fbdd&amp;type=3#Roboto-Regular&quot;); -unity-font-style: bold; font-size: 24px; -unity-font-definition: url(&quot;project://database/Assets/SoulGames/Easy%20Grid%20Builder%20Pro%202/Misc%20Assets/Font/Roboto-Regular%20SDF%20Asset.asset?fileID=11400000&amp;guid=f8235e8e98371d34f9e0e709be23e04d&amp;type=2#Roboto-Regular SDF Asset&quot;); -unity-text-align: middle-center; color: rgb(221, 221, 221); -unity-text-outline-width: 0; text-shadow: 0 0 0 rgb(0, 0, 0); white-space: normal; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px; margin-top: 8px; margin-right: 0; margin-bottom: 8px; margin-left: 0; background-color: rgb(40, 40, 40);">
+        <ui:Label text="- EGB Pro 2 XY -" display-tooltip-when-elided="true" enable-rich-text="true" name="Header" class="header_lable" style="visibility: visible; overflow: visible; align-items: stretch; margin-top: 8px; margin-right: 8px; margin-bottom: 8px; margin-left: 8px; color: rgb(255, 255, 255); -unity-font-style: bold;" />
+    </ui:VisualElement>
+    <ui:VisualElement name="Core_Grid_Properties" style="margin-bottom: 8px; margin-top: 2px;">
+        <ui:Foldout text="Core Grid Properties" name="Core_Grid_Properties_Foldout" view-data-key="Core_Grid_Properties_Foldout" style="visibility: visible; display: flex; overflow: visible; opacity: 1; position: relative; flex-wrap: nowrap; flex-direction: column; transform-origin: center; background-image: none; -unity-text-align: upper-left; font-size: 12px;">
+            <ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center; margin-top: 4px;">
+                    <ui:VisualElement name="VisualElement" style="flex-basis: 94%; justify-content: flex-start; align-items: center; opacity: 1; flex-direction: row; align-self: center;">
+                        <ui:TextField picking-mode="Ignore" label="Grid Unique ID" binding-path="gridUniqueID" password="false" name="Grid_Unique_ID" style="left: 2.5%; width: 95%; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; align-items: center; justify-content: flex-start; align-self: center;">
+                            <ui:Button parse-escape-sequences="true" display-tooltip-when-elided="true" name="Unique_ID_Refresh" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 4px; left: 0; width: 24px; border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/56.png?fileID=2800000&amp;guid=d31d6446d9c41e14ebf4e89fc21af5fa&amp;type=3#56&quot;); height: 24px; align-self: flex-end; justify-content: center; align-items: flex-end;" />
+                        </ui:TextField>
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 1px; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center; margin-top: 0;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Toggle label="Update Grid In Editor" name="Update_In_Editor" focusable="false" binding-path="updateInEditor" style="left: 2.5%; margin-top: 0; margin-left: 4px; margin-bottom: 0; margin-right: 4px; width: 95%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center; margin-top: 0;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <uie:IntegerField label="Grid Width" value="0" name="Grid_Width" binding-path="gridWidth" style="left: 2.5%; width: 95%; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; height: auto; position: relative;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <uie:IntegerField label="Grid Length" value="0" name="Grid_Length" binding-path="gridLength" style="left: 2.5%; width: 95%; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <uie:FloatField label="Cell Size" value="0" name="Cell_Size" binding-path="cellSize" readonly="false" is-delayed="false" style="left: 2.5%; width: 95%; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; -unity-text-align: upper-left;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center; margin-top: 0;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Toggle label="Update Grid Position" name="Update_Grid_Position_Runtime" focusable="false" binding-path="updateGridPositionRuntime" style="left: 2.5%; margin-top: 0; margin-left: 4px; margin-bottom: 0; margin-right: 4px; width: 95%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; margin-top: 0;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:EnumField label="Grid Origin" type="UnityEngine.TextAlignment, UnityEngine.TextRenderingModule" value="Center" name="Grid_Origin_Type" binding-path="gridOriginType" style="left: 2.5%; width: 95%; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; margin-top: 0;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Toggle label="Update Grid Width &amp; Length" name="Update_Grid_Width_And_Length_Runtime" focusable="false" binding-path="updateGridWidthAndLengthRuntime" style="left: 2.5%; margin-top: 0; margin-left: 4px; margin-bottom: 0; margin-right: 4px; width: 95%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center; margin-top: 18px;">
+                    <ui:VisualElement style="flex-basis: 100%; justify-content: center; align-items: flex-start;">
+                        <uie:EnumField label="Active Camera Mode" value="Center" binding-path="activeCameraMode" name="Active_Camera_Mode" focusable="true" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; left: 2.5%; width: 95%;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center; margin-top: 0;">
+                    <ui:VisualElement style="flex-basis: 100%; justify-content: center; align-items: flex-start;">
+                        <uie:EnumField label="Active Grid Mode" value="Center" binding-path="activeGridMode" name="Active_Grid_Mode" focusable="true" style="margin-right: 4px; margin-bottom: 0; margin-left: 4px; left: 2.5%; margin-top: 0; width: 95%;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center; margin-bottom: 0;">
+                    <ui:VisualElement style="flex-basis: 100%; justify-content: center; align-items: flex-start;">
+                        <uie:Vector3Field label="Active Grid Origin" binding-path="activeGridOrigin" name="Active_Grid_Origin" style="left: 2.5%; width: 95%; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center; margin-bottom: 0;">
+                    <ui:VisualElement style="flex-basis: 100%; justify-content: center; align-items: flex-start;">
+                        <uie:ObjectField label="Active Object SO" type="UnityEngine.ScriptableObject, UnityEngine.CoreModule" binding-path="activeBuildableObjectSO" name="Active_Buildable_Object_SO" style="left: 2.5%; width: 95%; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center; margin-bottom: 4px;">
+                    <ui:VisualElement style="flex-basis: 100%; justify-content: center; align-items: flex-start;">
+                        <uie:IntegerField label="Active Ver. Grid Index" value="0" name="Active_Vertical_Grid_Index" binding-path="activeVerticalGridIndex" style="left: 2.5%; width: 95%; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:Foldout>
+    </ui:VisualElement>
+    <ui:VisualElement name="Grid_Buildables_Properties" style="margin-bottom: 8px;">
+        <ui:Foldout text="Grid Buildables" name="Grid_Buildables_Properties_Foldout" view-data-key="Grid_Buildables_Properties_Foldout" style="visibility: visible; display: flex; overflow: visible; opacity: 1; position: relative; flex-wrap: nowrap; flex-direction: column; transform-origin: center; background-image: none; -unity-text-align: upper-left; font-size: 12px;">
+            <ui:VisualElement>
+                <ui:Instance template="Custom Property Field Buildable Grid Object SO" name="Custom Property Field Buildable Grid Object SO" style="width: 95%; left: 2.5%; flex-direction: column; margin-top: 4px; margin-bottom: 4px;" />
+                <ui:Instance template="Custom Property Field Buildable Edge Object SO" name="Custom Property Field Buildable Edge Object SO" style="left: 2.5%; width: 95%; margin-bottom: 4px;" />
+                <ui:Instance template="Custom Property Field Buildable Corner Object SO" name="Custom Property Field Buildable Corner Object SO" style="left: 2.5%; width: 95%; margin-bottom: 4px;" />
+                <ui:Instance template="Custom Property Field Buildable Free Object SO" name="Custom Property Field Buildable Free Object SO" style="left: 2.5%; width: 95%; margin-bottom: 10px;" />
+            </ui:VisualElement>
+        </ui:Foldout>
+    </ui:VisualElement>
+    <ui:VisualElement name="Vertical_Grid_Properties" style="margin-bottom: 8px;">
+        <ui:Foldout text="Vertical Grid" name="Vertical_Grid_Properties_Foldout" view-data-key="Vertical_Grid_Properties_Foldout" style="visibility: visible; display: flex; overflow: visible; opacity: 1; position: relative; flex-wrap: nowrap; flex-direction: column; transform-origin: center; background-image: none; -unity-text-align: upper-left; font-size: 12px;">
+            <ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center; margin-top: 4px;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <uie:IntegerField label="Vertical Grid Count" value="0" name="Vertical_Grid_Count" binding-path="verticalGridsCount" style="left: 2.5%; width: 95%; height: auto; margin-right: 4px; margin-left: 4px; margin-bottom: 0; margin-top: 0;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 1px; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center; margin-top: 0;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <uie:FloatField label="Vertical Grid Height" value="0" name="Vertical_Grid_Height" binding-path="verticalGridHeight" readonly="false" is-delayed="false" style="left: 2.5%; width: 95%; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; -unity-text-align: upper-left;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center; margin-top: 0; margin-bottom: 0;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start; width: 95%;">
+                        <ui:Toggle label="Switch Vertical Grid With Input" name="Switch_Vertical_Grid_With_Input" focusable="false" binding-path="switchVerticalGridWithInput" style="left: 2.5%; margin-top: 0; margin-left: 4px; margin-bottom: 0; margin-right: 4px; width: 95%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center; margin-top: 0;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Toggle label="Auto Detect Vertical Grid" name="Auto_Detect_Vertical_Grid" focusable="false" binding-path="autoDetectVerticalGrid" style="left: 2.5%; margin-top: 0; margin-left: 4px; margin-bottom: 0; margin-right: 4px; width: 95%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center; margin-bottom: 0;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <uie:LayerMaskField label="Custom Grid Surface Layer Mask" binding-path="customSurfaceLayerMask" name="Custom_Surface_Layer_Mask" style="left: 2.5%; width: 95%; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; height: auto;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center; margin-bottom: 4px;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <uie:LayerMaskField label="Auto Detection Layer Mask" binding-path="autoDetectionLayerMask" name="Auto_Detection_Layer_Mask" style="left: 2.5%; width: 95%; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; height: auto;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:Foldout>
+    </ui:VisualElement>
+    <ui:VisualElement name="Grid_Collision_Properties" style="margin-bottom: 8px;">
+        <ui:Foldout text="Grid Collisions" name="Grid_Collision_Properties_Foldout" view-data-key="Grid_Collision_Properties_Foldout" style="visibility: visible; display: flex; overflow: visible; opacity: 1; position: relative; flex-wrap: nowrap; flex-direction: column; transform-origin: center; background-image: none; -unity-text-align: upper-left; font-size: 12px;">
+            <ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center; margin-top: 4px;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Slider picking-mode="Ignore" label="Collider Size Multiplier" value="42" high-value="10" binding-path="colliderSizeMultiplier" name="Collider_Size_Multiplier" page-size="0" show-input-field="true" direction="Horizontal" inverted="false" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 1px; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center; margin-top: 0; margin-bottom: 4px;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Toggle label="Lock Collider At Bottom Grid" name="Lock_Collider_At_Bottom_Grid" focusable="false" binding-path="lockColliderAtBottomGrid" style="left: 2.5%; margin-top: 0; margin-left: 4px; margin-bottom: 0; margin-right: 4px; width: 95%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:Foldout>
+    </ui:VisualElement>
+    <ui:VisualElement name="Object_Grid_Visual_Properties" style="margin-bottom: 8px;">
+        <ui:Foldout text="Visual - Object Grid" name="Object_Grid_Visual_Properties" view-data-key="Object_Grid_Visual_Properties" style="visibility: visible; display: flex; overflow: visible; opacity: 1; position: relative; flex-wrap: nowrap; flex-direction: column; transform-origin: center; background-image: none; -unity-text-align: upper-left; font-size: 12px;">
+            <ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center; margin-top: 4px;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Toggle label="Display Object Grid" name="Display_Object_Grid" focusable="false" binding-path="displayObjectGrid" style="left: 2.5%; margin-top: 0; margin-left: 4px; margin-bottom: 0; margin-right: 4px; width: 95%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 1px; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <uie:ObjectField label="Object Grid Prefab" name="Object_Grid_Prefab" binding-path="objectGridSettings.objectGridPrefab" type="UnityEngine.Transform, UnityEngine.CoreModule" style="left: 2.5%; width: 95%; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <uie:ObjectField label="Cell Image Texture" binding-path="objectGridSettings.cellImageTexture" name="Cell_Image_Texture" type="UnityEngine.Texture, UnityEngine.CoreModule" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <uie:ColorField label="Grid Show Color" value="RGBA(0.000, 1.000, 1.000, 1.000)" binding-path="objectGridSettings.gridShowColor" name="Grid_Show_Color" view-data-key="Grid_Show_Color" style="left: 2.5%; width: 95%; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <uie:ColorField label="Grid Hide Color" value="RGBA(0.000, 1.000, 1.000, 1.000)" binding-path="objectGridSettings.gridHideColor" name="Grid_Hide_Color" view-data-key="Grid_Hide_Color" style="left: 2.5%; width: 95%; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <uie:ColorField label="Grid Show Color HDR" value="RGBA(0.000, 1.000, 1.000, 1.000)" binding-path="objectGridSettings.gridShowColorHDR" name="Grid_Show_Color_HDR" hdr="true" view-data-key="Grid_Show_Color_HDR" style="left: 2.5%; width: 95%; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <uie:ColorField label="Grid Hide Color HDR" value="RGBA(0.000, 1.000, 1.000, 1.000)" binding-path="objectGridSettings.gridHideColorHDR" name="Grid_Hide_Color_HDR" hdr="true" view-data-key="Grid_Hide_Color_HDR" style="left: 2.5%; width: 95%; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center; margin-bottom: 0;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <uie:FloatField label="Color Transition Speed" value="0" binding-path="objectGridSettings.colorTransitionSpeed" name="Color_Transition_Speed" style="left: 2.5%; width: 95%; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Toggle label="Only Show Active Vertical Grid" binding-path="objectGridSettings.onlyShowActiveVerticalGrid" name="Only_Show_Active_Vertical_Grid" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; margin-bottom: 4px;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Toggle label="Always Lock At First Grid" binding-path="objectGridSettings.alwaysLockAtFirstGrid" name="Always_Lock_At_First_Grid" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:GroupBox name="GroupBox" style="background-color: rgb(70, 70, 70); margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-width: 1px; border-right-width: 0; border-bottom-width: 1px; border-left-width: 0;">
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; border-top-width: 4px; margin-bottom: 4px; margin-top: 4px;">
+                        <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Label tabindex="-1" text="Display Object Grid On Grid Mode:" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Label" style="margin-right: 4px; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                        <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                            <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 1px; margin-top: -4px; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                        <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Toggle label="Grid Mode Default" binding-path="objectGridSettings.displayOnDefaultMode" name="Display_On_Default_Mode" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                        <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Toggle label="Grid Mode Build" binding-path="objectGridSettings.displayOnBuildMode" name="Display_On_Build_Mode" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                        <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Toggle label="Grid Mode Destroy" binding-path="objectGridSettings.displayOnDestroyMode" name="Display_On_Destroy_Mode" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                        <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Toggle label="Grid Mode Select" binding-path="objectGridSettings.displayOnSelectMode" name="Display_On_Select_Mode" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; margin-bottom: 4px;">
+                        <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Toggle label="Grid Mode Move" binding-path="objectGridSettings.displayOnMoveMode" name="Display_On_Move_Mode" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:GroupBox>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 22px; align-items: center; border-top-width: 2px; margin-top: 4px;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Toggle label="Use Alpha Mask" binding-path="objectGridSettings.useAlphaMask" name="Use_Alpha_Mask" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 1px; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 0;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; margin-bottom: 0; border-top-width: 4px; margin-top: 0;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <uie:ObjectField label="Alpha Mask Texture" binding-path="objectGridSettings.alphaMaskSprite" name="Alpha_Mask_Texture" type="UnityEngine.Texture, UnityEngine.CoreModule" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 1px; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; border-top-width: 4px;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:FloatField label="Mask Size" value="42.2" binding-path="objectGridSettings.alphaMaskSize" name="Alpha_Mask_Size" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; border-top-width: 4px;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Vector2Field label="Mask World Position" name="Alpha_Mask_World_Position" binding-path="objectGridSettings.alphaMaskWorldPosition" style="left: 2.5%; width: 95%; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; border-top-width: 4px;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Toggle label="Mask Follow Cursor" binding-path="objectGridSettings.alphaMaskFollowCursor" name="Use_Alpha_Mask" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; border-top-width: 4px;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Toggle label="Mask Follow Ghost Object" binding-path="objectGridSettings.alphaMaskFollowGhostObject" name="Alpha_Mask_Follow_Ghost_Object" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; border-top-width: 4px;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Toggle label="Mask Add Ghost Object Scale" binding-path="objectGridSettings.alphaMaskAddGhostObjectScale" name="Use_Alpha_Mask" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; border-top-width: 4px; margin-bottom: 6px;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <uie:LayerMaskField label="Custom Surface Layer Mask" binding-path="objectGridSettings.customSurfaceLayerMask" name="Custom_Surface_Layer_Mask" style="left: 2.5%; width: 95%; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:GroupBox name="GroupBox" style="background-color: rgb(70, 70, 70); margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-width: 1px; border-right-width: 0; border-bottom-width: 1px; border-left-width: 0;">
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; border-top-width: 4px; margin-bottom: 4px; margin-top: 4px;">
+                        <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Label tabindex="-1" text="Display Alpha Mask On Grid Mode:" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Label" style="margin-right: 4px; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                        <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                            <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 1px; margin-top: -4px; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                        <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Toggle label="Grid Mode Default" binding-path="objectGridSettings.activateOnDefaultMode" name="Activate_On_Default_Mode" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                        <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Toggle label="Grid Mode Build" binding-path="objectGridSettings.activateOnBuildMode" name="Activate_On_Build_Mode" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                        <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Toggle label="Grid Mode Destroy" binding-path="objectGridSettings.activateOnDestroyMode" name="Activate_On_Destroy_Mode" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                        <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Toggle label="Grid Mode Select" binding-path="objectGridSettings.activateOnSelectMode" name="Activate_On_Select_Mode" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; margin-bottom: 4px;">
+                        <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Toggle label="Grid Mode Move" binding-path="objectGridSettings.activateOnMoveMode" name="Activate_On_Move_Mode" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:GroupBox>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; margin-bottom: 0; border-top-width: 4px; margin-top: 2px;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Toggle label="Use Scrolling Noise" binding-path="objectGridSettings.useScrollingNoise" name="Use_Scrolling_Noise" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 1px; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; margin-bottom: 0; margin-top: 0;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <uie:ObjectField label="Noise Texture" name="Noise_Texture" type="UnityEngine.Texture, UnityEngine.CoreModule" binding-path="objectGridSettings.noiseTexture" style="width: 95%; left: 2.5%; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 1px; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; margin-bottom: 0; margin-top: 0;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Vector2Field label="Texture Tiling" name="Texture_Tiling" binding-path="objectGridSettings.textureTiling" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; margin-bottom: 4px; margin-top: 0;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Vector2Field label="Texture Scrolling" name="Texture_Scrolling" binding-path="objectGridSettings.textureScrolling" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:Foldout>
+        <ui:VisualElement name="VisualElement" style="position: absolute; flex-direction: column; align-items: flex-end; right: 0; height: 24px; justify-content: center; width: 24px;">
+            <ui:Toggle binding-path="displayObjectGrid" name="Display_Object_Grid" style="margin-top: 2px; margin-right: -2px; margin-bottom: 0; margin-left: 0; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); width: 24px; height: 24px; padding-left: 4px; opacity: 1; -unity-text-align: upper-left; justify-content: center; flex-direction: column; background-color: rgb(88, 88, 88);" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:VisualElement name="Canvas_Grid_Visual_Properties" style="margin-bottom: 8px;">
+        <ui:Foldout text="Visual - Canvas Grid" name="Canvas_Grid_Visual_Properties" view-data-key="Canvas_Grid_Visual_Properties" style="visibility: visible; display: flex; overflow: visible; opacity: 1; position: relative; flex-wrap: nowrap; flex-direction: column; transform-origin: center; background-image: none; -unity-text-align: upper-left; font-size: 12px;">
+            <ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center; margin-top: 4px;">
+                    <ui:VisualElement name="VisualElement" style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Toggle label="Display Canvas Grid" name="Display_Canvas_Grid" focusable="false" binding-path="displayCanvasGrid" style="left: 2.5%; margin-top: 0; margin-left: 4px; margin-bottom: 0; margin-right: 4px; width: 95%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 1px; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <uie:ObjectField label="Canvas Grid Prefab" name="Canvas_Grid_Prefab" binding-path="canvasGridSettings.canvasGridPrefab" type="UnityEngine.Object, UnityEngine.CoreModule" style="left: 2.5%; width: 95%; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <uie:ObjectField label="Cell Image Sprite" binding-path="canvasGridSettings.cellImageSprite" name="Cell_Image_Sprite" type="UnityEngine.Sprite, UnityEngine.CoreModule" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <uie:ColorField label="Grid Show Color" value="RGBA(0.000, 1.000, 1.000, 1.000)" binding-path="canvasGridSettings.gridShowColor" name="Grid_Show_Color" view-data-key="Grid_Show_Color" style="left: 2.5%; width: 95%; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <uie:ColorField label="Grid Hide Color" value="RGBA(0.000, 1.000, 1.000, 1.000)" binding-path="canvasGridSettings.gridHideColor" name="Grid_Hide_Color" view-data-key="Grid_Hide_Color" style="left: 2.5%; width: 95%; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center; margin-bottom: 0;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <uie:FloatField label="Color Transition Speed" value="0" binding-path="canvasGridSettings.colorTransitionSpeed" name="Color_Transition_Speed" style="left: 2.5%; width: 95%; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Toggle label="Only Show Active Vertical Grid" binding-path="canvasGridSettings.onlyShowActiveVerticalGrid" name="Only_Show_Active_Vertical_Grid" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; margin-bottom: 4px;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Toggle label="Always Lock At First Grid" binding-path="canvasGridSettings.alwaysLockAtFirstGrid" name="Always_Lock_At_First_Grid" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:GroupBox name="GroupBox" style="background-color: rgb(70, 70, 70); margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-width: 1px; border-right-width: 0; border-bottom-width: 0; border-left-width: 0;">
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; border-top-width: 4px; margin-bottom: 4px; margin-top: 4px;">
+                        <ui:VisualElement name="VisualElement" style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Label tabindex="-1" text="Display Canvas Grid On Grid Mode:" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Label" style="margin-right: 4px; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                        <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                            <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 1px; margin-top: -4px; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                        <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Toggle label="Grid Mode Default" binding-path="canvasGridSettings.displayOnDefaultMode" name="Display_On_Default_Mode" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                        <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Toggle label="Grid Mode Build" binding-path="canvasGridSettings.displayOnBuildMode" name="Display_On_Build_Mode" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                        <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Toggle label="Grid Mode Destroy" binding-path="canvasGridSettings.displayOnDestroyMode" name="Display_On_Destroy_Mode" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                        <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Toggle label="Grid Mode Select" binding-path="canvasGridSettings.displayOnSelectMode" name="Display_On_Select_Mode" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; margin-bottom: 4px;">
+                        <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Toggle label="Grid Mode Move" binding-path="canvasGridSettings.displayOnMoveMode" name="Display_On_Move_Mode" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:GroupBox>
+            </ui:VisualElement>
+        </ui:Foldout>
+        <ui:VisualElement name="VisualElement" style="position: absolute; flex-direction: column; align-items: flex-end; right: 0; height: 24px; justify-content: center; width: 24px;">
+            <ui:Toggle binding-path="displayCanvasGrid" name="Display_Canvas_Grid" style="margin-top: 2px; margin-right: -2px; margin-bottom: 0; margin-left: 0; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); width: 24px; height: 24px; padding-left: 4px; opacity: 1; -unity-text-align: upper-left; justify-content: center; flex-direction: column; background-color: rgb(88, 88, 88);" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:VisualElement name="Text_Grid_Visual_Properties" style="margin-bottom: 8px;">
+        <ui:Foldout text="Visual - Runtime Text Grid" name="Text_Grid_Visual_Properties" view-data-key="Text_Grid_Visual_Properties" style="visibility: visible; display: flex; overflow: visible; opacity: 1; position: relative; flex-wrap: nowrap; flex-direction: column; transform-origin: center; background-image: none; -unity-text-align: upper-left; font-size: 12px;">
+            <ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center; margin-top: 4px;">
+                    <ui:VisualElement name="VisualElement" style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Toggle label="Display Text Grid" name="Display_Text_Grid" focusable="false" binding-path="displayRuntimeTextGrid" style="left: 2.5%; margin-top: 0; margin-left: 4px; margin-bottom: 0; margin-right: 4px; width: 95%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 1px; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <uie:ObjectField label="Text Prefab" name="Text_Grid_Prefab" binding-path="runtimeTextGridSettings.textPrefab" type="UnityEngine.Transform, UnityEngine.CoreModule" style="left: 2.5%; width: 95%; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Toggle label="Display Cell Position Text" binding-path="runtimeTextGridSettings.displayCellPositionText" name="Display_Cell_Position_Text" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center; margin-bottom: 0;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Slider label="Text Size Percentage" high-value="200" name="Text_Size_Percentage" binding-path="runtimeTextGridSettings.textSizePercentage" show-input-field="true" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center; margin-bottom: 0;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Vector3Field label="Text Grid Custom Offset" name="Text_Grid_Custom_Offset" binding-path="runtimeTextGridSettings.textGridCustomOffset" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <uie:ColorField label="Text Color Override" value="RGBA(0.000, 1.000, 1.000, 1.000)" binding-path="runtimeTextGridSettings.textColorOverride" name="Text_Color_Override" view-data-key="Grid_Show_Color" style="left: 2.5%; width: 95%; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Toggle label="Only Show Active Vertical Grid" binding-path="runtimeTextGridSettings.onlyShowActiveVerticalGrid" name="Only_Show_Active_Vertical_Grid" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Toggle label="Only Spawn First Vertical Grid" binding-path="runtimeTextGridSettings.onlySpawnFirstVerticalGrid" name="Only_Spawn_First_Vertical_Grid" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; margin-bottom: 4px;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Toggle label="Always Lock At First Grid" binding-path="runtimeTextGridSettings.alwaysLockAtFirstGrid" name="Always_Lock_At_First_Grid" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:GroupBox name="GroupBox" style="background-color: rgb(70, 70, 70); margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-width: 1px; border-right-width: 0; border-bottom-width: 0; border-left-width: 0;">
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; border-top-width: 4px; margin-bottom: 4px; margin-top: 4px;">
+                        <ui:VisualElement name="VisualElement" style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Label tabindex="-1" text="Display Runtime Text Grid On Grid Mode:" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Label" style="margin-right: 4px; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                        <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                            <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 1px; margin-top: -4px; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                        <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Toggle label="Grid Mode Default" binding-path="runtimeTextGridSettings.displayOnDefaultMode" name="Display_On_Default_Mode" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                        <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Toggle label="Grid Mode Build" binding-path="runtimeTextGridSettings.displayOnBuildMode" name="Display_On_Build_Mode" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                        <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Toggle label="Grid Mode Destroy" binding-path="runtimeTextGridSettings.displayOnDestroyMode" name="Display_On_Destroy_Mode" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                        <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Toggle label="Grid Mode Select" binding-path="runtimeTextGridSettings.displayOnSelectMode" name="Display_On_Select_Mode" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; margin-bottom: 4px;">
+                        <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Toggle label="Grid Mode Move" binding-path="runtimeTextGridSettings.displayOnMoveMode" name="Display_On_Move_Mode" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:GroupBox>
+            </ui:VisualElement>
+        </ui:Foldout>
+        <ui:VisualElement name="VisualElement" style="position: absolute; flex-direction: column; align-items: flex-end; right: 0; height: 24px; justify-content: center; width: 24px;">
+            <ui:Toggle binding-path="displayRuntimeTextGrid" name="Display_Text_Grid" style="margin-top: 2px; margin-right: -2px; margin-bottom: 0; margin-left: 0; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); width: 24px; height: 24px; padding-left: 4px; opacity: 1; -unity-text-align: upper-left; justify-content: center; flex-direction: column; background-color: rgb(88, 88, 88);" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:VisualElement name="Procedural_Grid_Visual_Properties" style="margin-bottom: 8px;">
+        <ui:Foldout text="Visual - Runtime Procedural Grid" name="Procedural_Grid_Visual_Properties" view-data-key="Procedural_Grid_Visual_Properties" style="visibility: visible; display: flex; overflow: visible; opacity: 1; position: relative; flex-wrap: nowrap; flex-direction: column; transform-origin: center; background-image: none; -unity-text-align: upper-left; font-size: 12px;">
+            <ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; margin-top: 4px;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Toggle label="Display Procedural Grid" binding-path="displayRuntimeProceduralGrid" name="Display_Procedural_Grid" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 1px; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                    <ui:VisualElement name="VisualElement" style="flex-basis: 94%; justify-content: center; align-items: flex-start; flex-direction: column;">
+                        <ui:IntegerField label="Seed" value="0" binding-path="runtimeProceduralGridSettings.seed" name="Seed" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;">
+                            <ui:Button text="Random" parse-escape-sequences="true" display-tooltip-when-elided="true" binding-path="GenerateRandomSeed" name="Random_Seed" style="border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; margin-top: 0; margin-bottom: 0; margin-right: 0; margin-left: 4px;" />
+                        </ui:IntegerField>
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Toggle label="Preserve Seed Post Generation" binding-path="runtimeProceduralGridSettings.preserveSeedPostGeneration" name="Preserve_Seed_Post_Generation" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; margin-top: 18px;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Toggle label="Use Perlin Noise" binding-path="runtimeProceduralGridSettings.usePerlinNoise" name="Use_Perlin_Noise" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 1px; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; margin-bottom: 0;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:IntegerField label="Noise Horizontal Scroll" value="0" name="Scroll_Noise_Horizontally" binding-path="runtimeProceduralGridSettings.scrollNoiseHorizontally" style="left: 2.5%; width: 95%; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; margin-bottom: 0;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:IntegerField label="Noise Vertical Scroll" value="0" name="Scroll_Noise_Vertically" binding-path="runtimeProceduralGridSettings.scrollNoiseVertically" style="left: 2.5%; width: 95%; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; height: 24px; align-items: center; margin-bottom: 4px;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Slider label="Noise Scale" high-value="20" name="Noise_Scale" binding-path="runtimeProceduralGridSettings.noiseScale" show-input-field="true" low-value="1" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:Instance template="Custom Property Field Node Objects" name="Custom Property Field Node Objects" binding-path="runtimeProceduralGridSettings.nodeObjects" view-data-key="NodeObjects" style="margin-top: 0; margin-bottom: 4px;" />
+            <ui:Instance template="Custom Property Field Node Objects Border" name="Custom Property Field Node Objects Border" binding-path="runtimeProceduralGridSettings.borderNodeObjects" view-data-key="BorderNodeObjects" style="margin-bottom: 4px;" />
+            <ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; margin-top: 4px;">
+                    <ui:VisualElement name="VisualElement" style="flex-basis: 94%; justify-content: center; align-items: flex-start; flex-direction: column;">
+                        <ui:IntegerField label="Border Tiles Amount" value="0" binding-path="runtimeProceduralGridSettings.borderTilesAmount" name="Border_Tiles_Amount" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 1px; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                    <ui:VisualElement name="VisualElement" style="flex-basis: 94%; justify-content: center; align-items: flex-start; flex-direction: column;">
+                        <ui:FloatField label="Delay Between Spawns" value="0" name="Delay_Between_Spawns" binding-path="runtimeProceduralGridSettings.delayBetweenSpawns" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Toggle label="Spawn Row By Row" binding-path="runtimeProceduralGridSettings.spawnRowByRow" name="Spawn_Row_By_Row" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Toggle label="Only Show Active Vertical Grid" binding-path="runtimeProceduralGridSettings.onlyShowActiveVerticalGrid" name="Only_Show_Active_Vertical_Grid" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Toggle label="Only Spawn First Vertical Grid" binding-path="runtimeProceduralGridSettings.onlySpawnFirstVerticalGrid" name="Only_Spawn_First_Vertical_Grid" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; margin-bottom: 4px;">
+                    <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                        <ui:Toggle label="Always Lock At First Grid" binding-path="runtimeProceduralGridSettings.alwaysLockAtFirstGrid" name="Always_Lock_At_First_Grid" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                        <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; margin-top: 0; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:GroupBox name="GroupBox" style="background-color: rgb(70, 70, 70); margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-width: 1px; border-right-width: 0; border-bottom-width: 0; border-left-width: 0;">
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; border-top-width: 4px; margin-bottom: 4px; margin-top: 4px;">
+                        <ui:VisualElement name="VisualElement" style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Label tabindex="-1" text="Display Runtime Procedural Grid On Grid Mode:" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Label" style="margin-right: 4px; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                        <ui:VisualElement style="flex-basis: 6%; align-items: flex-end; justify-content: center;">
+                            <ui:Button display-tooltip-when-elided="true" name="Button" class="help_button" style="height: 24px; background-image: url(&quot;project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/14.png?fileID=21300000&amp;guid=c11bf81786e4aa444ba93831f14e2a45&amp;type=3#14&quot;); width: 24px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 1px; margin-top: -4px; margin-bottom: 0; display: flex; visibility: visible; overflow: hidden; border-right-width: 1px; margin-right: 0; border-left-width: 1px; left: 1px; transition-duration: 0.15s; margin-left: 4px; border-bottom-width: 1px;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                        <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Toggle label="Grid Mode Default" binding-path="runtimeProceduralGridSettings.displayOnDefaultMode" name="Display_On_Default_Mode" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                        <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Toggle label="Grid Mode Build" binding-path="runtimeProceduralGridSettings.displayOnBuildMode" name="Display_On_Build_Mode" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                        <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Toggle label="Grid Mode Destroy" binding-path="runtimeProceduralGridSettings.displayOnDestroyMode" name="Display_On_Destroy_Mode" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center;">
+                        <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Toggle label="Grid Mode Select" binding-path="runtimeProceduralGridSettings.displayOnSelectMode" name="Display_On_Select_Mode" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="VisualElement" style="flex-direction: row; height: 24px; align-items: center; margin-bottom: 4px;">
+                        <ui:VisualElement style="flex-basis: 94%; justify-content: center; align-items: flex-start;">
+                            <ui:Toggle label="Grid Mode Move" binding-path="runtimeProceduralGridSettings.displayOnMoveMode" name="Display_On_Move_Mode" style="margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 4px; width: 95%; left: 2.5%;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:GroupBox>
+            </ui:VisualElement>
+        </ui:Foldout>
+        <ui:VisualElement name="VisualElement" style="position: absolute; flex-direction: column; align-items: flex-end; right: 0; height: 24px; justify-content: center; width: 24px;">
+            <ui:Toggle binding-path="displayRuntimeProceduralGrid" name="Display_Procedural_Grid" style="margin-top: 2px; margin-right: -2px; margin-bottom: 0; margin-left: 0; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); width: 24px; height: 24px; padding-left: 4px; opacity: 1; -unity-text-align: upper-left; justify-content: center; flex-direction: column; background-color: rgb(88, 88, 88);" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

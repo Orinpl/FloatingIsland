@@ -1,0 +1,196 @@
+.unity-foldout__checkmark {
+    background-image: url("project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/2.png?fileID=21300000&guid=5e8b20b12daede24a8598800640b7411&type=3#2");
+    border-top-width: 0;
+    border-right-width: 0;
+    border-bottom-width: 0;
+    border-left-width: 0;
+    border-left-color: rgb(255, 255, 255);
+    border-right-color: rgb(255, 255, 255);
+    border-top-color: rgb(255, 255, 255);
+    border-bottom-color: rgb(255, 255, 255);
+    rotate: 0;
+    translate: 0 0;
+    padding-top: 0;
+    padding-right: 0;
+    margin-right: 10px;
+    margin-top: 2px;
+    -unity-slice-left: 0;
+    -unity-slice-top: 0;
+    -unity-slice-right: 0;
+    -unity-slice-bottom: 0;
+    top: -1px;
+    right: auto;
+    position: relative;
+    scale: 1 1;
+    transform-origin: center;
+    justify-content: flex-start;
+    align-items: stretch;
+    flex-shrink: 1;
+    -unity-background-image-tint-color: rgb(255, 255, 255);
+    left: 0;
+    width: 22px;
+    height: 22px;
+    margin-bottom: 0;
+    margin-left: 0;
+    background-color: var(--unity-colors-highlight-background);
+}
+
+Foldout > Toggle:checked .unity-foldout__checkmark {
+    background-image: url("project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/1.png?fileID=21300000&guid=da85f91722085f64ba5e1aae0c4bddb0&type=3#1");
+    width: 22px;
+    height: 22px;
+    -unity-background-image-tint-color: rgb(255, 255, 255);
+    background-color: var(--unity-colors-highlight-background);
+    border-top-width: 0;
+    border-right-width: 0;
+    border-bottom-width: 0;
+    border-left-width: 0;
+    border-left-color: rgb(0, 0, 0);
+    border-right-color: rgb(0, 0, 0);
+    border-top-color: rgb(0, 0, 0);
+    border-bottom-color: rgb(0, 0, 0);
+    top: -1px;
+    left: auto;
+    margin-right: 10px;
+    margin-top: 2px;
+}
+
+.unity-foldout__toggle {
+    border-left-color: rgb(25, 22, 25);
+    border-right-color: rgb(25, 22, 25);
+    border-bottom-color: rgb(25, 22, 25);
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    -unity-background-image-tint-color: rgb(255, 255, 255);
+    margin-left: 0;
+    height: 24px;
+    top: auto;
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: var(--unity-colors-default-text);
+    background-image: none;
+    background-color: var(--unity-colors-default-background);
+    border-top-color: rgb(25, 22, 25);
+}
+
+.unity-foldout__content {
+    border-left-color: rgb(25, 22, 25);
+    border-right-color: rgb(25, 22, 25);
+    border-top-color: rgb(25, 22, 25);
+    border-bottom-color: rgb(25, 22, 25);
+    border-top-width: 0;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    background-color: var(--unity-colors-box-background);
+    left: auto;
+    margin-top: -3px;
+    margin-right: 2px;
+    margin-left: 4px;
+    padding-top: 0;
+}
+
+.help_button {
+    transition-duration: 0.25s;
+    transition-property: all;
+    background-color: var(--unity-colors-highlight-background);
+    transition-timing-function: ease-out-bounce;
+    border-left-color: rgb(25, 22, 25);
+    border-right-color: rgb(25, 22, 25);
+    border-top-color: rgb(25, 22, 25);
+    border-bottom-color: rgb(25, 22, 25);
+}
+
+.help_button:hover {
+    -unity-background-image-tint-color: rgb(125, 255, 40);
+}
+
+.unity-base-field__input {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.header_lable:hover {
+    font-size: 30px;
+}
+
+.header_lable {
+    transition-duration: 0.25s;
+    transition-timing-function: ease-out-bounce;
+}
+
+.custom_foldout_button {
+    background-image: url("project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/46.png?fileID=21300000&guid=2fc3d013ad5b0cb48a3e902a26ceb7d7&type=3#46");
+}
+
+.custom_foldout_button:active {
+    background-image: url("project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/47.png?fileID=21300000&guid=df52782ec4ac40243b1af512f2d4d878&type=3#47");
+}
+
+.unity-list-view__header {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-left-color: rgb(25, 22, 25);
+    border-right-color: rgb(25, 22, 25);
+    border-top-color: rgb(25, 22, 25);
+    border-bottom-color: rgb(25, 22, 25);
+    margin-top: -1px;
+    margin-right: -4px;
+    margin-left: -4px;
+}
+
+.unity-event__list-view-scroll-view {
+    border-left-color: rgb(25, 22, 25);
+    border-right-color: rgb(25, 22, 25);
+    border-top-color: rgb(25, 22, 25);
+    border-bottom-color: rgb(25, 22, 25);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+    margin-right: -4px;
+    margin-left: -4px;
+}
+
+.unity-list-view__footer {
+    border-left-color: rgb(25, 22, 25);
+    border-right-color: rgb(25, 22, 25);
+    border-top-color: rgb(25, 22, 25);
+    border-bottom-color: rgb(25, 22, 25);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+    margin-right: -4px;
+    border-top-width: 0;
+    border-right-width: 1px;
+    border-bottom-width: 0;
+    border-left-width: 1px;
+}
+
+.unity-list-view__reorderable-handle {
+    background-image: url("project://database/Assets/SoulGames/Utilities/Custom%20Editor%20Icons/Easy%20Grid%20Builder%20Pro%202/2.png?fileID=2800000&guid=5e8b20b12daede24a8598800640b7411&type=3#2");
+    height: 24px;
+    width: 18px;
+    margin-left: 4px;
+    margin-right: 2px;
+}
+
+.unity-list-view__reorderable-handle-bar {
+    background-color: rgba(0, 0, 0, 0);
+    background-image: none;
+}
+
+.unity-label {
+    width: 188px;
+}

@@ -1,0 +1,1057 @@
+{
+    "name": "EGB Pro 2 Default Input Actions",
+    "maps": [
+        {
+            "name": "Core Grid Actions",
+            "id": "da6352d5-5971-4ba4-9bb4-d30ff4b49549",
+            "actions": [
+                {
+                    "name": "Grid Mode Reset",
+                    "type": "Button",
+                    "id": "e259d574-ca5d-474e-a69f-3bd0804650bb",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Placement And Selection Reset",
+                    "type": "Button",
+                    "id": "4cfffeef-d4e1-4871-9e73-edc29db67cf0",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Vertical Grid Scroll",
+                    "type": "Button",
+                    "id": "a2be4268-bf62-4eeb-96a8-7a25e01abe01",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Vertical Grid Move Up",
+                    "type": "Button",
+                    "id": "d35e08dc-cba2-4827-9f55-d83c7b8cb109",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Vertical Grid Move Down",
+                    "type": "Button",
+                    "id": "32e4c883-d43f-4ca3-b75b-50f420310c64",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Undo",
+                    "type": "Button",
+                    "id": "ba49b3d3-adbd-40a5-a994-65a2d537c4c1",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Redo",
+                    "type": "Button",
+                    "id": "a605fb57-6687-4774-bd8d-4cff10a0ac75",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Grid Save",
+                    "type": "Button",
+                    "id": "7e69c4a5-ce57-4388-a408-6c7f388ea4d6",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Grid Load",
+                    "type": "Button",
+                    "id": "1e962c49-244d-4c39-9dc4-e45b636bd00e",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "e1bb5e67-2bd1-48f5-bbb2-007bef7c777d",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Grid Mode Reset",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "3945e123-22ea-4d49-90d3-a7538cfee563",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Placement And Selection Reset",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "One Modifier",
+                    "id": "cfe44420-f1f9-4e94-a481-d2d23a93e55a",
+                    "path": "OneModifier",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Undo",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "modifier",
+                    "id": "8bdf9340-7c7d-4713-ac70-75357a7f3551",
+                    "path": "<Keyboard>/ctrl",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Undo",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "binding",
+                    "id": "d0844c7a-0976-41b6-8653-44841d8669c7",
+                    "path": "<Keyboard>/z",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Undo",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "One Modifier",
+                    "id": "2c48bc1b-3a10-4c23-b410-0b330eaf6d6a",
+                    "path": "OneModifier",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Grid Save",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "modifier",
+                    "id": "26d0e437-92e0-434e-b4a0-720b381212e2",
+                    "path": "<Keyboard>/ctrl",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Grid Save",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "binding",
+                    "id": "6d125881-9489-4326-8067-ec533fee468a",
+                    "path": "<Keyboard>/s",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Grid Save",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "One Modifier",
+                    "id": "251bba88-c08b-44aa-b68e-a9c76dde6105",
+                    "path": "OneModifier",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Grid Load",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "modifier",
+                    "id": "9b10cf15-2c3f-4214-9b4d-d54ff3422f9e",
+                    "path": "<Keyboard>/ctrl",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Grid Load",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "binding",
+                    "id": "14e275d7-a5e1-46aa-a69d-af00895e1d84",
+                    "path": "<Keyboard>/l",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Grid Load",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "One Modifier",
+                    "id": "50ece5e4-7255-4824-a5cf-a14f5671952c",
+                    "path": "OneModifier",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Redo",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "modifier",
+                    "id": "0d0c2110-c1dc-4a9f-a6f9-a7b1ab449e7a",
+                    "path": "<Keyboard>/ctrl",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Redo",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "binding",
+                    "id": "68473458-1d36-4cd5-9a02-e9d403919fb0",
+                    "path": "<Keyboard>/y",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Redo",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "bc38a5d0-3efb-4205-a3f0-7023aa1f6df0",
+                    "path": "<Keyboard>/upArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Vertical Grid Move Up",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d8507f8f-cd72-4465-9c90-9f250c9130bd",
+                    "path": "<Keyboard>/downArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Vertical Grid Move Down",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        },
+        {
+            "name": "Build Actions",
+            "id": "bf7243c5-693b-40c6-83b7-d1bc9ce74147",
+            "actions": [
+                {
+                    "name": "Build Mode Activation",
+                    "type": "Button",
+                    "id": "84d907f6-04fe-4a4f-98fb-b9839001053a",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Build",
+                    "type": "Button",
+                    "id": "3840978b-8aaf-43a1-b546-895ffbccaea0",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Buildable List Scroll",
+                    "type": "Button",
+                    "id": "846ead21-5748-4d0a-8e9b-70144527968e",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Buildable List Move Up",
+                    "type": "Button",
+                    "id": "39fc4165-064a-4d41-a7d1-9e285c32b648",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Buildable List Move Down",
+                    "type": "Button",
+                    "id": "f2db4f5a-9691-40bc-9653-0cf6f905a779",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Active Buildable Placement Type Scroll",
+                    "type": "Button",
+                    "id": "7d6ee095-8961-4b01-a68e-9a601bb20f06",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Active Buildable Placement Type Move Up",
+                    "type": "Button",
+                    "id": "976ce8a6-e2de-4b42-bc8e-c62167be65c9",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Active Buildable Placement Type Move Down",
+                    "type": "Button",
+                    "id": "de900118-3dd5-4765-929e-be60b119f97e",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Buildable Rotate Scroll",
+                    "type": "Button",
+                    "id": "caaa8737-6f1a-497a-8b1e-20af841bd626",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Buildable Rotate Clockwise",
+                    "type": "Button",
+                    "id": "976d1a63-e1ea-4132-9c58-2da4d7c07fee",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Buildable Rotate Counter Clockwise",
+                    "type": "Button",
+                    "id": "1d45d299-9518-4aae-b5dd-8694888aa93b",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Buildable Edge Object Flip",
+                    "type": "Button",
+                    "id": "f0d35dde-e9ee-4cc4-9686-8bcc2d5cd043",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Buildable Free Object Spline Placement Complete",
+                    "type": "Button",
+                    "id": "93343013-03c2-442c-8b22-1f37a135fbe8",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Buildable Free Object Spline Placement Space Scroll",
+                    "type": "Button",
+                    "id": "e49167b6-9166-40ff-b833-5b9f08be3806",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Buildable Free Object Spline Placement Space Move Up",
+                    "type": "Button",
+                    "id": "6c132dab-a053-4dac-9422-d3b6c3a9d028",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Buildable Free Object Spline Placement Space Move Down",
+                    "type": "Button",
+                    "id": "d608f780-e3a8-4acd-92d3-cf67cfcff854",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "2ed42efb-b469-4562-84b0-fc50ee7bf369",
+                    "path": "<Keyboard>/r",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Build Mode Activation",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ab0ff5b6-c50b-4bab-bc04-196cf5e059c4",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Build",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ebc1d107-4c1a-417c-a631-c2f303bd7def",
+                    "path": "<Touchscreen>/Press",
+                    "interactions": "Hold(duration=0.01)",
+                    "processors": "",
+                    "groups": "Touchscreen",
+                    "action": "Build",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "856e6c51-33b2-4791-b80b-2dddedbbe8e2",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Buildable Rotate Clockwise",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "1f9f0fac-eac0-4496-b6a3-ebab13248440",
+                    "path": "<Keyboard>/q",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Buildable Rotate Counter Clockwise",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "0c46a488-7913-4bbe-9027-4e55d8ac539b",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Buildable Edge Object Flip",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c390ed4d-f73a-4451-981e-59041b066797",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Buildable Free Object Spline Placement Complete",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "1d5aa2f3-2171-4280-a183-574193759686",
+                    "path": "<Mouse>/scroll",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Buildable List Scroll",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "5317f9fc-7a2e-48b4-aa05-2f9b4de546fa",
+                    "path": "<Keyboard>/numpad8",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Active Buildable Placement Type Move Up",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7d5a911b-7cfa-4541-a7ad-0f5b95567fe2",
+                    "path": "<Keyboard>/numpad2",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Active Buildable Placement Type Move Down",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8508a101-32af-4d41-a74b-20a79f6519e5",
+                    "path": "<Keyboard>/numpad6",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Buildable Free Object Spline Placement Space Move Up",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "3ba0cff0-fc20-4ac6-8afa-1b60babeafd3",
+                    "path": "<Keyboard>/numpad4",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Buildable Free Object Spline Placement Space Move Down",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        },
+        {
+            "name": "Destroy Actions",
+            "id": "b710a4ee-2a52-4a28-a7e0-8d2805df983f",
+            "actions": [
+                {
+                    "name": "Destroy Mode Activation",
+                    "type": "Button",
+                    "id": "2e9c6327-1406-4911-a547-e9ead3bbbb92",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Destroy",
+                    "type": "Button",
+                    "id": "b53c76ae-728d-44db-9e70-f3484e32a1a8",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "63fa687a-2d04-496b-8d99-9813101ab6f0",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Destroy",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e971fc2a-748c-445f-a258-3e327e552fc4",
+                    "path": "<Keyboard>/t",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Destroy Mode Activation",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f7e478d4-e031-4f90-99c2-88986650dd8b",
+                    "path": "<Touchscreen>/Press",
+                    "interactions": "Hold(duration=0.01)",
+                    "processors": "",
+                    "groups": "Touchscreen",
+                    "action": "Destroy",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        },
+        {
+            "name": "Select Actions",
+            "id": "cfc60f46-4d2a-4987-8afc-743b3a2e4b1a",
+            "actions": [
+                {
+                    "name": "Select Mode Activation",
+                    "type": "Button",
+                    "id": "f77ed7fe-3c35-4a7e-9430-bb5fa6d92e66",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Select",
+                    "type": "Button",
+                    "id": "fbd96ae8-419c-4fe5-b4ca-f97e2a7f85b4",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Multi Selection Hold",
+                    "type": "Button",
+                    "id": "ec4b721b-a6c9-418f-b132-6d34b8c4ce41",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Selection Destroy",
+                    "type": "Button",
+                    "id": "e1afcf8d-439f-47ce-a255-78f260730bf1",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Selection Copy",
+                    "type": "Button",
+                    "id": "7641d4de-fbcf-49c0-baa8-5a9a27e3b28d",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Selection Move",
+                    "type": "Button",
+                    "id": "7423238b-d1b9-4313-8e20-266f4c72f0b4",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "6b66997d-a934-42aa-96c3-404e37972023",
+                    "path": "<Keyboard>/shift",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Multi Selection Hold",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e2dc688d-ffcd-4a11-9379-8526c7ffb955",
+                    "path": "<Keyboard>/delete",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Selection Destroy",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "1f2397b5-50db-4c1c-a5fc-d4202e95f5d1",
+                    "path": "<Keyboard>/c",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Selection Copy",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "1a145026-5698-4023-b274-efda526bd8d7",
+                    "path": "<Keyboard>/m",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Selection Move",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "6772a923-b655-4f18-b938-9a76790accf7",
+                    "path": "<Keyboard>/y",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Select Mode Activation",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "bd0330fc-de62-4325-ba94-f48fec27eec3",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Select",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "31b1ff2e-9c39-4e4d-a58e-c4aebc63c5af",
+                    "path": "<Touchscreen>/Press",
+                    "interactions": "Hold(duration=0.01)",
+                    "processors": "",
+                    "groups": "Touchscreen",
+                    "action": "Select",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        },
+        {
+            "name": "Move Actions",
+            "id": "9eec3f46-afa9-486f-9da4-96b2ce503248",
+            "actions": [
+                {
+                    "name": "Move Mode Activation",
+                    "type": "Button",
+                    "id": "ec50bce8-71a3-4918-b654-8d6979a0c572",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Move",
+                    "type": "Button",
+                    "id": "271cc9ae-e547-4317-9117-8267128d7366",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "37984b6e-ec9e-4484-938c-e2f71b6fe165",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c6a68059-3e3b-4cd4-a648-470f3f65cd6d",
+                    "path": "<Keyboard>/u",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Move Mode Activation",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "5efa4243-d42a-40cc-b577-1c0fdb9fe548",
+                    "path": "<Touchscreen>/Press",
+                    "interactions": "Hold(duration=0.01)",
+                    "processors": "",
+                    "groups": "Touchscreen",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        },
+        {
+            "name": "Heat Map Actions",
+            "id": "940ca47e-1bbe-419b-a126-6674c315ee2d",
+            "actions": [
+                {
+                    "name": "Heat Map Mode Toggle",
+                    "type": "Button",
+                    "id": "59c07050-e52c-4613-80f9-5c454552d821",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Heat Map Mode Enable",
+                    "type": "Button",
+                    "id": "53318b90-9fa8-494d-b5be-7577295c0452",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Heat Map Mode Disable",
+                    "type": "Button",
+                    "id": "b7bb017a-1b49-4af2-a6ee-5b0ea1e38149",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Heat Map Switch Scroll",
+                    "type": "Button",
+                    "id": "ead8e962-9ede-48f8-85b3-2f996dc36f26",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Heat Map Switch Move Up",
+                    "type": "Button",
+                    "id": "920507e9-8e35-42c2-9b70-d3d9ac91536c",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Heat Map Switch Move Down",
+                    "type": "Button",
+                    "id": "0e60302e-8f41-49d2-b6b5-ea58ec565941",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Heat Map Brush Size Scroll",
+                    "type": "Button",
+                    "id": "33fb2be5-384e-4e9c-b86d-690b5256d21b",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Heat Map Brush Size Move Up",
+                    "type": "Button",
+                    "id": "e4b9d118-599b-4486-9e53-5ea5b26dc276",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Heat Map Brush Size Move Down",
+                    "type": "Button",
+                    "id": "5b1e06a0-4801-4da4-9eda-a3b70513f00d",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Heat Map Paint",
+                    "type": "Button",
+                    "id": "88c5f76f-51d7-47fa-94c8-279fc44f6149",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Heat Map Read",
+                    "type": "Button",
+                    "id": "d299bc8f-6ceb-47d5-bfca-164c52abfa14",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "867edee2-dcdf-4008-8d6d-2e23e7ec5b90",
+                    "path": "<Keyboard>/tab",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Heat Map Mode Toggle",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "5aab0db0-225d-480c-8dc8-93875a2f8119",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Heat Map Paint",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "77c99d7c-dd84-4455-912c-bd40e128f314",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Heat Map Read",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e524276b-c1db-4f94-b1c6-993ca8a8e6c0",
+                    "path": "<Mouse>/scroll",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse And KeyBoard",
+                    "action": "Heat Map Brush Size Scroll",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c9d896f4-0a90-49a2-9f6a-1fdbf48f5236",
+                    "path": "<Touchscreen>/Press",
+                    "interactions": "Hold(duration=0.01)",
+                    "processors": "",
+                    "groups": "Touchscreen",
+                    "action": "Heat Map Paint",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "482de17a-dcec-4e3a-8894-ef19a324ddda",
+                    "path": "<Keyboard>/period",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Heat Map Switch Move Up",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f789bc1e-01e5-4232-a829-9624d1b03fdf",
+                    "path": "<Keyboard>/comma",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Heat Map Switch Move Down",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b6820ed7-d075-4958-807d-cad4b50bfe21",
+                    "path": "<Keyboard>/equals",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Heat Map Brush Size Move Up",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "0756ff64-320d-4371-afff-a23945540a99",
+                    "path": "<Keyboard>/minus",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Heat Map Brush Size Move Down",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": [
+        {
+            "name": "Mouse And KeyBoard",
+            "bindingGroup": "Mouse And KeyBoard",
+            "devices": [
+                {
+                    "devicePath": "<Keyboard>",
+                    "isOptional": false,
+                    "isOR": false
+                },
+                {
+                    "devicePath": "<Mouse>",
+                    "isOptional": false,
+                    "isOR": false
+                }
+            ]
+        },
+        {
+            "name": "Touchscreen",
+            "bindingGroup": "Touchscreen",
+            "devices": [
+                {
+                    "devicePath": "<Touchscreen>",
+                    "isOptional": false,
+                    "isOR": false
+                }
+            ]
+        },
+        {
+            "name": "Gamepad",
+            "bindingGroup": "Gamepad",
+            "devices": [
+                {
+                    "devicePath": "<Gamepad>",
+                    "isOptional": false,
+                    "isOR": false
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,10 @@
+{
+  "startGold": 500,
+  "maxLevel": 60,
+  "expCurveMul": 1.25,
+  "enablePvp": false,
+  "startItems": [
+    "potion_small",
+    "sword_iron"
+  ]
+}

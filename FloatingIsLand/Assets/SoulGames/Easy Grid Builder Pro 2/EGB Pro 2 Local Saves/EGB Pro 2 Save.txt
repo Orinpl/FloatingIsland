@@ -1,0 +1,31 @@
+{
+    "gridSystemsSaveData": {
+        "gridSaveDataList": [
+            {
+                "gridUniqueID": "acf5e89f-f32a-4a54-9364-3bcc5d808c32",
+                "gridPosition": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "gridWidth": 30,
+                "gridLength": 25,
+                "cellSize": 2.0,
+                "updateGridPositionRuntime": false,
+                "updateGridWidthAndLengthRuntime": false,
+                "gridOriginType": 0,
+                "buildableGridObjectSOList": [
+                    {
+                        "instanceID": 30842
+                    }
+                ],
+                "buildableEdgeObjectSOList": [],
+                "buildableCornerObjectSOList": [],
+                "buildableFreeObjectSOList": []
+            }
+        ]
+    },
+    "buildableObjectsSaveData": {
+        "builtObjectSaveDataList": []
+    }
+}

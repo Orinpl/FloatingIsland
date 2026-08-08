@@ -1,0 +1,4 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <Style src="project://database/Assets/SoulGames/Utilities/Custom%20Editor%20UI%20Elements/Easy%20Grid%20Builder%20Pro%202/Random%20Prefabs.uss?fileID=7433441132597879392&amp;guid=ebae5c6bf3e74c64ba10d6833703d719&amp;type=3#Random Prefabs" />
+    <uie:PropertyField binding-path="randomPrefabs" class="unity-foldout__content unity-foldout" style="margin-right: 4px; margin-left: 4px; border-left-color: rgb(25, 22, 25); border-right-color: rgb(25, 22, 25); border-top-color: rgb(25, 22, 25); border-bottom-color: rgb(25, 22, 25); border-top-width: 0; border-right-width: 0; border-bottom-width: 0; border-left-width: 0;" />
+</ui:UXML>

@@ -1,0 +1,4 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <Style src="project://database/Assets/SoulGames/Utilities/Custom%20Editor%20UI%20Elements/Easy%20Grid%20Builder%20Pro%202/Custom%20Property%20Field%20Node%20Objects.uss?fileID=7433441132597879392&amp;guid=fc9ad3d696300154ab18a1e80352a835&amp;type=3#Custom Property Field Node Objects" />
+    <uie:PropertyField binding-path="runtimeProceduralGridSettings.borderNodeObjects" label="Border Node Objects" />
+</ui:UXML>
