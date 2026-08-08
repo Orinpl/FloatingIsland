@@ -1,0 +1,95 @@
+# Unity .gitignore — 必须放在 Unity 工程根目录（本目录），规则里的 / 锚定到这里
+# 来源：https://github.com/github/gitignore/blob/main/Unity.gitignore
+
+# ---------- Unity 生成的目录 ----------
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+.utmp/
+
+# MemoryCapture 体积极大，且可能含敏感数据
+/[Mm]emoryCaptures/
+
+# 录制文件体积极大
+/[Rr]ecordings/
+
+# IL2CPP / Burst 构建产物
+/[Ii]l2[Cc]pp[Oo]utput[Pp]roject/
+/[Bb]urst[Dd]ebug[Ii]nformation_[Dd]o[Nn]ot[Ss]hip*/
+
+# ---------- 日志与崩溃报告 ----------
+*.log
+sysinfo.txt
+mono_crash.*
+crashlytics-build.properties
+
+# ---------- IDE / 工具生成 ----------
+# VS / Rider / Consulo 自动生成的工程文件（Unity 会重新生成，不要提交）
+*.csproj
+*.unityproj
+*.sln
+*.slnx
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+ExportedObj/
+.consulo/
+.vs/
+.gradle/
+
+# 上述文件对应的 meta
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+
+# Rider 自动装的插件 + 个人层配置
+/[Aa]ssets/Plugins/Editor/JetBrains*
+*.DotSettings.user
+
+# ---------- 打包产物 ----------
+*.apk
+*.aab
+*.ipa
+*.app
+*.unitypackage
+*.unitypackage.meta
+
+# ---------- Addressables ----------
+/ServerData
+/[Aa]ssets/StreamingAssets/aa*
+/[Aa]ssets/AddressableAssetsData/link.xml*
+/[Aa]ssets/Addressables_Temp*
+# 内容构建会在平台子目录生成 addressables_content_state.bin
+/[Aa]ssets/AddressableAssetsData/*/*.bin*
+
+# ---------- Assets 内的自动生成物 ----------
+# Visual Scripting
+/[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Flow/UnitOptions.db
+/[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Flow/UnitOptions.db.meta
+/[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Core/Property Providers
+/[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Core/Property Providers.meta
+# PlayMode 测试自动生成的场景
+/[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+InitTestScene*.unity*
+# 场景依赖缓存
+/[Aa]ssets/[Ss]ceneDependencyCache*
+
+# ---------- 美术源文件的临时副本 ----------
+# Blender 备份文件不需要进版本管理
+*.blend1
+*.blend1.meta
+
+# 取消下行注释可忽略 Asset Store Tools 插件
+# /[Aa]ssets/AssetStoreTools*
