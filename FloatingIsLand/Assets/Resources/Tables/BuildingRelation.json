@@ -1,0 +1,136 @@
+[
+  {
+    "buildingId": "windVane",
+    "bonusFrom": [
+      "residence:0"
+    ],
+    "penaltyFrom": [
+      "windVane:0"
+    ]
+  },
+  {
+    "buildingId": "windmill",
+    "bonusFrom": [
+      "farm:0",
+      "potentialTower:0",
+      "workshop:0",
+      "logisticsPoint:0:2"
+    ],
+    "penaltyFrom": [
+      "windmill:0"
+    ]
+  },
+  {
+    "buildingId": "farm",
+    "bonusFrom": [
+      "windmill:0",
+      "farm:0"
+    ],
+    "penaltyFrom": []
+  },
+  {
+    "buildingId": "potentialTower",
+    "bonusFrom": [
+      "windmill:0",
+      "workshop:0",
+      "logisticsPoint:0:2",
+      "logisticsHub:0"
+    ],
+    "penaltyFrom": [
+      "potentialTower:0"
+    ]
+  },
+  {
+    "buildingId": "sail",
+    "bonusFrom": [],
+    "penaltyFrom": []
+  },
+  {
+    "buildingId": "miningStation",
+    "bonusFrom": [],
+    "penaltyFrom": [
+      "miningStation:0"
+    ]
+  },
+  {
+    "buildingId": "workshop",
+    "bonusFrom": [
+      "miningStation:0",
+      "logisticsPoint:0:2",
+      "logisticsHub:0"
+    ],
+    "penaltyFrom": []
+  },
+  {
+    "buildingId": "dock",
+    "bonusFrom": [
+      "workshop:0",
+      "logisticsPoint:0:2",
+      "logisticsHub:0"
+    ],
+    "penaltyFrom": []
+  },
+  {
+    "buildingId": "granary",
+    "bonusFrom": [
+      "farm:0",
+      "logisticsPoint:0:2",
+      "logisticsHub:0"
+    ],
+    "penaltyFrom": []
+  },
+  {
+    "buildingId": "restaurant",
+    "bonusFrom": [
+      "residence:0"
+    ],
+    "penaltyFrom": []
+  },
+  {
+    "buildingId": "shop",
+    "bonusFrom": [
+      "workshop:0",
+      "restaurant:0",
+      "residence:0"
+    ],
+    "penaltyFrom": []
+  },
+  {
+    "buildingId": "citizenCenter",
+    "bonusFrom": [],
+    "penaltyFrom": [
+      "citizenCenter:0"
+    ]
+  },
+  {
+    "buildingId": "residence",
+    "bonusFrom": [
+      "restaurant:0:2",
+      "shop:0:2",
+      "citizenCenter:0:1",
+      "residence:0:4",
+      "logisticsPoint:0:2",
+      "logisticsHub:0:1"
+    ],
+    "penaltyFrom": [
+      "miningStation:0",
+      "workshop:0"
+    ]
+  },
+  {
+    "buildingId": "logisticsPoint",
+    "bonusFrom": [],
+    "penaltyFrom": [
+      "logisticsPoint:0"
+    ]
+  },
+  {
+    "buildingId": "logisticsHub",
+    "bonusFrom": [
+      "logisticsPoint:0"
+    ],
+    "penaltyFrom": [
+      "logisticsHub:0"
+    ]
+  }
+]

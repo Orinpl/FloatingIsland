@@ -1,10 +1,15 @@
 {
-  "startGold": 500,
-  "maxLevel": 60,
-  "expCurveMul": 1.25,
-  "enablePvp": false,
-  "startItems": [
-    "potion_small",
-    "sword_iron"
+  "totalLevels": 20,
+  "scoreToGoldRatio": 0.0,
+  "freeRefreshCount": 0,
+  "refreshCostGold": 0,
+  "skipPenaltyScore": 0,
+  "guaranteeEasyBuilding": false,
+  "giantWindmillGenericScore": 0,
+  "anchorDockDecayPercents": [
+    1.0,
+    0.5,
+    0.25,
+    0.0
   ]
 }

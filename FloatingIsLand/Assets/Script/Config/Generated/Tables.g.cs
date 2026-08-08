@@ -5,77 +5,213 @@
 
 namespace FloatingIsLand.Config
 {
-    /// <summary>Demo.xlsx!Item</summary>
-    public sealed class ItemRow
+    /// <summary>FloatingIsland.xlsx!Building</summary>
+    public sealed class BuildingRow
     {
-        /// <summary>道具 Id（主键，首列 = 主键，须 int 或 string）</summary>
-        public string itemId;
+        /// <summary>建筑 Id（主键，camelCase，被关系表引用，一字不差）</summary>
+        public string buildingId;
         /// <summary>显示名</summary>
         public string nameCn;
-        /// <summary>售价（金币）</summary>
-        public int priceG;
-        /// <summary>重量（kg）</summary>
-        public float weight;
-        /// <summary>可堆叠（TRUE/FALSE/1/0/是/否 都认）</summary>
-        public bool stackable;
-        /// <summary>标签（数组：Excel 里用 | 分隔）</summary>
-        public string[] tags;
+        /// <summary>分类：windEnergy 风能 / agriculture 农业 / industry 工业 / storage 仓储 / commerce 商业 / residential 居民 / logistics 物流（UI 分组用）</summary>
+        public string category;
+        /// <summary>建造限制：any 普通合法地块 / greenField 必须绿地 / windPath 必须风带 / floatingZone 只能浮空区域 / oreRange 必须矿藏有效范围内（§11）</summary>
+        public string placement;
+        /// <summary>作用半径（格，切比雪夫距离，自占地边缘起算；邻接计分默认用本建筑半径；0=待定）</summary>
+        public int radius;
+        /// <summary>基础分（落地即得；0=待定）</summary>
+        public int baseScore;
+        /// <summary>地图元素加分：元素Id:分值[:上限]，多个用|分隔（元素Id → MapElement 表；判定范围用元素自身的 radius 有效范围）。巨型风车条目=专属加分，替代 GameConfig.giantWindmillGenericScore 的通用加分不叠加（§6.3），没写巨型风车条目的建筑吃通用加分。例 anchor:20:1。空=无元素加分</summary>
+        public string[] elementBonus;
+        /// <summary>是否可获得基础物流覆盖分（设计：风帆/物流点/物流中心 FALSE，其余 TRUE，§10.3+真值表B）</summary>
+        public bool canLogisticsCover;
+        /// <summary>风力直接得分曲线，索引=风力 0~5 级，|分隔（船坞=终局风能奖励 §12.8；风帆=建造即时分 §9.1；空=不吃风力分）</summary>
+        public int[] windScoreByLevel;
+        /// <summary>被风直接穿过时的惩罚，索引=风力 0~5 级（居民区 4/5 级填负值 §12.13；空=无惩罚）</summary>
+        public int[] windPassPenaltyByLevel;
+        /// <summary>居民区相关邻接分的风力倍率，索引=风力 0~5 级（风向标专用 §12.1；空=不乘）</summary>
+        public float[] residentWindMultByLevel;
+        /// <summary>孤立惩罚：范围内无任何加分来源时的扣分（负值；船坞用 §12.8；0=无）</summary>
+        public int isolationPenaltyScore;
+        /// <summary>开发批次：1=MVP 首批，2=第二批（§19）</summary>
+        public int mvpBatch;
     }
 
-    /// <summary>Demo.xlsx!Monster</summary>
-    public sealed class MonsterRow
+    /// <summary>FloatingIsland.xlsx!BuildingVariant</summary>
+    public sealed class BuildingVariantRow
     {
-        /// <summary>怪物 Id（主键，本表演示 int 主键）</summary>
-        public int monsterId;
+        /// <summary>变体 Id（主键，建议 建筑Id_序号，如 residence_01）</summary>
+        public string variantId;
+        /// <summary>所属建筑模板 Id → Building 表（一个模板可挂多个变体；计分/关系/建造限制走模板，占地与外观走变体）</summary>
+        public string buildingId;
+        /// <summary>占地形状掩码：每个元素是一行（自上而下）、|分隔，#=占用 .=空，各行长度须一致且至少一个#。如 2×2=##|##，L形(3+1)=###|#..，凹形(3+2)=#.#|###。占用格全部要求满足模板的 placement 地形</summary>
+        public string[] footprint;
+        /// <summary>表现 Prefab 路径（Resources 相对路径或 Addressables key，表现层统一口径；空=白模占位）</summary>
+        public string prefabPath;
+    }
+
+    /// <summary>FloatingIsland.xlsx!BuildingRelation</summary>
+    public sealed class BuildingRelationRow
+    {
+        /// <summary>结算建筑 Id（主键 → Building 表）。本行描述'它因附近什么建筑而加/扣分'；方向不可反读：A 因 B 加分不代表 B 因 A 加分（§13.1），双向关系要在两行各写一条</summary>
+        public string buildingId;
+        /// <summary>加分来源：来源Id:分值[:上限]，多个用|分隔。上限=最多计入个数（省略或0=不限，居民区上限见§12.13、物流点专属建议2个§10.7）。判定范围一律用本建筑的 radius。来源=自己表示同类聚集加分。例 restaurant:10:2</summary>
+        public string[] bonusFrom;
+        /// <summary>扣分来源：格式同左，分值填正数=扣多少分。来源=自己表示同类排斥（§15），判定范围同样用本建筑的 radius。空=无扣分关系</summary>
+        public string[] penaltyFrom;
+    }
+
+    /// <summary>FloatingIsland.xlsx!MapElement</summary>
+    public sealed class MapElementRow
+    {
+        /// <summary>地图元素 Id（主键，camelCase，被 BuildingMapElement/Building.placement 引用）</summary>
+        public string elementId;
         /// <summary>显示名</summary>
         public string nameCn;
-        /// <summary>生命值</summary>
-        public int hp;
-        /// <summary>攻击力</summary>
-        public float atk;
-        /// <summary>是否首领</summary>
-        public bool isBoss;
-        /// <summary>掉落道具 Id 列表（引用 Item 表主键）</summary>
-        public string[] dropItemIds;
-        /// <summary>对应掉率（与 dropItemIds 等长）</summary>
-        public float[] dropRates;
+        /// <summary>占地形状掩码：每个元素是一行（自上而下）、|分隔，#=占用 .=空，各行长度须一致。如巨型风车 4×4=####|####|####|####，1×1=#。island/floatingZone 为区域填充地形，本列不启用（填 #）</summary>
+        public string[] footprint;
+        /// <summary>有效范围（格，自占地边缘起算；巨型风车加分范围 / 锚点有效范围 / 矿藏有效范围；地形类元素填 0）</summary>
+        public int radius;
+        /// <summary>地图生成数量下限（巨型风车固定 1；windSource 即初始风数量 §20；0=待定）</summary>
+        public int countMin;
+        /// <summary>地图生成数量上限（0=待定；island/floatingZone 为区域填充，数量列可不启用）</summary>
+        public int countMax;
     }
 
-    /// <summary>Demo.xlsx!GameConfig（单例参数组）</summary>
+    /// <summary>FloatingIsland.xlsx!WindLevel</summary>
+    public sealed class WindLevelRow
+    {
+        /// <summary>风力等级（主键 0~5；0=无风，5=上限 §8.3）</summary>
+        public int level;
+        /// <summary>名称（UI 显示）</summary>
+        public string nameCn;
+        /// <summary>通用风力倍率（吃风建筑的通用即时分倍率 §20；0=待定。船坞/风帆/风向标有各自专用曲线，不走本列）</summary>
+        public float scoreMultiplier;
+    }
+
+    /// <summary>FloatingIsland.xlsx!Level</summary>
+    public sealed class LevelRow
+    {
+        /// <summary>等级（主键 1~20，§4.1）</summary>
+        public int level;
+        /// <summary>解锁本级费用（金币；第 1 级免费=0，随等级递增 §4.1；0=待定）</summary>
+        public int unlockCost;
+        /// <summary>本级提供的建筑组数（二选一=2，§4.1）</summary>
+        public int groupCount;
+        /// <summary>每组建筑数量下限（设计建议 3，§4.2）</summary>
+        public int groupSizeMin;
+        /// <summary>每组建筑数量上限（设计建议 5，§4.2）</summary>
+        public int groupSizeMax;
+        /// <summary>本级抽取池：变体Id:数量，多条用|分隔（变体Id → BuildingVariant 表主键，配到占地结构粒度；数量=该建筑在本级池中的份数，同组可重复 §4.2）。例 residence_01:2|farm_01:3。空=待设计</summary>
+        public string[] pool;
+    }
+
+    /// <summary>FloatingIsland.xlsx!Stage</summary>
+    public sealed class StageRow
+    {
+        /// <summary>关卡 Id（主键，1 起；每关一张独立的浮空岛地图）</summary>
+        public int stageId;
+        /// <summary>关卡显示名</summary>
+        public string nameCn;
+        /// <summary>本关地图宽（格；需求=250）</summary>
+        public int mapWidth;
+        /// <summary>本关地图高（格；需求=250）</summary>
+        public int mapHeight;
+        /// <summary>关卡岛屿模型/场景资源路径（Resources 相对路径或 Addressables key，与 BuildingVariant.prefabPath 同口径；空=白模占位）</summary>
+        public string prefabPath;
+    }
+
+    /// <summary>FloatingIsland.xlsx!GameConfig（单例参数组）</summary>
     public sealed class GameConfig
     {
-        /// <summary>初始金币</summary>
-        public int startGold;
-        /// <summary>等级上限</summary>
-        public int maxLevel;
-        /// <summary>经验曲线系数</summary>
-        public float expCurveMul;
-        /// <summary>是否开启 PVP</summary>
-        public bool enablePvp;
-        /// <summary>开局赠送道具（引用 Item 表主键）</summary>
-        public string[] startItems;
+        /// <summary>每局总等级数（§4.1=20）</summary>
+        public int totalLevels;
+        /// <summary>正分转金币比例（即时建造分×比例=金币；负分不倒扣 §3.3；0=待定）</summary>
+        public float scoreToGoldRatio;
+        /// <summary>每局免费刷新建筑组次数（随机保护 §4.3；0=待定）</summary>
+        public int freeRefreshCount;
+        /// <summary>免费次数用完后每次刷新的金币费用（§4.3；0=待定）</summary>
+        public int refreshCostGold;
+        /// <summary>跳过一栋无法合法放置建筑的扣分（负值，§4.3 保护机制；0=不启用）</summary>
+        public int skipPenaltyScore;
+        /// <summary>是否保证每组至少一栋容易放置的建筑（§4.3 保护机制）</summary>
+        public bool guaranteeEasyBuilding;
+        /// <summary>巨型风车通用加分——范围内任意普通建筑获得；有专属条目（BuildingMapElement.exclusive=TRUE）的建筑用专属分替代不叠加（§6；0=待定）</summary>
+        public int giantWindmillGenericScore;
+        /// <summary>同一锚点下第 N 座船坞的锚点收益倍率（§12.8 已定：1|0.5|0.25|0，第 4 座及以后 0）</summary>
+        public float[] anchorDockDecayPercents;
+    }
+
+    /// <summary>FloatingIsland.xlsx!WindConfig（单例参数组）</summary>
+    public sealed class WindConfig
+    {
+        /// <summary>风力等级上限（合并后不超过此级，§8.5=5）</summary>
+        public int maxWindLevel;
+        /// <summary>初始风强度随机下限（1~5；§20 待定）</summary>
+        public int initialWindLevelMin;
+        /// <summary>初始风强度随机上限（1~5；§20 待定）</summary>
+        public int initialWindLevelMax;
+        /// <summary>初始风传播长度随机下限（格；§20 待定。初始风数量在 MapElement.windSource 的 countMin/countMax）</summary>
+        public int initialWindLengthMin;
+        /// <summary>初始风传播长度随机上限（格；§20 待定）</summary>
+        public int initialWindLengthMax;
+    }
+
+    /// <summary>FloatingIsland.xlsx!LogisticsConfig（单例参数组）</summary>
+    public sealed class LogisticsConfig
+    {
+        /// <summary>物流点本地覆盖半径（格，§10.3；范围内常规建筑获得已接入物流状态；0=待定）</summary>
+        public int coverRadius;
+        /// <summary>基础物流覆盖分（每建筑仅计一次，本地覆盖与物流风覆盖同状态不叠加 §10.3/10.4；0=待定）</summary>
+        public int baseCoverScore;
+        /// <summary>风经过物流点时延长的剩余长度（格，§10.5；0=待定）</summary>
+        public int windExtendLength;
+        /// <summary>同一股风最多获得的物流点延长次数（§10.5 已定=2；同点不重复延长为固定规则）</summary>
+        public int windExtendMaxPerWind;
+        /// <summary>终局物流网络奖励：每个已接入物流的建筑在终局额外加分（只加分不给金币 §7.2；具体语义可再调整；0=待定）</summary>
+        public int endgameScorePerCoveredBuilding;
     }
 
     public static class Tables
     {
-        public static ConfigTable<string, ItemRow> Item { get; private set; }
-        public static ConfigTable<int, MonsterRow> Monster { get; private set; }
+        public static ConfigTable<string, BuildingRow> Building { get; private set; }
+        public static ConfigTable<string, BuildingVariantRow> BuildingVariant { get; private set; }
+        public static ConfigTable<string, BuildingRelationRow> BuildingRelation { get; private set; }
+        public static ConfigTable<string, MapElementRow> MapElement { get; private set; }
+        public static ConfigTable<int, WindLevelRow> WindLevel { get; private set; }
+        public static ConfigTable<int, LevelRow> Level { get; private set; }
+        public static ConfigTable<int, StageRow> Stage { get; private set; }
         public static GameConfig GameConfig { get; private set; }
+        public static WindConfig WindConfig { get; private set; }
+        public static LogisticsConfig LogisticsConfig { get; private set; }
 
         public static readonly string[] AllTableNames =
         {
-            "Item",
-            "Monster",
+            "Building",
+            "BuildingVariant",
+            "BuildingRelation",
+            "MapElement",
+            "WindLevel",
+            "Level",
+            "Stage",
             "GameConfig",
+            "WindConfig",
+            "LogisticsConfig",
         };
 
         public static bool IsLoaded { get; private set; }
 
         public static void LoadAll(System.Func<string, string> readJson)
         {
-            Item = TableJson.LoadRows<string, ItemRow>("Item", readJson("Item"), r => r.itemId);
-            Monster = TableJson.LoadRows<int, MonsterRow>("Monster", readJson("Monster"), r => r.monsterId);
+            Building = TableJson.LoadRows<string, BuildingRow>("Building", readJson("Building"), r => r.buildingId);
+            BuildingVariant = TableJson.LoadRows<string, BuildingVariantRow>("BuildingVariant", readJson("BuildingVariant"), r => r.variantId);
+            BuildingRelation = TableJson.LoadRows<string, BuildingRelationRow>("BuildingRelation", readJson("BuildingRelation"), r => r.buildingId);
+            MapElement = TableJson.LoadRows<string, MapElementRow>("MapElement", readJson("MapElement"), r => r.elementId);
+            WindLevel = TableJson.LoadRows<int, WindLevelRow>("WindLevel", readJson("WindLevel"), r => r.level);
+            Level = TableJson.LoadRows<int, LevelRow>("Level", readJson("Level"), r => r.level);
+            Stage = TableJson.LoadRows<int, StageRow>("Stage", readJson("Stage"), r => r.stageId);
             GameConfig = TableJson.LoadSingleton<GameConfig>("GameConfig", readJson("GameConfig"));
+            WindConfig = TableJson.LoadSingleton<WindConfig>("WindConfig", readJson("WindConfig"));
+            LogisticsConfig = TableJson.LoadSingleton<LogisticsConfig>("LogisticsConfig", readJson("LogisticsConfig"));
             IsLoaded = true;
         }
     }

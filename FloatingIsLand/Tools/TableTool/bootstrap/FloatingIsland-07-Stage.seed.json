@@ -1,0 +1,18 @@
+{
+  "workbook": "FloatingIsland",
+  "sheetOrder": 7,
+  "table": "Stage",
+  "kind": "rows",
+  "fields": [
+    { "name": "stageId", "type": "int", "desc": "关卡 Id（主键，1 起；每关一张独立的浮空岛地图）" },
+    { "name": "nameCn", "type": "string", "desc": "关卡显示名" },
+    { "name": "mapWidth", "type": "int", "desc": "本关地图宽（格；需求=250）" },
+    { "name": "mapHeight", "type": "int", "desc": "本关地图高（格；需求=250）" },
+    { "name": "prefabPath", "type": "string", "desc": "关卡岛屿模型/场景资源路径（Resources 相对路径或 Addressables key，与 BuildingVariant.prefabPath 同口径；空=白模占位）" }
+  ],
+  "rows": [
+    { "stageId": 1, "nameCn": "浮空岛·一", "mapWidth": 250, "mapHeight": 250, "prefabPath": "" },
+    { "stageId": 2, "nameCn": "浮空岛·二", "mapWidth": 250, "mapHeight": 250, "prefabPath": "" },
+    { "stageId": 3, "nameCn": "浮空岛·三", "mapWidth": 250, "mapHeight": 250, "prefabPath": "" }
+  ]
+}

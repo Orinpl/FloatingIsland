@@ -1,0 +1,160 @@
+[
+  {
+    "variantId": "windVane_01",
+    "buildingId": "windVane",
+    "footprint": [
+      "#"
+    ],
+    "prefabPath": ""
+  },
+  {
+    "variantId": "windmill_01",
+    "buildingId": "windmill",
+    "footprint": [
+      "##",
+      "##"
+    ],
+    "prefabPath": ""
+  },
+  {
+    "variantId": "farm_01",
+    "buildingId": "farm",
+    "footprint": [
+      "#"
+    ],
+    "prefabPath": ""
+  },
+  {
+    "variantId": "potentialTower_01",
+    "buildingId": "potentialTower",
+    "footprint": [
+      "##",
+      "##"
+    ],
+    "prefabPath": ""
+  },
+  {
+    "variantId": "sail_01",
+    "buildingId": "sail",
+    "footprint": [
+      "#"
+    ],
+    "prefabPath": ""
+  },
+  {
+    "variantId": "miningStation_01",
+    "buildingId": "miningStation",
+    "footprint": [
+      "##"
+    ],
+    "prefabPath": ""
+  },
+  {
+    "variantId": "workshop_01",
+    "buildingId": "workshop",
+    "footprint": [
+      "###",
+      "###",
+      "###"
+    ],
+    "prefabPath": ""
+  },
+  {
+    "variantId": "dock_01",
+    "buildingId": "dock",
+    "footprint": [
+      "######",
+      "######",
+      "######",
+      "######",
+      "######",
+      "######"
+    ],
+    "prefabPath": ""
+  },
+  {
+    "variantId": "granary_01",
+    "buildingId": "granary",
+    "footprint": [
+      "##",
+      "##"
+    ],
+    "prefabPath": ""
+  },
+  {
+    "variantId": "restaurant_01",
+    "buildingId": "restaurant",
+    "footprint": [
+      "##",
+      "##"
+    ],
+    "prefabPath": ""
+  },
+  {
+    "variantId": "shop_01",
+    "buildingId": "shop",
+    "footprint": [
+      "##",
+      "##"
+    ],
+    "prefabPath": ""
+  },
+  {
+    "variantId": "citizenCenter_01",
+    "buildingId": "citizenCenter",
+    "footprint": [
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "prefabPath": ""
+  },
+  {
+    "variantId": "residence_01",
+    "buildingId": "residence",
+    "footprint": [
+      "##",
+      "##"
+    ],
+    "prefabPath": ""
+  },
+  {
+    "variantId": "residence_02",
+    "buildingId": "residence",
+    "footprint": [
+      "###",
+      "#.."
+    ],
+    "prefabPath": ""
+  },
+  {
+    "variantId": "residence_03",
+    "buildingId": "residence",
+    "footprint": [
+      "#.#",
+      "###"
+    ],
+    "prefabPath": ""
+  },
+  {
+    "variantId": "logisticsPoint_01",
+    "buildingId": "logisticsPoint",
+    "footprint": [
+      "##",
+      "##"
+    ],
+    "prefabPath": ""
+  },
+  {
+    "variantId": "logisticsHub_01",
+    "buildingId": "logisticsHub",
+    "footprint": [
+      "####",
+      "####",
+      "####",
+      "####"
+    ],
+    "prefabPath": ""
+  }
+]

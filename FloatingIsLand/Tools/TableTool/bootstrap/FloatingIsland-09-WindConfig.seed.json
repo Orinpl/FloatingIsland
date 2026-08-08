@@ -1,0 +1,22 @@
+{
+  "workbook": "FloatingIsland",
+  "sheetOrder": 9,
+  "table": "WindConfig",
+  "kind": "singleton",
+  "fields": [
+    { "name": "maxWindLevel", "type": "int", "desc": "风力等级上限（合并后不超过此级，§8.5=5）" },
+    { "name": "initialWindLevelMin", "type": "int", "desc": "初始风强度随机下限（1~5；§20 待定）" },
+    { "name": "initialWindLevelMax", "type": "int", "desc": "初始风强度随机上限（1~5；§20 待定）" },
+    { "name": "initialWindLengthMin", "type": "int", "desc": "初始风传播长度随机下限（格；§20 待定。初始风数量在 MapElement.windSource 的 countMin/countMax）" },
+    { "name": "initialWindLengthMax", "type": "int", "desc": "初始风传播长度随机上限（格；§20 待定）" }
+  ],
+  "rows": [
+    {
+      "maxWindLevel": 5,
+      "initialWindLevelMin": 0,
+      "initialWindLevelMax": 0,
+      "initialWindLengthMin": 0,
+      "initialWindLengthMax": 0
+    }
+  ]
+}

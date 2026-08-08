@@ -1,0 +1,19 @@
+{
+  "workbook": "FloatingIsland",
+  "sheetOrder": 5,
+  "table": "WindLevel",
+  "kind": "rows",
+  "fields": [
+    { "name": "level", "type": "int", "desc": "风力等级（主键 0~5；0=无风，5=上限 §8.3）" },
+    { "name": "nameCn", "type": "string", "desc": "名称（UI 显示）" },
+    { "name": "scoreMultiplier", "type": "float", "desc": "通用风力倍率（吃风建筑的通用即时分倍率 §20；0=待定。船坞/风帆/风向标有各自专用曲线，不走本列）" }
+  ],
+  "rows": [
+    { "level": 0, "nameCn": "无风",   "scoreMultiplier": 0 },
+    { "level": 1, "nameCn": "微风",   "scoreMultiplier": 0 },
+    { "level": 2, "nameCn": "较弱风", "scoreMultiplier": 0 },
+    { "level": 3, "nameCn": "中等风", "scoreMultiplier": 0 },
+    { "level": 4, "nameCn": "强风",   "scoreMultiplier": 0 },
+    { "level": 5, "nameCn": "极强风", "scoreMultiplier": 0 }
+  ]
+}

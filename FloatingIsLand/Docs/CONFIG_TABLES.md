@@ -15,7 +15,7 @@ Tables\*.xlsx                                 ← 【正本】策划编辑，改
 
 **改表 / 加表**：
 
-1. 用 Excel 打开 `Tables\Demo.xlsx`（或自己新建的 xlsx）改数据 / 新建 Sheet
+1. 用 Excel 打开 `Tables\FloatingIsland.xlsx`（或自己新建的 xlsx）改数据 / 新建 Sheet
 2. 双击工程根的 **`转表.bat`**，或在 Unity 里点菜单 **Tools → 配表 → 转表**
 3. 回 Unity，等它导入完就能用 `Tables.新表名` 访问——**不用写任何读表代码**
 
@@ -43,12 +43,13 @@ dotnet run --project Tools\ConfigVerify             # 冒烟验证：编译 + �
 using FloatingIsLand.Config;
 
 // 启动时加载一次（Unity 侧走这个；Resources 下的全部 TextAsset 一次读进来）
+// 注：启动框架的 Boot 状态已接入本调用（见 BOOT_FRAMEWORK.md），游戏内业务代码无需再加载
 UnityTableLoader.LoadFromResources("Tables");
 
 // 之后任意处静态强类型访问
-ItemRow item = Tables.Item.Get("gem_ruby");     // 行表：按主键取行（缺键抛带表名的异常）
-foreach (MonsterRow m in Tables.Monster.All) {} // 遍历；还有 Count / TryGet / GetOrNull
-int gold = Tables.GameConfig.startGold;         // 单例参数组：直接取字段
+BuildingRow b = Tables.Building.Get("windVane");   // 行表：按主键取行（缺键抛带表名的异常）
+foreach (LevelRow lv in Tables.Level.All) {}       // 遍历；还有 Count / TryGet / GetOrNull
+int levels = Tables.GameConfig.totalLevels;        // 单例参数组：直接取字段
 ```
 
 - 主键列类型决定 `TKey`（`int` 或 `string`），生成器自动选
@@ -110,15 +111,36 @@ int gold = Tables.GameConfig.startGold;         // 单例参数组：直接取�
 依赖：`com.unity.nuget.newtonsoft-json`（已加进 `Packages/manifest.json`）；工具侧 ClosedXML 0.105 +
 Newtonsoft.Json 13，首次 `dotnet run` 自动还原。读表层锁 C# 9 是为兼容 Unity 2022。
 
-## 关于示例表 Demo.xlsx
+## 本项目的表（Tables\FloatingIsland.xlsx，10 个 Sheet）
 
-`Tables\Demo.xlsx` 是随工具带来的样例，三个 Sheet 刻意覆盖了全部特性，可直接当抄写模板：
+表结构由 [GAME_DESIGN.md](GAME_DESIGN.md) 推导（§13～§18 五张关系表全部数据化为有向条目），
+对应 [PROJECT_BUILD.md](PROJECT_BUILD.md) §5 的四类配置收敛方案。**当前只定了表头与结构行，
+具体数值待填**（填数原则：设计文档已明确的值已填入，如船坞风能曲线、锚点递减、居民区计数上限；
+其余 0/空 = 待数值化，见设计 §20）。
 
-| Sheet | 类型 | 演示点 |
-|---|---|---|
-| `Item` | 行表 | string 主键、int/float/bool 字段、`string[]` 数组列 |
-| `Monster` | 行表 | int 主键、`string[]`+`float[]` 双数组、跨表引用（掉落引用 Item 主键） |
-| `GameConfig` | 单例 | key/type/value/desc 布局 |
+| Sheet | 类型 | 主键 | 内容 | 对应设计 |
+|---|---|---|---|---|
+| `Building` | 行表 | `buildingId` string | **模板表**，15 栋建筑：分类、建造限制、半径、基础分、`elementBonus` 地图元素加分（微格式 `元素Id:分值[:上限]`；判定用元素的 radius；写了 `giantWindmill` 条目=专属分替代通用分）、物流覆盖资格、风力曲线（船坞/风帆/居民区/风向标各自专列）、MVP 批次 | §6、§11、§12、§14、§19 |
+| `BuildingVariant` | 行表 | `variantId` string | **表现表**，一行一个变体：`buildingId` 归属模板、`footprint` 占地掩码（`#`=占用 `.`=空、\|分行，如 2×2=`##\|##`、L形=`##\|#.\|#.`）、`prefabPath` 表现 Prefab。一个模板可挂多套占地/外观（如居民区 3 种结构），抽哪个变体由 `Level` 表的抽取池直接配到变体粒度；摆放旋转不配表，默认全部允许 90° 旋转 | 占地与表现 |
+| `BuildingRelation` | 行表 | `buildingId` string | 每建筑一行的有向邻接关系（真值表 A/B + 单向 + 双向 + 负面 + 同类）：`bonusFrom` 加分来源 / `penaltyFrom` 扣分来源两列，单元格微格式 `来源Id:分值[:上限]`、多条目用 `\|` 分隔；判定范围一律用结算建筑自身 `radius`；来源=自己即同类关系；方向不可反读，双向关系在两行各写一条。解析器 `RelationEntry.ParseAll`，ConfigVerify 会校验格式与建筑 Id 外键 | §13、§15～§18 |
+| `MapElement` | 行表 | `elementId` string | 7 种地图元素：占地掩码、有效范围、生成数量区间 | §5.2 |
+| `WindLevel` | 行表 | `level` int | 风力 0~5 级：名称、通用风力倍率 | §8.3 |
+| `Level` | 行表 | `level` int | 20 级：解锁费用、组数、组大小、抽取池 `pool`（微格式 `变体Id:数量`、\|分隔，如 `residence_01:2\|farm_01:3`；变体 Id → `BuildingVariant.variantId`，配到占地结构粒度） | §4 |
+| `Stage` | 行表 | `stageId` int | 3 个关卡：每关一张独立浮空岛地图（尺寸 250×250、岛屿模型资源路径） | 关卡需求 |
+| `GameConfig` | 单例 | — | 总等级、分转金币比例、刷新保护、巨型风车通用分、锚点递减曲线 | §3、§4.3、§6 |
+| `WindConfig` | 单例 | — | 风力上限、初始风强度/长度区间 | §8 |
+| `LogisticsConfig` | 单例 | — | 覆盖半径、覆盖分、延长风长与次数上限、终局网络奖励 | §10 |
 
-开始写真表后想清掉它：删 `Tables\Demo.xlsx` 与 `Tools\TableTool\bootstrap\Demo-*.seed.json`，
-把自己的 xlsx 放进 `Tables\` 再跑一次 `转表.bat` —— 产物是全量重写的，Demo 的 JSON 与类会自动消失。
+跨表引用约定：`BuildingRelation` 打包条目里的来源 Id、`BuildingVariant.buildingId` → `Building.buildingId`；
+`Level.pool` 条目里的变体 Id → `BuildingVariant.variantId`；`Building.elementBonus` 条目里的元素 Id
+→ `MapElement.elementId`。转表器只查主键唯一，不查外键；ConfigVerify（`验证读表.bat`）已校验：
+`BuildingRelation` 与 `Building.elementBonus` 微格式与外键、`BuildingVariant` 外键、
+footprint 掩码合法性（行长一致、只含 `#`/`.`、至少一个 `#`）、`Level.pool` 条目格式
+（`变体Id:数量`，数量为正整数）与外键。
+
+三条不进表的全局规则（写死在代码/由字段组合表达）：巨型风车"专属替代通用"的结算逻辑、
+船坞"每座只归属一个锚点（最近优先/少者优先）"、物流覆盖"同建筑只计一次"。
+
+想重建 Excel：删 `Tables\FloatingIsland.xlsx` 后跑 `dotnet run --project Tools\TableTool -- bootstrap`
+（种子在 `Tools\TableTool\bootstrap\FloatingIsland-*.seed.json`）。注意 Excel 才是正本——
+日常改表**直接改 xlsx**，种子只在重建初始表时有用，不会随 xlsx 更新。

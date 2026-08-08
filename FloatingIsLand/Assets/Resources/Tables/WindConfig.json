@@ -1,0 +1,7 @@
+{
+  "maxWindLevel": 5,
+  "initialWindLevelMin": 0,
+  "initialWindLevelMax": 0,
+  "initialWindLengthMin": 0,
+  "initialWindLengthMax": 0
+}

@@ -1,0 +1,28 @@
+{
+  "workbook": "FloatingIsland",
+  "sheetOrder": 8,
+  "table": "GameConfig",
+  "kind": "singleton",
+  "fields": [
+    { "name": "totalLevels", "type": "int", "desc": "每局总等级数（§4.1=20）" },
+    { "name": "scoreToGoldRatio", "type": "float", "desc": "正分转金币比例（即时建造分×比例=金币；负分不倒扣 §3.3；0=待定）" },
+    { "name": "freeRefreshCount", "type": "int", "desc": "每局免费刷新建筑组次数（随机保护 §4.3；0=待定）" },
+    { "name": "refreshCostGold", "type": "int", "desc": "免费次数用完后每次刷新的金币费用（§4.3；0=待定）" },
+    { "name": "skipPenaltyScore", "type": "int", "desc": "跳过一栋无法合法放置建筑的扣分（负值，§4.3 保护机制；0=不启用）" },
+    { "name": "guaranteeEasyBuilding", "type": "bool", "desc": "是否保证每组至少一栋容易放置的建筑（§4.3 保护机制）" },
+    { "name": "giantWindmillGenericScore", "type": "int", "desc": "巨型风车通用加分——范围内任意普通建筑获得；有专属条目（BuildingMapElement.exclusive=TRUE）的建筑用专属分替代不叠加（§6；0=待定）" },
+    { "name": "anchorDockDecayPercents", "type": "float[]", "desc": "同一锚点下第 N 座船坞的锚点收益倍率（§12.8 已定：1|0.5|0.25|0，第 4 座及以后 0）" }
+  ],
+  "rows": [
+    {
+      "totalLevels": 20,
+      "scoreToGoldRatio": 0,
+      "freeRefreshCount": 0,
+      "refreshCostGold": 0,
+      "skipPenaltyScore": 0,
+      "guaranteeEasyBuilding": false,
+      "giantWindmillGenericScore": 0,
+      "anchorDockDecayPercents": [1, 0.5, 0.25, 0]
+    }
+  ]
+}

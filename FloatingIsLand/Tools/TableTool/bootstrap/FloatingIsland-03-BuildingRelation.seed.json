@@ -1,0 +1,28 @@
+{
+  "workbook": "FloatingIsland",
+  "sheetOrder": 3,
+  "table": "BuildingRelation",
+  "kind": "rows",
+  "fields": [
+    { "name": "buildingId", "type": "string", "desc": "结算建筑 Id（主键 → Building 表）。本行描述'它因附近什么建筑而加/扣分'；方向不可反读：A 因 B 加分不代表 B 因 A 加分（§13.1），双向关系要在两行各写一条" },
+    { "name": "bonusFrom", "type": "string[]", "desc": "加分来源：来源Id:分值[:上限]，多个用|分隔。上限=最多计入个数（省略或0=不限，居民区上限见§12.13、物流点专属建议2个§10.7）。判定范围一律用本建筑的 radius。来源=自己表示同类聚集加分。例 restaurant:10:2" },
+    { "name": "penaltyFrom", "type": "string[]", "desc": "扣分来源：格式同左，分值填正数=扣多少分。来源=自己表示同类排斥（§15），判定范围同样用本建筑的 radius。空=无扣分关系" }
+  ],
+  "rows": [
+    { "buildingId": "windVane",       "bonusFrom": ["residence:0"], "penaltyFrom": ["windVane:0"] },
+    { "buildingId": "windmill",       "bonusFrom": ["farm:0", "potentialTower:0", "workshop:0", "logisticsPoint:0:2"], "penaltyFrom": ["windmill:0"] },
+    { "buildingId": "farm",           "bonusFrom": ["windmill:0", "farm:0"], "penaltyFrom": [] },
+    { "buildingId": "potentialTower", "bonusFrom": ["windmill:0", "workshop:0", "logisticsPoint:0:2", "logisticsHub:0"], "penaltyFrom": ["potentialTower:0"] },
+    { "buildingId": "sail",           "bonusFrom": [], "penaltyFrom": [] },
+    { "buildingId": "miningStation",  "bonusFrom": [], "penaltyFrom": ["miningStation:0"] },
+    { "buildingId": "workshop",       "bonusFrom": ["miningStation:0", "logisticsPoint:0:2", "logisticsHub:0"], "penaltyFrom": [] },
+    { "buildingId": "dock",           "bonusFrom": ["workshop:0", "logisticsPoint:0:2", "logisticsHub:0"], "penaltyFrom": [] },
+    { "buildingId": "granary",        "bonusFrom": ["farm:0", "logisticsPoint:0:2", "logisticsHub:0"], "penaltyFrom": [] },
+    { "buildingId": "restaurant",     "bonusFrom": ["residence:0"], "penaltyFrom": [] },
+    { "buildingId": "shop",           "bonusFrom": ["workshop:0", "restaurant:0", "residence:0"], "penaltyFrom": [] },
+    { "buildingId": "citizenCenter",  "bonusFrom": [], "penaltyFrom": ["citizenCenter:0"] },
+    { "buildingId": "residence",      "bonusFrom": ["restaurant:0:2", "shop:0:2", "citizenCenter:0:1", "residence:0:4", "logisticsPoint:0:2", "logisticsHub:0:1"], "penaltyFrom": ["miningStation:0", "workshop:0"] },
+    { "buildingId": "logisticsPoint", "bonusFrom": [], "penaltyFrom": ["logisticsPoint:0"] },
+    { "buildingId": "logisticsHub",   "bonusFrom": ["logisticsPoint:0"], "penaltyFrom": ["logisticsHub:0"] }
+  ]
+}
