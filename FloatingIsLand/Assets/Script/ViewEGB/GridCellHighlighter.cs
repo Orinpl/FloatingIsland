@@ -1,0 +1,106 @@
+using System;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
+
+namespace FloatingIsLand.ViewEGB
+{
+    /// <summary>
+    /// 格子交互反馈（骨架版）：悬停格半透明高亮 + 左键点击选中格高亮。
+    /// 自绘 Quad 实现，不走 EGB 的 SelectMode/CellIndicator（浅接入原则：交互反馈归我们 View 侧，
+    /// 见 GRID_INTEGRATION.md §2）。M1 摆放流程接入后，选中事件 CellClicked 就是"选格 → 干跑预览"的入口。
+    /// </summary>
+    public sealed class GridCellHighlighter : MonoBehaviour
+    {
+        [SerializeField] private EGBGridPresenter presenter;
+        [SerializeField] private Color hoverColor = new Color(1f, 1f, 1f, 0.35f);
+        [SerializeField] private Color selectedColor = new Color(0.3f, 0.85f, 1f, 0.5f);
+        [Tooltip("高亮片抬离网格面的高度，防 Z-fighting")]
+        [SerializeField] private float surfaceOffset = 0.05f;
+
+        /// <summary>左键选中某格时广播，参数 = (x, z, layer)。M1 起摆放流程订阅它做干跑预览。</summary>
+        public event Action<Vector3Int> CellClicked;
+
+        /// <summary>当前选中格 (x, z, layer)；未选中返回 false。</summary>
+        public bool TryGetSelectedCell(out Vector3Int cell)
+        {
+            cell = _selectedCell;
+            return _hasSelection;
+        }
+
+        private Transform _hoverQuad;
+        private Transform _selectedQuad;
+        private bool _hasSelection;
+        private Vector3Int _selectedCell;
+
+        private void Start()
+        {
+            _hoverQuad = CreateQuad("HoverCell", hoverColor);
+            _selectedQuad = CreateQuad("SelectedCell", selectedColor);
+        }
+
+        private void Update()
+        {
+            if (presenter == null || !presenter.enabled)
+            {
+                return;
+            }
+
+            bool hovered = presenter.TryGetHoveredCell(out int x, out int z, out int layer);
+            if (hovered)
+            {
+                PlaceQuad(_hoverQuad, x, z, layer);
+            }
+            else
+            {
+                _hoverQuad.gameObject.SetActive(false);
+            }
+
+            Mouse mouse = Mouse.current;
+            if (hovered && mouse != null && mouse.leftButton.wasPressedThisFrame && !IsPointerOverUI())
+            {
+                _hasSelection = true;
+                _selectedCell = new Vector3Int(x, z, layer);
+                CellClicked?.Invoke(_selectedCell);
+            }
+
+            if (_hasSelection)
+            {
+                PlaceQuad(_selectedQuad, _selectedCell.x, _selectedCell.y, _selectedCell.z);
+            }
+        }
+
+        private Transform CreateQuad(string quadName, Color color)
+        {
+            GameObject go = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            go.name = quadName;
+            Destroy(go.GetComponent<Collider>()); // 不能挡住 EGB 与悬停查询的射线
+
+            var renderer = go.GetComponent<MeshRenderer>();
+            // Sprites/Default：无光照、支持顶点色透明，骨架够用；正式版随 View overlay（风箭头/覆盖高亮）统一换专用材质
+            renderer.sharedMaterial = new Material(Shader.Find("Sprites/Default")) { color = color };
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+
+            go.transform.SetParent(transform, false);
+            go.transform.rotation = Quaternion.Euler(90f, 0f, 0f); // Quad 默认立面，转平贴地
+            go.SetActive(false);
+            return go.transform;
+        }
+
+        private void PlaceQuad(Transform quad, int x, int z, int layer)
+        {
+            float cellSize = presenter.CellSize;
+            // CellToWorld 返回格子角点（IGridPresenter 注释），中心补半格；抬高一点防 Z-fighting
+            Vector3 center = presenter.CellToWorld(x, z, layer) + new Vector3(cellSize * 0.5f, surfaceOffset, cellSize * 0.5f);
+            quad.position = center;
+            quad.localScale = new Vector3(cellSize * 0.95f, cellSize * 0.95f, 1f);
+            quad.gameObject.SetActive(true);
+        }
+
+        private static bool IsPointerOverUI()
+        {
+            return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
+        }
+    }
+}

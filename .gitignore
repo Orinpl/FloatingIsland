@@ -14,6 +14,8 @@ ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
 *.lnk
+# Unity 会给 .lnk 生成 meta；本体不入库，meta 也别留成孤儿
+*.lnk.meta
 
 # ---------- 编辑器 / IDE ----------
 .vs/
