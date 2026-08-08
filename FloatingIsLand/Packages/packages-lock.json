@@ -1,5 +1,13 @@
 {
   "dependencies": {
+    "com.coplaydev.mcp": {
+      "version": "file:com.coplaydev.mcp@9.3.0",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "3.0.2"
+      }
+    },
     "com.unity.burst": {
       "version": "1.8.21",
       "depth": 1,

@@ -101,6 +101,9 @@ InitTestScene*.unity*
 /[Aa]ssets/SoulGames/EGBPro 2 Examples/
 /[Aa]ssets/SoulGames/EGBPro 2 Examples.meta
 
+# 注：AI 生图/生模的中间产物目录 ArtGen/ 已在仓库根 .gitignore 整个忽略，
+# 这里不再重复；可复用的流水线脚本放在 Tools/ArtGen/（进库）。
+
 # ---------- Tools/ 下的 dotnet 工程（配表工具链） ----------
 # 上面的 *.csproj 是为 Unity 自动生成的工程文件设的；Tools/ 里的 csproj 是手写源码，必须提交
 !/[Tt]ools/**/*.csproj

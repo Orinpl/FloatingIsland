@@ -123,6 +123,8 @@ namespace FloatingIsLand.Config
     /// <summary>FloatingIsland.xlsx!GameConfig（单例参数组）</summary>
     public sealed class GameConfig
     {
+        /// <summary>一个格子的世界边长（单位：米）。必须与 EGB 网格预制体的 cellSize 一致（当前 2）；模型导入后处理按它把建筑缩放到 footprint 对应的格数</summary>
+        public float cellSize;
         /// <summary>每局总等级数（§4.1=20）</summary>
         public int totalLevels;
         /// <summary>正分转金币比例（即时建造分×比例=金币；负分不倒扣 §3.3；0=待定）</summary>

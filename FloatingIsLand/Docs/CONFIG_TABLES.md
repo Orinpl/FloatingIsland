@@ -127,7 +127,7 @@ Newtonsoft.Json 13，首次 `dotnet run` 自动还原。读表层锁 C# 9 是为
 | `WindLevel` | 行表 | `level` int | 风力 0~5 级：名称、通用风力倍率 | §8.3 |
 | `Level` | 行表 | `level` int | 20 级：解锁费用、组数、组大小、抽取池 `pool`（微格式 `变体Id:数量`、\|分隔，如 `residence_01:2\|farm_01:3`；变体 Id → `BuildingVariant.variantId`，配到占地结构粒度） | §4 |
 | `Stage` | 行表 | `stageId` int | 3 个关卡：每关一张独立浮空岛地图（尺寸 250×250、岛屿模型资源路径） | 关卡需求 |
-| `GameConfig` | 单例 | — | 总等级、分转金币比例、刷新保护、巨型风车通用分、锚点递减曲线 | §3、§4.3、§6 |
+| `GameConfig` | 单例 | — | 格子边长 `cellSize`（世界单位，须与 EGB 网格预制体一致）、总等级、分转金币比例、刷新保护、巨型风车通用分、锚点递减曲线 | §3、§4.3、§6 |
 | `WindConfig` | 单例 | — | 风力上限、初始风强度/长度区间 | §8 |
 | `LogisticsConfig` | 单例 | — | 覆盖半径、覆盖分、延长风长与次数上限、终局网络奖励 | §10 |
 
@@ -140,6 +140,13 @@ footprint 掩码合法性（行长一致、只含 `#`/`.`、至少一个 `#`）�
 
 三条不进表的全局规则（写死在代码/由字段组合表达）：巨型风车"专属替代通用"的结算逻辑、
 船坞"每座只归属一个锚点（最近优先/少者优先）"、物流覆盖"同建筑只计一次"。
+
+**配表驱动美术资产**：`Assets/Res/<资产名>/fbx/*.fbx` 导入时会被
+[BuildingModelPostprocessor](../Assets/Script/Config/Editor/BuildingModelPostprocessor.cs) 自动对齐——
+按 `BuildingVariant.footprint` / `MapElement.footprint` 的格数 × `GameConfig.cellSize` 算目标尺寸，
+把模型 XZ 包围盒等比缩放到刚好放进占地（取 min 保证不越格），轴心归到占地最小角、底面 y=0
+（与 EGB `GetCellWorldPosition` 返回格子角点的口径一致，摆放时直接赋 position 即可）。
+改了对齐规则要把该文件里的 `GetVersion()` 返回值 +1，Unity 才会重新导入已有模型。
 
 想重建 Excel：删 `Tables\FloatingIsland.xlsx` 后跑 `dotnet run --project Tools\TableTool -- bootstrap`
 （种子在 `Tools\TableTool\bootstrap\FloatingIsland-*.seed.json`）。注意 Excel 才是正本——

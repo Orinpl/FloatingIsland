@@ -1,0 +1,21 @@
+{
+    "name": "MCPForUnity.Editor",
+    "rootNamespace": "MCPForUnity.Editor",
+    "references": [
+        "Newtonsoft.Json",
+        "UnityEditor.UI",
+        "UnityEngine.UI"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "overrideReferences": false,
+    "precompiledReferences": [
+        "Newtonsoft.Json.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

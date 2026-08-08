@@ -1,4 +1,5 @@
 {
+  "cellSize": 2.0,
   "totalLevels": 20,
   "scoreToGoldRatio": 0.0,
   "freeRefreshCount": 0,
