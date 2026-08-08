@@ -43,3 +43,9 @@ __pycache__/
 *.zip
 *.rar
 *.7z
+
+# ---------- 项目 ----------
+# 美术生成管线与参考图库（生成产物不入库；Res 图可由 ArtGen 流程重新生成）
+FloatingIsLand/ArtGen/
+FloatingIsLand/Assets/Res/
+FloatingIsLand/Assets/Res.meta
