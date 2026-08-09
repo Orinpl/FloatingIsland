@@ -33,10 +33,9 @@ viewprompt() { # $1=view
 # ---- 上传参考图 + 提交三视图任务 ----
 while IFS=$'\t' read -r id aspect prompt; do
   [ -z "$id" ] && continue
-  concept="$PROJ/Assets/Res/$id/picture/concept.png"
-  [ -f "$concept" ] || { echo "[skip] $id 无 concept"; continue; }
+  concept=$(findpic "$id" concept) || { echo "[skip] $id 无 concept"; continue; }
   need=0
-  for v in front side top; do [ -f "$PROJ/Assets/Res/$id/picture/$v.png" ] || need=1; done
+  for v in front side top; do findpic "$id" "$v" >/dev/null || need=1; done
   [ "$need" -eq 0 ] && { echo "[skip] $id 三视图已齐"; continue; }
 
   ref="$ART/refs/$id.jpg"
@@ -51,7 +50,7 @@ while IFS=$'\t' read -r id aspect prompt; do
   aid=$(cat "$STATE/$id.aid")
 
   for v in front side top; do
-    [ -f "$PROJ/Assets/Res/$id/picture/$v.png" ] && continue
+    findpic "$id" "$v" >/dev/null && continue
     [ -f "$STATE/$id.$v.task" ] && continue
     vp=$(viewprompt "$v")
     args=$(printf '{"prompt":"%s","model":"nano_banana_pro","extra_params":{"aspect_ratio":"%s","image_size":"2K","name":"view_%s_%s","reference_images":[{"asset_id":"%s","type":"image"}]}}' "$vp" "$aspect" "$id" "$v" "$aid")
@@ -71,10 +70,10 @@ for round in $(seq 1 60); do
   pending=0
   while IFS=$'\t' read -r id aspect prompt; do
     [ -z "$id" ] && continue
-    [ -f "$PROJ/Assets/Res/$id/picture/concept.png" ] || continue
+    findpic "$id" concept >/dev/null || continue
     for v in front side top; do
       dest="$PROJ/Assets/Res/$id/picture/$v.png"
-      [ -f "$dest" ] && continue
+      findpic "$id" "$v" >/dev/null && continue
       [ -f "$STATE/$id.$v.fail" ] && continue
       # 既无任务也无 URL 的视图（上传失败没提交成）不计 pending，避免死等
       [ -f "$STATE/$id.$v.task" ] || [ -f "$STATE/$id.$v.url" ] || continue
@@ -104,10 +103,10 @@ done
   echo "=== Stage B summary $(date +%H:%M:%S) ==="
   while IFS=$'\t' read -r id aspect prompt; do
     [ -z "$id" ] && continue
-    [ -f "$PROJ/Assets/Res/$id/picture/concept.png" ] || { echo "SKIP $id (no concept)"; continue; }
+    findpic "$id" concept >/dev/null || { echo "SKIP $id (no concept)"; continue; }
     line="$id:"
     for v in front side top; do
-      if [ -f "$PROJ/Assets/Res/$id/picture/$v.png" ]; then line="$line $v=OK"; else line="$line $v=MISS"; fi
+      if findpic "$id" "$v" >/dev/null; then line="$line $v=OK"; else line="$line $v=MISS"; fi
     done
     echo "$line"
   done < "$MANIFEST"
