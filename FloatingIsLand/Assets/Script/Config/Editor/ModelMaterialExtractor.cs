@@ -117,8 +117,23 @@ namespace FloatingIsLand.Config.EditorTools
             }
 
             AssetDatabase.WriteImportSettingsIfDirty(fbxPath);
+
+            // 提取会在 FBX 旁边留下两份没人引用的副本，清掉（实测删掉后重新导入不会再生成）：
+            //   <name>.fbm/   Unity 解包内嵌媒体的落脚点，贴图已经在 mat/ 有一份
+            //   Materials/    materialLocation=External 时 Unity 自动生成的材质，已被 externalObjects 顶掉
+            DeleteFolder($"{fbxDir}/{assetId}.fbm");
+            DeleteFolder($"{fbxDir}/Materials");
+
             log.AppendLine($"  - {assetId}: 贴图提取{(extracted ? "成功" : "无内嵌贴图")}，材质 {matCount} 个 → {matDir}");
             return true;
+        }
+
+        private static void DeleteFolder(string folder)
+        {
+            if (AssetDatabase.IsValidFolder(folder))
+            {
+                AssetDatabase.DeleteAsset(folder);
+            }
         }
 
         /// <summary>
