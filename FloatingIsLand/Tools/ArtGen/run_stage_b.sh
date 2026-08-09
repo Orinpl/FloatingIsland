@@ -10,6 +10,16 @@ MANIFEST="$SCRIPTDIR/manifest.tsv"
 COMMON="keep identical colors materials and proportions as the reference image, plain very light blue-grey background, low poly 3D game art, faceted geometry, flat shading, no text, no watermark"
 mkdir -p "$STATE"
 
+# 图片一律按「png 优先、其次 jpg」找：新下载的存 .png，但入库时会统一转成 .jpg 省体积。
+# 只认 .png 的话，已入库的资产会被判成"没有概念图/三视图缺失"，于是整套重新生成一遍——
+# 白烧一次生成额度，产出还和已入库的那版不是同一张图。
+findpic() { # $1=id $2=名字（concept/front/side/top）→ 打印路径；找不到返回非 0
+  local base="$PROJ/Assets/Res/$1/picture/$2"
+  if [ -f "$base.png" ]; then echo "$base.png"; return 0; fi
+  if [ -f "$base.jpg" ]; then echo "$base.jpg"; return 0; fi
+  return 1
+}
+
 statuscall() { atlas-skillhub gateway call-tool --service liclick --tool get_task_status task_id="$1" task_type=image 2>&1; }
 
 viewprompt() { # $1=view

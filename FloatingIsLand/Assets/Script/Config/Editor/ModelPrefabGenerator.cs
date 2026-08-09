@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using UnityEditor;
@@ -137,6 +138,23 @@ namespace FloatingIsLand.Config.EditorTools
             }
         }
 
+        /// <summary>把多行报告落到 Temp/ 下，返回落盘路径（失败时返回一句说明，不打断调用方）。</summary>
+        private static string WriteReport(string fileName, string content)
+        {
+            string outPath = Path.Combine(
+                Path.GetDirectoryName(Application.dataPath) ?? ".", "Temp/" + fileName);
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(outPath));
+                File.WriteAllText(outPath, content);
+                return outPath;
+            }
+            catch (System.Exception e)
+            {
+                return $"（落盘失败：{e.Message}）";
+            }
+        }
+
         /// <summary>关卡岛屿资产名：stageId 1 → stage_01。</summary>
         public static string StageAssetId(int stageId)
         {
@@ -254,7 +272,8 @@ namespace FloatingIsLand.Config.EditorTools
             }
 
             Bounds bounds;
-            if (!TryGetMeshBounds(model, out bounds))
+            List<Vector3> vertices = CollectWorldVertices(model);
+            if (!TryGetBounds(vertices, out bounds))
             {
                 Debug.LogWarning($"[白模 Prefab] {assetId} 没有任何网格，跳过按格对齐。");
                 return "无网格，未对齐";
@@ -271,6 +290,73 @@ namespace FloatingIsLand.Config.EditorTools
 
             float targetX = cols * cellSize;
             float targetZ = rows * cellSize;
+
+            // 先转正、再量包围盒算缩放。顺序反了就是拿斜着的 AABB 去拟合：45° 时 AABB 比模型本身
+            // 大 √2 倍，缩放系数跟着小 √2 倍，模型会明显缩水，而且四角照样是空的。
+            float yaw = SolveYaw(vertices, targetX, targetZ);
+
+            // 异形掩码还要再定一次向。最小面积外接矩形对「L 形转 180°」完全等价——AABB 一模一样、
+            // 缩放系数一模一样，评分分不出高下，于是缺口朝哪边全看凸包边的遍历顺序落在了哪个解上。
+            // 表现出来就是「房子和占地格刚好反过来」。满格矩形掩码四个朝向本来就等价，跳过省时间。
+            var pose = new ModelPose(model.transform);
+            if (!IsFullRectangle(footprint))
+            {
+                yaw = OrientToMask(model, pose, footprint, cols, rows, cellSize, targetX, targetZ, yaw);
+            }
+
+            if (!TryFitAt(model, pose, yaw, targetX, targetZ, out bounds))
+            {
+                return "拟合失败，未对齐";
+            }
+
+            aligned = true;
+            // 打填充率而不是缩放倍数：倍数对美术没有可操作性，填充率能直接看出"这个模型在格子里有多空"。
+            // 偏航也要打出来：那是几何自动求的，美术需要知道自己的模型被转了多少度才能判断合不合预期。
+            return $"{cols}×{rows} 格，填充 {bounds.size.x / targetX:P0}×{bounds.size.z / targetZ:P0}" +
+                   $"（{bounds.size.x:0.##}×{bounds.size.z:0.##}m / {targetX:0.##}×{targetZ:0.##}m）" +
+                   $"{(Mathf.Abs(yaw) > 0.01f ? $"，转正 {yaw:0.#}°" : "")}";
+        }
+
+        /// <summary>模型在对齐前的初始位姿。定向要反复试摆，每次都得从同一个起点重来。</summary>
+        private readonly struct ModelPose
+        {
+            private readonly Vector3 _position;
+            private readonly Quaternion _rotation;
+            private readonly Vector3 _scale;
+
+            public ModelPose(Transform transform)
+            {
+                _position = transform.localPosition;
+                _rotation = transform.localRotation;
+                _scale = transform.localScale;
+            }
+
+            public void RestoreTo(Transform transform)
+            {
+                transform.localPosition = _position;
+                transform.localRotation = _rotation;
+                transform.localScale = _scale;
+            }
+        }
+
+        /// <summary>
+        /// 从初始位姿出发：施加偏航 → 按格缩放 → 在占地矩形内 XZ 居中、底面贴地。
+        /// <paramref name="bounds"/> 返回最终包围盒（尺寸不受最后那步平移影响，可以直接拿去算填充率）。
+        /// </summary>
+        private static bool TryFitAt(
+            GameObject model, ModelPose pose, float yaw, float targetX, float targetZ, out Bounds bounds)
+        {
+            pose.RestoreTo(model.transform);
+            if (Mathf.Abs(yaw) > 0.01f)
+            {
+                model.transform.localRotation = Quaternion.Euler(0f, yaw, 0f) * model.transform.localRotation;
+            }
+
+            if (!TryGetMeshBounds(model, out bounds))
+            {
+                return false;
+            }
+
             float scale = Mathf.Min(targetX / bounds.size.x, targetZ / bounds.size.z);
             model.transform.localScale *= scale;
 
@@ -278,7 +364,7 @@ namespace FloatingIsLand.Config.EditorTools
             // 否则偏移量还是按缩放前的包围盒算的，模型会歪出格子。
             if (!TryGetMeshBounds(model, out bounds))
             {
-                return "缩放后测不到包围盒，未归位";
+                return false;
             }
 
             // 先把包围盒最小角挪到原点，再沿 XZ 各推半个空隙 → 占地矩形内居中；Y 保持贴地
@@ -286,11 +372,71 @@ namespace FloatingIsLand.Config.EditorTools
                 (targetX - bounds.size.x) * 0.5f,
                 0f,
                 (targetZ - bounds.size.z) * 0.5f) - bounds.min;
+            return true;
+        }
 
-            aligned = true;
-            // 打填充率而不是缩放倍数：倍数对美术没有可操作性，填充率能直接看出"这个模型在格子里有多空"
-            return $"{cols}×{rows} 格，填充 {bounds.size.x / targetX:P0}×{bounds.size.z / targetZ:P0}" +
-                   $"（{bounds.size.x:0.##}×{bounds.size.z:0.##}m / {targetX:0.##}×{targetZ:0.##}m）";
+        /// <summary>
+        /// 异形掩码的定向：四个朝向各摆一次，取模型实际覆盖与配表掩码最贴合的那个。
+        ///
+        /// 打分用**覆盖率加权**而不是"先卡阈值再数格子"：临界格（覆盖率刚好在阈值附近）会让
+        /// 数格子的结果在两个朝向间抖动，而加权分是连续的，差一点点也能稳定分出高下。
+        /// 掩码为 '#' 的格子覆盖率算加分、'.' 的算减分——既奖励盖住该盖的，也惩罚压住该空的。
+        /// </summary>
+        private static float OrientToMask(
+            GameObject model, ModelPose pose, string[] footprint,
+            int cols, int rows, float cellSize, float targetX, float targetZ, float baseYaw)
+        {
+            float bestYaw = baseYaw;
+            float bestScore = float.MinValue;
+
+            for (int k = 0; k < 4; k++)
+            {
+                float candidate = Mathf.Repeat(baseYaw + k * 90f, 360f);
+                Bounds ignored;
+                if (!TryFitAt(model, pose, candidate, targetX, targetZ, out ignored))
+                {
+                    continue;
+                }
+
+                // 包装根是 identity，模型的世界坐标就是相对占地矩形的坐标，可以直接交给探针量
+                float[,] coverage = ModelFootprintProbe.MeasureCoverage(model, cols, rows, cellSize);
+                if (coverage == null)
+                {
+                    continue;
+                }
+
+                float score = 0f;
+                for (int c = 0; c < cols; c++)
+                {
+                    for (int r = 0; r < rows; r++)
+                    {
+                        // r 是 dz 方向，掩码第一行在 z 最大侧 → 行号 rows-1-r（与探针同口径）
+                        bool solid = footprint[rows - 1 - r][c] == '#';
+                        score += solid ? coverage[c, r] : -coverage[c, r];
+                    }
+                }
+
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    bestYaw = candidate;
+                }
+            }
+
+            return bestYaw;
+        }
+
+        /// <summary>掩码是不是满格矩形（没有 '.'）。满格时四个朝向等价，不必再定向。</summary>
+        private static bool IsFullRectangle(string[] footprint)
+        {
+            for (int i = 0; i < footprint.Length; i++)
+            {
+                if (footprint[i].IndexOf('.') >= 0)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         /// <summary>掩码行列数；行长不一致或全空返回 false。</summary>
@@ -327,18 +473,17 @@ namespace FloatingIsLand.Config.EditorTools
         }
 
         /// <summary>
-        /// 一棵子树里所有网格的世界空间 AABB。
+        /// 一棵子树里所有网格顶点的世界坐标。
         /// 不用 <see cref="Renderer.bounds"/>：那是 Unity 内部缓存的，编辑器里刚改完 transform
-        /// 不保证已经刷新；这里直接把 mesh.bounds 的 8 个角点过一遍 localToWorldMatrix，改完就准。
+        /// 不保证已经刷新；这里直接把顶点过一遍 localToWorldMatrix，改完就准。
         ///
-        /// 前提：模型是单节点、或子节点只带**轴对齐**旋转（当前 22 个资产都满足）。
-        /// 若将来出现带斜角旋转的子节点，「AABB 的角点再取 AABB」会保守放大，
-        /// 缩放系数偏小、模型明显缩水；那时要改成逐顶点求（生成期的一次性开销可以接受）。
+        /// 走逐顶点而不是「mesh.bounds 的 8 个角点」：<see cref="SolveYaw"/> 会给模型施加**斜角**偏航，
+        /// 而「AABB 的角点再取 AABB」在斜角下会保守放大（45° 时放大 √2 倍），
+        /// 缩放系数跟着偏小、模型明显缩水。22 个低模在生成期跑一遍的开销可以忽略。
         /// </summary>
-        private static bool TryGetMeshBounds(GameObject root, out Bounds bounds)
+        private static List<Vector3> CollectWorldVertices(GameObject root)
         {
-            bounds = new Bounds();
-            bool any = false;
+            var result = new List<Vector3>();
             MeshFilter[] filters = root.GetComponentsInChildren<MeshFilter>(true);
 
             foreach (MeshFilter filter in filters)
@@ -349,31 +494,184 @@ namespace FloatingIsLand.Config.EditorTools
                     continue;
                 }
 
-                Bounds local = mesh.bounds;
-                Matrix4x4 toWorld = filter.transform.localToWorldMatrix;
-                Vector3 center = local.center;
-                Vector3 extents = local.extents;
-
-                for (int i = 0; i < 8; i++)
+                Vector3[] vertices;
+                try
                 {
-                    var corner = new Vector3(
-                        center.x + ((i & 1) == 0 ? -extents.x : extents.x),
-                        center.y + ((i & 2) == 0 ? -extents.y : extents.y),
-                        center.z + ((i & 4) == 0 ? -extents.z : extents.z));
-                    Vector3 p = toWorld.MultiplyPoint3x4(corner);
-                    if (!any)
+                    vertices = mesh.vertices;
+                }
+                catch (System.Exception e)
+                {
+                    // 与占格探针同口径：读不到就跳过并留一条可定位的警告，不能静默当成"没有网格"
+                    Debug.LogWarning($"[白模 Prefab] 读不到 {mesh.name} 的顶点：{e.Message}");
+                    continue;
+                }
+                if (vertices == null || vertices.Length == 0)
+                {
+                    continue;
+                }
+
+                Matrix4x4 toWorld = filter.transform.localToWorldMatrix;
+                for (int i = 0; i < vertices.Length; i++)
+                {
+                    result.Add(toWorld.MultiplyPoint3x4(vertices[i]));
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 求一个绕 Y 的偏航角，把模型的地基转到与网格轴平行。
+        ///
+        /// 为什么需要它：这批资产是从**等距 45° 概念图**生成的，模型的地基跟着概念图斜了 45°，
+        /// 而占地格是轴对齐的。斜着的方形地基硬塞进轴对齐的占地矩形，结果是四角空、边缘溢出观感——
+        /// 玩家看到的就是「建筑和格子差 45°」。实测证据是占格探针打出来的标准菱形覆盖率
+        /// （四角 ~12%、边中 ~83%、中心 100%，见 workshop_01）。
+        ///
+        /// 解法用最小面积外接矩形：**最优矩形必有一条边与凸包的某条边共线**（经典结论），
+        /// 所以只要逐条凸包边试过去就能求到精确解，不必按角度暴力扫。
+        /// 评分直接取 <c>min(目标宽/实测宽, 目标深/实测深)</c>——也就是 <see cref="AlignToFootprint"/>
+        /// 真正会用的那个缩放系数，于是「转正」和「长边对长边」一步到位：
+        /// 2×1 占地的模型不会被转 90° 去横躺，因为那个方向的评分更低。
+        ///
+        /// 只按几何求解、不给每个资产手配角度：手配的表会和美术重出的资产悄悄失同步，
+        /// 而这里每次生成都重算一遍，模型换了自动跟上。
+        /// </summary>
+        /// <param name="vertices">模型的世界空间顶点（包装根是 identity，等同于相对包装根）。</param>
+        /// <returns>该施加的偏航角（度）；求不出时返回 0。</returns>
+        private static float SolveYaw(List<Vector3> vertices, float targetX, float targetZ)
+        {
+            List<Vector2> hull = ConvexHullXZ(vertices);
+            if (hull.Count < 3)
+            {
+                // 点太少（退化成线或点）时旋转没有意义，保持原样交给后面的退化分支报
+                return 0f;
+            }
+
+            float bestYaw = 0f;
+            float bestScore = ScoreYaw(hull, 0f, targetX, targetZ);
+
+            for (int i = 0; i < hull.Count; i++)
+            {
+                Vector2 edge = hull[(i + 1) % hull.Count] - hull[i];
+                if (edge.sqrMagnitude <= Mathf.Epsilon)
+                {
+                    continue;
+                }
+
+                // 把这条边转到与 X 轴平行需要的偏航。Unity 的 Euler(0,yaw,0) 作用在 (x,z) 上
+                // 相当于把方位角减去 yaw，所以直接取这条边自己的方位角。
+                float yaw = Mathf.Atan2(edge.y, edge.x) * Mathf.Rad2Deg;
+                // 同时试 +90°：凸包不保证两个正交方向的边都存在，而长宽该怎么对应由评分决定
+                for (int k = 0; k < 2; k++)
+                {
+                    float candidate = Mathf.Repeat(yaw + k * 90f, 360f);
+                    float score = ScoreYaw(hull, candidate, targetX, targetZ);
+                    if (score > bestScore)
                     {
-                        bounds = new Bounds(p, Vector3.zero);
-                        any = true;
-                    }
-                    else
-                    {
-                        bounds.Encapsulate(p);
+                        bestScore = score;
+                        bestYaw = candidate;
                     }
                 }
             }
 
-            return any;
+            // 本来就轴对齐的资产不要为了千分之几的评分去转一个碎角度——那只会让美术对不上账。
+            // 阈值取 0.5%：45° 的错位会带来 √2 ≈ 41% 的差距，远在阈值之上，不会被这条挡掉。
+            float upright = ScoreYaw(hull, 0f, targetX, targetZ);
+            if (upright >= bestScore * 0.995f)
+            {
+                return 0f;
+            }
+            return bestYaw;
+        }
+
+        /// <summary>某个偏航下模型能吃到的缩放系数（越大越贴合占地）。退化方向返回 0。</summary>
+        private static float ScoreYaw(List<Vector2> hull, float yaw, float targetX, float targetZ)
+        {
+            float rad = yaw * Mathf.Deg2Rad;
+            float cos = Mathf.Cos(rad);
+            float sin = Mathf.Sin(rad);
+
+            float minX = float.MaxValue, maxX = float.MinValue;
+            float minZ = float.MaxValue, maxZ = float.MinValue;
+            for (int i = 0; i < hull.Count; i++)
+            {
+                // 与 Quaternion.Euler(0, yaw, 0) 同一套旋转：+X 转向 -Z
+                float x = hull[i].x * cos + hull[i].y * sin;
+                float z = -hull[i].x * sin + hull[i].y * cos;
+                if (x < minX) minX = x;
+                if (x > maxX) maxX = x;
+                if (z < minZ) minZ = z;
+                if (z > maxZ) maxZ = z;
+            }
+
+            float width = maxX - minX;
+            float depth = maxZ - minZ;
+            if (width <= Mathf.Epsilon || depth <= Mathf.Epsilon)
+            {
+                return 0f;
+            }
+            return Mathf.Min(targetX / width, targetZ / depth);
+        }
+
+        /// <summary>顶点在 XZ 平面上的凸包（Andrew monotone chain，逆时针）。</summary>
+        private static List<Vector2> ConvexHullXZ(List<Vector3> vertices)
+        {
+            var points = new List<Vector2>(vertices.Count);
+            for (int i = 0; i < vertices.Count; i++)
+            {
+                points.Add(new Vector2(vertices[i].x, vertices[i].z));
+            }
+
+            points.Sort((a, b) => a.x != b.x ? a.x.CompareTo(b.x) : a.y.CompareTo(b.y));
+
+            var hull = new List<Vector2>(points.Count + 1);
+            // 下链 → 上链；每条链里把造成非左转的点弹掉
+            for (int pass = 0; pass < 2; pass++)
+            {
+                int start = hull.Count;
+                for (int i = 0; i < points.Count; i++)
+                {
+                    Vector2 p = pass == 0 ? points[i] : points[points.Count - 1 - i];
+                    while (hull.Count >= start + 2
+                           && Cross(hull[hull.Count - 2], hull[hull.Count - 1], p) <= 0f)
+                    {
+                        hull.RemoveAt(hull.Count - 1);
+                    }
+                    hull.Add(p);
+                }
+                // 每条链的终点是下一条链的起点，去掉重复
+                hull.RemoveAt(hull.Count - 1);
+            }
+
+            return hull;
+        }
+
+        private static float Cross(Vector2 o, Vector2 a, Vector2 b)
+        {
+            return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+        }
+
+        /// <summary>一棵子树里所有网格顶点的世界空间 AABB。</summary>
+        private static bool TryGetMeshBounds(GameObject root, out Bounds bounds)
+        {
+            return TryGetBounds(CollectWorldVertices(root), out bounds);
+        }
+
+        private static bool TryGetBounds(List<Vector3> vertices, out Bounds bounds)
+        {
+            bounds = new Bounds();
+            if (vertices == null || vertices.Count == 0)
+            {
+                return false;
+            }
+
+            bounds = new Bounds(vertices[0], Vector3.zero);
+            for (int i = 1; i < vertices.Count; i++)
+            {
+                bounds.Encapsulate(vertices[i]);
+            }
+            return true;
         }
 
         private static void AddMeshColliders(GameObject root)
@@ -510,13 +808,17 @@ namespace FloatingIsLand.Config.EditorTools
                 }
             }
 
+            // 与占格探针同口径落一份到文件：Console 只显示日志首行，逐条明细在里面根本看不全，
+            // 而"哪几个不对"恰恰全在后面那些行里
+            string outPath = WriteReport("alignment_validate.txt", log.ToString());
+
             if (badCount == 0)
             {
-                Debug.Log($"[对位校验] 检查了 {checkedCount} 个 Prefab，全部与配表一致。");
+                Debug.Log($"[对位校验] 检查了 {checkedCount} 个 Prefab，全部与配表一致。明细：{outPath}");
             }
             else
             {
-                Debug.LogError($"[对位校验] 检查了 {checkedCount} 个 Prefab，其中 {badCount} 个有问题：\n{log}" +
+                Debug.LogError($"[对位校验] 检查了 {checkedCount} 个 Prefab，其中 {badCount} 个有问题。明细：{outPath}\n{log}" +
                                "\n多数情况跑一次 Tools/美术/生成白模 Prefab 重新生成即可；配表没填的要回配表补。");
             }
         }

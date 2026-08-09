@@ -150,7 +150,8 @@ namespace FloatingIsLand.UI
                 _handItems.Add(new HudPanel.HandItemView(
                     variantId,
                     blueprint != null ? blueprint.NameCn : variantId,
-                    blueprint != null ? blueprint.Footprint : null));
+                    blueprint != null ? blueprint.Footprint : null,
+                    blueprint != null ? blueprint.PrefabPath : null));
             }
 
             _offerLabels.Clear();

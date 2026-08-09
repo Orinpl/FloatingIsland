@@ -183,23 +183,58 @@ namespace FloatingIsLand.Config.EditorTools
             return mismatch;
         }
 
-        /// <summary>整棵子树的世界包围盒尺寸；高度明显小于进深往往说明模型还躺着。</summary>
+        /// <summary>
+        /// 整棵子树的世界包围盒尺寸；高度明显小于进深往往说明模型还躺着。
+        ///
+        /// 逐顶点求，**不能用 <see cref="Renderer.bounds"/>**：那个值是「网格的局部 AABB 变换后再取 AABB」，
+        /// 对带偏航的模型会保守放大（ModelPrefabGenerator.SolveYaw 会把斜 45° 的地基转正，
+        /// 于是局部 AABB 自己是斜的，虚报可达 2 倍）。报告里的尺寸是美术判断「模型有没有超格」的依据，
+        /// 虚报会让人以为对齐炸了，跑去改本来没问题的资产。
+        /// </summary>
         private static Vector3 WorldSize(GameObject root)
         {
             var bounds = new Bounds();
             bool any = false;
-            foreach (Renderer renderer in root.GetComponentsInChildren<Renderer>(true))
+
+            foreach (MeshFilter filter in root.GetComponentsInChildren<MeshFilter>(true))
             {
-                if (!any)
+                Mesh mesh = filter.sharedMesh;
+                if (mesh == null)
                 {
-                    bounds = renderer.bounds;
-                    any = true;
+                    continue;
                 }
-                else
+
+                Vector3[] vertices;
+                try
                 {
-                    bounds.Encapsulate(renderer.bounds);
+                    vertices = mesh.vertices;
+                }
+                catch (System.Exception)
+                {
+                    // 读不到顶点的情形由 CollectTrianglesXZ 统一报，这里静默跳过不重复刷屏
+                    continue;
+                }
+                if (vertices == null)
+                {
+                    continue;
+                }
+
+                Matrix4x4 toWorld = filter.transform.localToWorldMatrix;
+                for (int i = 0; i < vertices.Length; i++)
+                {
+                    Vector3 p = toWorld.MultiplyPoint3x4(vertices[i]);
+                    if (!any)
+                    {
+                        bounds = new Bounds(p, Vector3.zero);
+                        any = true;
+                    }
+                    else
+                    {
+                        bounds.Encapsulate(p);
+                    }
                 }
             }
+
             return any ? bounds.size : Vector3.zero;
         }
 
@@ -224,8 +259,12 @@ namespace FloatingIsLand.Config.EditorTools
         ///
         /// 前提：<paramref name="root"/> 是生成器产出的 identity 包装根，占地矩形就是
         /// [0, cols*cellSize] × [0, rows*cellSize]（见 ModelPrefabGenerator 的对齐口径）。
+        ///
+        /// 对生成器开放：<see cref="ModelPrefabGenerator"/> 给异形掩码定向时要用同一把尺子打分。
+        /// 「生成时怎么摆」和「验收时怎么量」共用这一份，两边各写一遍必然漂移——
+        /// 漂移的表现是生成器自认为摆对了、探针却报不一致，而且谁也说不清该信哪个。
         /// </summary>
-        private static float[,] MeasureCoverage(GameObject root, int cols, int rows, float cellSize)
+        internal static float[,] MeasureCoverage(GameObject root, int cols, int rows, float cellSize)
         {
             List<Vector2> triangles = CollectTrianglesXZ(root);
             if (triangles == null || triangles.Count == 0)

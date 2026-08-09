@@ -87,13 +87,36 @@ Game.Input ───┘        │
 - 四个面板（[Panels/](../Assets/Script/UI/Panels/)）都是哑视图：只有控件引用和 Set 方法，不含流程逻辑。
 - **字体**：骨架用 uGUI 传统 Text（`LegacyRuntime.ttf` 动态字体走系统回退，中文可显示）。TMP 默认字体无中文字形，正式 UI 阶段再引入 TMP + 中文字体资产（届时只改面板与场景，不动流程）。
 
+### 4.1 手牌卡片的三段
+
+一张手牌自上而下是**略缩图 / 占地图标 / 名字**，各答一个问题：长什么样、占几格什么形状、叫什么。
+少任何一段都会出现「两张牌看起来一模一样」——居民区有方形 / L 形 / 凹形三个变体，只写名字分不出，
+只画形状又认不出建筑。
+
+| 段 | 来源 |
+|---|---|
+| 略缩图 | [BuildingThumbnail](../Assets/Script/UI/BuildingThumbnail.cs) 按配表 `prefabPath` **运行时现渲**，按变体缓存 |
+| 占地图标 | [FootprintIcon](../Assets/Script/UI/FootprintIcon.cs) 把 `footprint` 掩码画成小贴图 |
+| 名字 | 配表 `BuildingVariant.nameCn`，空则回落 `Building.nameCn` |
+
+两个决定要记住：
+
+1. **略缩图是运行时渲的，不是编辑器预生成的 PNG。** 预生成的图会静悄悄过期——改了模型忘了重跑菜单，
+   玩家看到的还是上一版，而且没有任何报错。现渲永远等于当前资产，也不用往仓库塞十几张二进制图。
+   渲染台在世界下方一万米、独占 TransparentFX 层，相机与灯光都只认这一层，既照不到正式场景，
+   也不会把正式场景拍进图里；节点是 `HideAndDontSave`，不会被存进场景。
+   想在编辑器里检查渲出来什么样，跑 **Tools/美术/导出建筑略缩图（排查用）**，PNG 落在 `Temp/Thumbnails`。
+2. **卡片尺寸在运行时写到实例上**，不改 BootSceneBuilder 的模板——改模板得重跑场景生成菜单
+   （那条路有模态弹窗，会把 MCP 整个卡住），为了排版不值当。同理，略缩图与占地图标的节点也是
+   `HudPanel` 按需现建的。
+
 ## 5. 骨架里的占位与后续接入点
 
 | 占位 | 现状 | 接入点 |
 |---|---|---|
 | GameSession | 只有 `Ended` 事件 + `EndRun()` 直接给占位结果 | M2 实现核心循环后，在四个结束条件处触发 `Ended`（携真实终局结算），删除 HUD 占位按钮 |
 | 地图生成 | LoadingState 里 `TODO(M1)` | 按 `CurrentRun.Seed` 生成地图 → 构建领域层 → 绑定 View，全部完成再进 Gameplay |
-| HUD | 关数/种子 + 占位「结束本局」按钮 | M2 起替换为资源条/建筑组二选一/手牌/预览明细（PROJECT_BUILD §4.8） |
+| HUD | 计分区 + 建筑组二选一 + 手牌（见下）；占位「结束本局」按钮仍在 | 预览明细（逐条加减分）待 M5 |
 | 结算面板 | 总分 + 结束原因文本 | M5 终局结算实装后展示逐条分数明细（即时分/终局网络分分离） |
 | RunResult | 只有 TotalScore/EndReason | 随 M5 扩为明细列表 |
 

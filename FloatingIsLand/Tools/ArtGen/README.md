@@ -35,6 +35,62 @@ python3 Tools/ArtGen/fbx_probe.py .  # 质检：读 FBX 二进制报顶点/面�
 3. **平台偶发生成失败**：出现 "未能生成图像，请调整 prompt" 时不是超时，重试同样的提示词大概率还是失败，
    要把提示词改简单（去掉 "orthographic/no perspective distortion" 这类堆叠约束）再提交。
 
+## 重出已有资产（2026-08-09 踩坑记录）
+
+**"跳过已产出的"是靠缓存实现的，而缓存有三层，只清一层会静默沿用旧内容。** 重出一个资产必须四样一起清：
+
+```bash
+id=residence_02
+rm -f Assets/Res/$id/fbx/$id.fbx          # 不删 .fbx.meta，保住 GUID
+rm -f Assets/Res/$id/picture/{front,side,top}.png
+rm -f ArtGen/state/$id.*                  # 任务 id / 结果链接 / 失败标记
+rm -f ArtGen/refs/$id.jpg ArtGen/views/$id.*.jpg   # ← 最容易漏的两个
+```
+
+`ArtGen/refs/` 与 `ArtGen/views/` 是**必需输入，但没有任何脚本会生成它们**——三个 stage 都只读不写。
+漏清的后果都是静默的、而且是部分的：
+
+- 漏清 `refs/` → `run_stage_b.sh` 上传的是旧概念的压缩图（`concept.png` 只是它的 fallback），
+  照着旧图重出一整套三视图，**零报错**。现象是"concept 明明换了，三视图还是老样子"。
+- 漏清 `views/` → `run_stage_c.sh` 的 `uploadview` 回退去传 2K PNG，触发上面第 1 条的 413，
+  日志里只有一行 `[FAIL-upload-views]`。小于 ~1.5MB 的视图会侥幸通过，于是**只挂一部分资产**，
+  看起来像偶发。
+
+清完要按新概念重建压缩图（1280px / quality 88 / 约 100KB）：
+
+```python
+from PIL import Image
+im = Image.open(src).convert("RGB"); im.thumbnail((1280, 1280), Image.LANCZOS)
+im.save(dst, "JPEG", quality=88, optimize=True)
+```
+
+## 异形占地：别让原 concept 当参考图
+
+L 形 / 凹形占地光靠提示词写清格子数是不可靠的。实测四轮（nano_banana_pro）：
+
+| 输入 | 结果 |
+|---|---|
+| 只写文字描述 L 形 | 3 块 V 形（照抄参考图） |
+| + 俯视平面引导图 | 4 块，但排成 2×2 |
+| + 等轴测地基引导图 **+ 原 concept** | 又回到 3 块 V 形 |
+| **只给等轴测地基引导图，去掉 concept** | ✅ 正确 |
+
+两条结论：
+
+1. **原 `concept.jpg` 当风格参考是有害的。** 只要它在 `reference_images` 里，构图就被拽回旧样，
+   文字里写多少遍 "exactly four tiles" 都没用。风格靠 `run_stage_a.sh` 里的 `STYLE` 常量就够。
+2. **把"布局生成"降级成"编辑"。** 先用 `make_plate_guide.py` 按配表把地基渲出来（形状来自配表，不可能错），
+   再让模型只做"往这块地基上加房子"：
+
+```bash
+python3 Tools/ArtGen/make_plate_guide.py residence_02   # → ArtGen/guides/residence_02.png
+# 上传这张，提示词强调：这张图就是最终地基，只许往上加建筑，不许改轮廓/增减格子/转相机
+```
+
+**遗留问题**：这条路子能保证格数和长宽比，但**保证不了朝向**——AI 出来的模型可能相对掩码转了
+90/180/270°。`ModelPrefabGenerator.SolveYaw` 会自动纠偏，但它的评分是"包围盒能吃到的缩放系数"，
+0° 与 180° 的 AABB 完全相同、分不出来。判据得换成逐格掩码吻合度（见 `ModelFootprintProbe`）。
+
 ## 导入 Unity 后必跑一步：提取材质与贴图
 
 **FBX 里的贴图是内嵌的，Unity 不会自动展开** —— 只会建一个空材质（Albedo 留白），模型看起来就是白模。
