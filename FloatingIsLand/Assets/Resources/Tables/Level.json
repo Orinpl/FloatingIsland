@@ -26,7 +26,7 @@
   },
   {
     "level": 3,
-    "unlockCost": 110,
+    "unlockCost": 90,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
@@ -40,7 +40,7 @@
   },
   {
     "level": 4,
-    "unlockCost": 170,
+    "unlockCost": 115,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
@@ -55,7 +55,7 @@
   },
   {
     "level": 5,
-    "unlockCost": 240,
+    "unlockCost": 140,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
@@ -70,7 +70,7 @@
   },
   {
     "level": 6,
-    "unlockCost": 320,
+    "unlockCost": 160,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
@@ -85,7 +85,7 @@
   },
   {
     "level": 7,
-    "unlockCost": 410,
+    "unlockCost": 180,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
@@ -100,7 +100,7 @@
   },
   {
     "level": 8,
-    "unlockCost": 510,
+    "unlockCost": 200,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
@@ -115,7 +115,7 @@
   },
   {
     "level": 9,
-    "unlockCost": 620,
+    "unlockCost": 220,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
@@ -131,7 +131,7 @@
   },
   {
     "level": 10,
-    "unlockCost": 740,
+    "unlockCost": 240,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
@@ -146,7 +146,7 @@
   },
   {
     "level": 11,
-    "unlockCost": 870,
+    "unlockCost": 260,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
@@ -161,7 +161,7 @@
   },
   {
     "level": 12,
-    "unlockCost": 1010,
+    "unlockCost": 275,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
@@ -176,7 +176,7 @@
   },
   {
     "level": 13,
-    "unlockCost": 1160,
+    "unlockCost": 290,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
@@ -191,7 +191,7 @@
   },
   {
     "level": 14,
-    "unlockCost": 1320,
+    "unlockCost": 305,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
@@ -206,7 +206,7 @@
   },
   {
     "level": 15,
-    "unlockCost": 1490,
+    "unlockCost": 320,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
@@ -221,7 +221,7 @@
   },
   {
     "level": 16,
-    "unlockCost": 1670,
+    "unlockCost": 335,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
@@ -236,7 +236,7 @@
   },
   {
     "level": 17,
-    "unlockCost": 1860,
+    "unlockCost": 350,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
@@ -250,7 +250,7 @@
   },
   {
     "level": 18,
-    "unlockCost": 2060,
+    "unlockCost": 365,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
@@ -265,7 +265,7 @@
   },
   {
     "level": 19,
-    "unlockCost": 2270,
+    "unlockCost": 380,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
@@ -280,7 +280,7 @@
   },
   {
     "level": 20,
-    "unlockCost": 2490,
+    "unlockCost": 395,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,

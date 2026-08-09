@@ -102,7 +102,9 @@ namespace FloatingIsLand.EditorTools
             Camera camera = cameraGo.AddComponent<Camera>();
             camera.depth = 0f; // 高于 MenuCamera(-10)，进局后自然盖过菜单背景
             cameraGo.AddComponent<GameplayCameraController>(); // 编辑器式自由相机（WASD/升降/滚轮/右键旋转/中键平移）
-            cameraGo.transform.position = new Vector3(0f, 12f, -12f);
+            // 起始机位要能一眼看全整座岛：岛按 Stage.islandCellSpan（40 格 × cellSize 2 = 80 m）居中在原点，
+            // 55 m 高、55 m 后、俯角 45° 正好把 80 m 跨度框进视野。压太低只会贴脸看地面。
+            cameraGo.transform.position = new Vector3(0f, 55f, -55f);
             cameraGo.transform.rotation = Quaternion.Euler(45f, 0f, 0f);
 
             var lightGo = new GameObject("Directional Light");

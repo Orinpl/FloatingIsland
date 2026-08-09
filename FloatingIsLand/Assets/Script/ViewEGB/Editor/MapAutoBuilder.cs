@@ -31,11 +31,12 @@ namespace FloatingIsLand.ViewEGB.EditorTools
     {
         private const string MapsFolder = "Assets/Resources/Maps";
 
-        /// <summary>顶面往下多少米之内算「可建造的岛面」，再往下就是陡坡与裙边。</summary>
-        private const float PlateauDepth = 6f;
-
-        /// <summary>岛外浮空区域的环宽（格）。</summary>
-        private const int FloatingRingWidth = 3;
+        /// <summary>
+        /// 岛外浮空区域的环宽（格）。
+        /// 必须大于最大船坞占地（dock_01 是 6×6）——浮空区域是船坞唯一合法地形，
+        /// 环太窄的话 6×6 的占地在环里根本找不到一块完整的合法区域，船坞会变成永远放不下的废牌。
+        /// </summary>
+        private const int FloatingRingWidth = 8;
 
         /// <summary>绿地块数与半径（格）。</summary>
         private const int GreenPatchCount = 6;
@@ -63,6 +64,95 @@ namespace FloatingIsLand.ViewEGB.EditorTools
             }
         }
 
+        /// <summary>
+        /// 诊断：打印缩放后岛屿的包围盒、有命中的格数，以及每格顶面高度的十分位分布。
+        /// 顶面薄片的厚度阈值该取多少，靠这个量出来而不是拍脑袋。
+        /// </summary>
+        [MenuItem("Tools/地图/诊断：岛屿地形描摹", false, 2)]
+        public static void DiagnoseTrace()
+        {
+            var grid = Object.FindObjectOfType<EasyGridBuilderPro>();
+            if (grid == null)
+            {
+                Debug.LogError("[描摹诊断] 当前场景里没有 EGB 网格。");
+                return;
+            }
+            if (!TableLoader.IsLoaded)
+            {
+                UnityTableLoader.LoadFromResources();
+            }
+
+            StageRow stage = Tables.Stage.GetOrNull(1);
+            if (stage == null)
+            {
+                return;
+            }
+
+            EnsureGridSize(grid, stage.mapWidth, stage.mapHeight);
+            GridGeometry geometry = MakeGeometry(grid);
+            GameObject island = InstantiateIsland(stage);
+            if (island == null)
+            {
+                return;
+            }
+
+            try
+            {
+                Dictionary<Vector3Int, float> heightMap = IslandFitter.Fit(island, geometry, stage.islandCellSpan);
+                if (heightMap.Count == 0)
+                {
+                    Debug.LogError("[描摹诊断] 一格都没命中——岛屿 Prefab 上没有 MeshCollider。");
+                    return;
+                }
+
+                Bounds bounds;
+                TryGetWorldBounds(island, out bounds);
+                float band = IslandFitter.SurfaceBand(island);
+                Debug.Log($"[描摹诊断] 对位后包围盒：{bounds.size.x:0.#} × {bounds.size.y:0.#} × {bounds.size.z:0.#} m，" +
+                          $"顶面 y={bounds.max.y:0.##}，底面 y={bounds.min.y:0.##}，" +
+                          $"XZ 覆盖 {Mathf.CeilToInt(bounds.size.x / geometry.CellSize)} × {Mathf.CeilToInt(bounds.size.z / geometry.CellSize)} 格，" +
+                          $"平台面 y={IslandFitter.SurfaceY:0.##}，高度带 ±{band:0.#} m");
+
+                var heights = new List<float>(heightMap.Count);
+                int onSurface = 0;
+                foreach (KeyValuePair<Vector3Int, float> kv in heightMap)
+                {
+                    heights.Add(kv.Value);
+                    if (IslandFitter.IsOnSurface(kv.Value, band))
+                    {
+                        onSurface++;
+                    }
+                }
+
+                heights.Sort();
+                Debug.Log($"[描摹诊断] 有命中的格数：{heights.Count}（整座岛的 XZ 轮廓上限），" +
+                          $"其中落在平台面高度带内的：{onSurface}（{100f * onSurface / heights.Count:0.#}%，这就是可建造格数）");
+
+                var buckets = new System.Text.StringBuilder("[描摹诊断] 顶面高度十分位：");
+                for (int p = 0; p <= 10; p++)
+                {
+                    int index = Mathf.Clamp(Mathf.RoundToInt((heights.Count - 1) * p / 10f), 0, heights.Count - 1);
+                    buckets.Append($" {p * 10}%={heights[index]:0.#}");
+                }
+                Debug.Log(buckets.ToString());
+            }
+            finally
+            {
+                Object.DestroyImmediate(island);
+            }
+        }
+
+        private static GridGeometry MakeGeometry(EasyGridBuilderPro grid)
+        {
+            return new GridGeometry(
+                grid.transform.position,
+                grid.GetGridWidth(),
+                grid.GetGridLength(),
+                grid.GetCellSize(),
+                grid.GetVerticalGridHeight(),
+                grid.GetGridOriginType() == GridOrigin.Center);
+        }
+
         private static void Build(StageRow stage, EasyGridBuilderPro grid, int seed)
         {
             // 场景网格必须先对齐到配表尺寸，否则描摹出来的坐标系和运行时对不上
@@ -82,7 +172,7 @@ namespace FloatingIsLand.ViewEGB.EditorTools
                 return;
             }
 
-            GameObject island = InstantiateIsland(stage, geometry);
+            GameObject island = InstantiateIsland(stage);
             if (island == null)
             {
                 return;
@@ -91,9 +181,18 @@ namespace FloatingIsLand.ViewEGB.EditorTools
             var terrain = new Dictionary<Vector3Int, string>();
             try
             {
-                // 编辑器态改了 transform 后必须手动同步给物理系统，否则射线打的是旧位置
-                Physics.SyncTransforms();
-                TraceIsland(island, geometry, terrain);
+                // 对位与运行时共用 IslandFitter，顺带拿回每格的顶面高度
+                Dictionary<Vector3Int, float> heights = IslandFitter.Fit(island, geometry, stage.islandCellSpan);
+                float band = IslandFitter.SurfaceBand(island);
+                foreach (KeyValuePair<Vector3Int, float> kv in heights)
+                {
+                    // 只有落在平台面高度带里的格子可建造：尖峰和陡坡不刷，
+                    // 否则建筑会浮在半空或陷进山体
+                    if (IslandFitter.IsOnSurface(kv.Value, band))
+                    {
+                        terrain[kv.Key] = "island";
+                    }
+                }
             }
             finally
             {
@@ -126,7 +225,7 @@ namespace FloatingIsLand.ViewEGB.EditorTools
                       $"地图元素 {elements.Count} 个 → {AssetPath(stage.stageId)}");
         }
 
-        private static GameObject InstantiateIsland(StageRow stage, GridGeometry geometry)
+        private static GameObject InstantiateIsland(StageRow stage)
         {
             if (string.IsNullOrEmpty(stage.prefabPath))
             {
@@ -145,106 +244,10 @@ namespace FloatingIsLand.ViewEGB.EditorTools
             GameObject island = Object.Instantiate(prefab);
             island.name = "__MapAutoBuilder_TempIsland";
             island.hideFlags = HideFlags.HideAndDontSave;
-
-            if (!FitIsland(island, geometry, stage.islandCellSpan))
-            {
-                Object.DestroyImmediate(island);
-                return null;
-            }
+            // 缩放/对位交给 IslandFitter（与运行时共用同一份），这里只负责实例化
             return island;
         }
 
-        /// <summary>
-        /// 与运行时 <see cref="WorldRenderer"/> 的对位算法保持一字不差：
-        /// 等比缩放到 islandCellSpan 格跨度、居中到地图中心、顶面对到 y=0。
-        /// 两边一旦漂移，刷出来的地形就会和玩家看到的岛错位。
-        /// </summary>
-        private static bool FitIsland(GameObject island, GridGeometry geometry, int cellSpan)
-        {
-            Bounds bounds;
-            if (!TryGetWorldBounds(island, out bounds))
-            {
-                Debug.LogError("[生成地图] 岛屿模型没有任何 Renderer。");
-                return false;
-            }
-
-            float longestSide = Mathf.Max(bounds.size.x, bounds.size.z);
-            if (longestSide <= Mathf.Epsilon)
-            {
-                Debug.LogError("[生成地图] 岛屿模型 XZ 包围盒为零。");
-                return false;
-            }
-
-            int span = cellSpan > 0 ? cellSpan : 40;
-            island.transform.localScale *= span * geometry.CellSize / longestSide;
-
-            if (!TryGetWorldBounds(island, out bounds))
-            {
-                return false;
-            }
-
-            Vector3 mapCenter = geometry.CellCorner(geometry.Width / 2, geometry.Length / 2, 0);
-            island.transform.position += new Vector3(
-                mapCenter.x - bounds.center.x,
-                -0.05f - bounds.max.y,
-                mapCenter.z - bounds.center.z);
-            return true;
-        }
-
-        /// <summary>逐格从上往下打射线，命中岛面顶部薄片的格子刷成 island。</summary>
-        private static void TraceIsland(GameObject island, GridGeometry geometry, Dictionary<Vector3Int, string> terrain)
-        {
-            Bounds bounds;
-            if (!TryGetWorldBounds(island, out bounds))
-            {
-                return;
-            }
-
-            // 只扫岛的包围盒覆盖的格子范围，250×250 全扫是 6 万次射线的无谓开销
-            int minX, minZ, maxX, maxZ;
-            geometry.WorldToCellUnclamped(bounds.min, 0, out minX, out minZ);
-            geometry.WorldToCellUnclamped(bounds.max, 0, out maxX, out maxZ);
-            minX = Mathf.Max(0, minX - 1);
-            minZ = Mathf.Max(0, minZ - 1);
-            maxX = Mathf.Min(geometry.Width - 1, maxX + 1);
-            maxZ = Mathf.Min(geometry.Length - 1, maxZ + 1);
-
-            float rayStartY = bounds.max.y + 10f;
-            float rayLength = bounds.size.y + 20f;
-            float plateauFloor = bounds.max.y - PlateauDepth;
-
-            // RaycastNonAlloc 的结果无序且被缓冲区长度截断，缓冲区太小可能正好丢掉最高的那个面，
-            // 描摹出来就会缺格。岛面一条射线撑死几层，32 足够宽裕。
-            var hits = new RaycastHit[32];
-            for (int z = minZ; z <= maxZ; z++)
-            {
-                for (int x = minX; x <= maxX; x++)
-                {
-                    Vector3 center = geometry.CellCenter(x, z, 0);
-                    var ray = new Ray(new Vector3(center.x, rayStartY, center.z), Vector3.down);
-
-                    int count = Physics.RaycastNonAlloc(ray, hits, rayLength, ~0, QueryTriggerInteraction.Ignore);
-                    float topY = float.NegativeInfinity;
-                    for (int i = 0; i < count; i++)
-                    {
-                        // 场景里可能还有别的碰撞体，只认这棵岛
-                        if (!hits[i].transform.IsChildOf(island.transform) && hits[i].transform != island.transform)
-                        {
-                            continue;
-                        }
-                        if (hits[i].point.y > topY)
-                        {
-                            topY = hits[i].point.y;
-                        }
-                    }
-
-                    if (topY > plateauFloor)
-                    {
-                        terrain[new Vector3Int(x, z, 0)] = "island";
-                    }
-                }
-            }
-        }
 
         /// <summary>岛外一圈虚空刷成浮空区域（§5：浮空区域在地图外围或岛屿之间，且是船坞唯一合法地形）。</summary>
         private static void AddFloatingRing(Dictionary<Vector3Int, string> terrain, GridGeometry geometry)

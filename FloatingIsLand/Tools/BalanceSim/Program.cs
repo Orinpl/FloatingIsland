@@ -38,6 +38,10 @@ if (runs <= 0)
     runs = DefaultRuns;
 }
 
+// 免费解锁：跳过金币门槛强行跑满 20 级，用来量「不被卡住时的收入曲线」——
+// 定价必须以这条曲线为基准，否则就是拿一个自己卡住自己的样本去调价。
+bool freeUnlock = args.Any(a => string.Equals(a, "--free-unlock", StringComparison.OrdinalIgnoreCase));
+
 TableLoader.LoadFromDirectory(Path.Combine(root, ToPath(TablesRelPath)));
 
 string mapPath = Path.Combine(root, ToPath(MapRelPath));
@@ -59,7 +63,7 @@ Console.WriteLine();
 var results = new List<RunOutcome>(runs);
 for (int seed = 1; seed <= runs; seed++)
 {
-    results.Add(Simulate(map, rules, levels, seed));
+    results.Add(Simulate(map, rules, levels, seed, freeUnlock));
 }
 
 Report(results, levels);
@@ -67,7 +71,7 @@ return 0;
 
 // ---------------------------------------------------------------- 仿真主体
 
-static RunOutcome Simulate(MapSnapshot map, BuildRuleSet rules, List<LevelDef> levels, int seed)
+static RunOutcome Simulate(MapSnapshot map, BuildRuleSet rules, List<LevelDef> levels, int seed, bool freeUnlock)
 {
     var board = new BuildBoard(map, rules);
     var scoring = new ScoreEngine(board);
@@ -98,6 +102,8 @@ static RunOutcome Simulate(MapSnapshot map, BuildRuleSet rules, List<LevelDef> l
 
         // 逐栋摆放：每栋找当前最优落点
         bool placedAny = false;
+        int levelIncome = 0;
+        int levelPlaced = 0;
         while (run.Hand.Count > 0)
         {
             BuildingBlueprint blueprint = rules.GetBlueprintOrNull(run.Hand[0]);
@@ -121,18 +127,22 @@ static RunOutcome Simulate(MapSnapshot map, BuildRuleSet rules, List<LevelDef> l
             run.AddBuildScore(spot.Score);
             run.ConsumeFromHand(0);
             outcome.PlacedBuildings++;
+            levelIncome += Math.Max(0, spot.Score);
+            levelPlaced++;
             placedAny = true;
         }
 
         outcome.GoldAtLevel[run.Level] = run.Gold;
         outcome.ScoreAtLevel[run.Level] = run.TotalScore;
+        outcome.IncomeAtLevel[run.Level] = levelIncome;
+        outcome.PlacedAtLevel[run.Level] = levelPlaced;
 
         if (run.Level >= run.TotalLevels)
         {
             outcome.EndReason = "走完 20 级";
             break;
         }
-        if (!run.CanAffordNextLevel())
+        if (!freeUnlock && !run.CanAffordNextLevel())
         {
             outcome.EndReason = "金币不足以解锁下一级";
             break;
@@ -143,7 +153,14 @@ static RunOutcome Simulate(MapSnapshot map, BuildRuleSet rules, List<LevelDef> l
             break;
         }
 
-        run.TryUnlockNextLevel();
+        if (freeUnlock)
+        {
+            run.AdvanceToNextLevel();
+        }
+        else
+        {
+            run.TryUnlockNextLevel();
+        }
     }
 
     outcome.FinalLevel = run.Level;
@@ -229,8 +246,32 @@ static void Report(List<RunOutcome> results, List<LevelDef> levels)
     Console.WriteLine($"通关率：      {finished} / {results.Count}（{100.0 * finished / results.Count:0.0}%）");
     Console.WriteLine();
 
-    Console.WriteLine("== 每级金币余量 vs 解锁费用 ==");
-    Console.WriteLine("等级  解锁下一级需要   本级结束时平均金币   余量      判定");
+    Console.WriteLine("== 每级建造收入（定价基准） ==");
+    Console.WriteLine("等级  本级平均收入   累计收入   本级建筑数   单栋均分   建议解锁价(累计60%)");
+    double cumulative = 0;
+    for (int i = 0; i < levels.Count; i++)
+    {
+        LevelDef level = levels[i];
+        var samples = results.Where(r => r.IncomeAtLevel.ContainsKey(level.Level)).ToList();
+        if (samples.Count == 0)
+        {
+            continue;
+        }
+        double income = samples.Average(r => r.IncomeAtLevel[level.Level]);
+        double placed = samples.Average(r => r.PlacedAtLevel[level.Level]);
+        cumulative += income;
+        double perBuilding = placed > 0 ? income / placed : 0;
+        // 建议价 = “走到本级为止的累计收入”的 60%，再减去前面已收的费用，
+        // 即把总支出控制在总收入的 60% 上下，留 40% 作为容错与决策空间。
+        double suggested = i + 1 < levels.Count ? cumulative * 0.6 : 0;
+        Console.WriteLine($"{level.Level,-5} {income,-13:0} {cumulative,-11:0} {placed,-12:0.0} {perBuilding,-11:0} {suggested,-10:0}");
+    }
+    Console.WriteLine();
+
+    // 判据用「本级收入 / 本级解锁价」的覆盖率，而不是拿累计金币比单级费用：
+    // 金币只进不出，累计额必然远大于单级价，用它判难易永远得出“偏易”。
+    Console.WriteLine("== 每级收支平衡 ==");
+    Console.WriteLine("等级  本级收入   解锁下一级   覆盖率   结束时结余   判定");
     for (int i = 0; i < levels.Count; i++)
     {
         LevelDef level = levels[i];
@@ -242,29 +283,50 @@ static void Report(List<RunOutcome> results, List<LevelDef> levels)
 
         LevelDef next = i + 1 < levels.Count ? levels[i + 1] : null;
         int need = next != null ? next.UnlockCost : 0;
-        double avgGold = samples.Average(r => r.GoldAtLevel[level.Level]);
-        double margin = avgGold - need;
+        double income = samples.Average(r => r.IncomeAtLevel[level.Level]);
+        double gold = samples.Average(r => r.GoldAtLevel[level.Level]);
+        double coverage = need > 0 ? income / need : 0;
 
         string verdict;
         if (next == null)
         {
             verdict = "—";
         }
-        else if (margin < 0)
+        else if (gold < need)
         {
-            verdict = "偏难（多数局卡在这里）";
+            verdict = "卡住（结余不够解锁）";
         }
-        else if (need > 0 && margin > need * 1.5)
+        else if (coverage < 1.0)
         {
-            verdict = "偏易（费用形同虚设）";
+            verdict = "吃老本（本级收入盖不住本级费用）";
+        }
+        else if (coverage > 1.8)
+        {
+            verdict = "偏松";
         }
         else
         {
             verdict = "合理";
         }
 
-        Console.WriteLine($"{level.Level,-5} {need,-16} {avgGold,-20:0} {margin,-9:0} {verdict}");
+        Console.WriteLine($"{level.Level,-5} {income,-10:0} {need,-12} {coverage,-9:0.00} {gold,-11:0} {verdict}");
     }
+
+    double totalIncome = 0;
+    double totalCost = 0;
+    for (int i = 0; i < levels.Count; i++)
+    {
+        var samples = results.Where(r => r.IncomeAtLevel.ContainsKey(levels[i].Level)).ToList();
+        if (samples.Count > 0)
+        {
+            totalIncome += samples.Average(r => r.IncomeAtLevel[levels[i].Level]);
+        }
+        if (i > 0)
+        {
+            totalCost += levels[i].UnlockCost;
+        }
+    }
+    Console.WriteLine($"总收入 {totalIncome:0}，总解锁支出 {totalCost:0}，支出占比 {100 * totalCost / Math.Max(1, totalIncome):0.#}%");
     Console.WriteLine();
 
     Console.WriteLine("== 结束原因分布 ==");
@@ -317,4 +379,8 @@ internal sealed class RunOutcome
     public string EndReason = "";
     public readonly Dictionary<int, int> GoldAtLevel = new Dictionary<int, int>();
     public readonly Dictionary<int, int> ScoreAtLevel = new Dictionary<int, int>();
+    /// <summary>本级内的正分收入（=可转金币部分）。</summary>
+    public readonly Dictionary<int, int> IncomeAtLevel = new Dictionary<int, int>();
+    /// <summary>本级内成功落地的建筑数。</summary>
+    public readonly Dictionary<int, int> PlacedAtLevel = new Dictionary<int, int>();
 }

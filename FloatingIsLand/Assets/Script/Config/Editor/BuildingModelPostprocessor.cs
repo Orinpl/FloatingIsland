@@ -28,7 +28,7 @@ namespace FloatingIsLand.Config.EditorTools
         /// </summary>
         public override uint GetVersion()
         {
-            return 2;
+            return 3;
         }
 
         private void OnPreprocessModel()
@@ -84,7 +84,20 @@ namespace FloatingIsLand.Config.EditorTools
                 return;
             }
 
-            float scale = Mathf.Min(targetX / bounds.size.x, targetZ / bounds.size.z);
+            // bounds 是 root **局部空间**的尺寸，不含 root 自身的缩放；而这批 FBX 以厘米为单位，
+            // 导入器已经把 root.localScale 设成了 100 来做单位换算。
+            // 所以必须先算出「当前世界尺寸 = 局部尺寸 × root 缩放」，再求还差多少倍——
+            // 直接拿局部尺寸求倍数然后 *= 上去，等于把那 100 倍又乘一遍，模型会大 100 倍。
+            Vector3 rootScale = root.transform.localScale;
+            float worldSizeX = bounds.size.x * Mathf.Abs(rootScale.x);
+            float worldSizeZ = bounds.size.z * Mathf.Abs(rootScale.z);
+            if (worldSizeX <= Mathf.Epsilon || worldSizeZ <= Mathf.Epsilon)
+            {
+                Debug.LogWarning($"[模型对齐] {assetId} 的 root 缩放为零，跳过缩放。");
+                return;
+            }
+
+            float scale = Mathf.Min(targetX / worldSizeX, targetZ / worldSizeZ);
 
             // 轴心归位要在缩放前做：children 的 localPosition 与 bounds 都在 root 局部空间，
             // 平移完再让 root 整体缩放，两者不会互相干扰。
@@ -97,7 +110,8 @@ namespace FloatingIsLand.Config.EditorTools
             root.transform.localScale *= scale;
 
             Debug.Log($"[模型对齐] {assetId}: footprint {cols}×{rows} 格 → 目标 {targetX:0.##}×{targetZ:0.##}m，" +
-                      $"原始包围盒 {bounds.size.x:0.##}×{bounds.size.z:0.##}m，缩放 ×{scale:0.####}");
+                      $"导入后世界尺寸 {worldSizeX:0.####}×{worldSizeZ:0.####}m（root 缩放 {rootScale.x:0.##}），" +
+                      $"再缩放 ×{scale:0.####} → 最终 {worldSizeX * scale:0.##}×{worldSizeZ * scale:0.##}m");
         }
 
         private static bool IsResModel(string path)

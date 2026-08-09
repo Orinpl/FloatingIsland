@@ -346,7 +346,7 @@ Transform:
   m_GameObject: {fileID: 1090364797}
   serializedVersion: 2
   m_LocalRotation: {x: 0.38268346, y: 0, z: 0, w: 0.9238795}
-  m_LocalPosition: {x: 0, y: 12, z: -12}
+  m_LocalPosition: {x: 0, y: 55, z: -55}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -382,7 +382,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gridPresenterBehaviour: {fileID: 1700820175}
-  islandTopY: -0.05
 --- !u!4 &1107442310
 Transform:
   m_ObjectHideFlags: 0
@@ -697,11 +696,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 92141037443091614, guid: e4babfe5eeb4d1b47a23eeeed016800b, type: 3}
       propertyPath: gridWidth
-      value: 32
+      value: 250
       objectReference: {fileID: 0}
     - target: {fileID: 92141037443091614, guid: e4babfe5eeb4d1b47a23eeeed016800b, type: 3}
       propertyPath: gridLength
-      value: 32
+      value: 250
       objectReference: {fileID: 0}
     - target: {fileID: 92141037443091614, guid: e4babfe5eeb4d1b47a23eeeed016800b, type: 3}
       propertyPath: displayObjectGrid

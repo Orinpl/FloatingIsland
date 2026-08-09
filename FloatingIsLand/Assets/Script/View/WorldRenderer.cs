@@ -18,9 +18,6 @@ namespace FloatingIsLand.View
         [Tooltip("实现 IGridPresenter 的组件（当前是 EGBGridPresenter）")]
         [SerializeField] private MonoBehaviour gridPresenterBehaviour;
 
-        [Tooltip("岛屿模型顶面对齐到的世界高度。地形 overlay 画在 y=0，岛面略低一点避免 Z-fighting")]
-        [SerializeField] private float islandTopY = -0.05f;
-
         private IGridPresenter _presenter;
         private Transform _islandRoot;
         private Transform _elementRoot;
@@ -95,46 +92,16 @@ namespace FloatingIsLand.View
         }
 
         /// <summary>
-        /// 把岛屿等比缩放到 islandCellSpan 格跨度、居中到地图中心、顶面对齐到 <see cref="islandTopY"/>。
-        /// 缩放取 XZ 长边，保证不论模型是长条还是方形都刚好落在设计跨度里。
+        /// 缩放 + 居中 + 把可建造平台面对到网格平面。算法与编辑器描摹地形共用
+        /// <see cref="IslandFitter"/> 那一份——两边一旦分家，刷出来的地形就会和玩家看到的岛错开。
         /// </summary>
         private void FitIslandToGrid(GameObject island, MapSnapshot map, int cellSpan)
         {
-            Bounds bounds;
-            if (!TryGetWorldBounds(island, out bounds))
-            {
-                Debug.LogWarning("[表现] 岛屿模型没有任何 Renderer，无法缩放对齐。", island);
-                return;
-            }
+            System.Collections.Generic.Dictionary<Vector3Int, float> heights =
+                IslandFitter.Fit(island, _presenter.Geometry, cellSpan);
 
-            float longestSide = Mathf.Max(bounds.size.x, bounds.size.z);
-            if (longestSide <= Mathf.Epsilon)
-            {
-                Debug.LogWarning("[表现] 岛屿模型 XZ 包围盒为零，无法缩放对齐。", island);
-                return;
-            }
-
-            int span = cellSpan > 0 ? cellSpan : 40;
-            float targetMeters = span * _presenter.CellSize;
-            float scale = targetMeters / longestSide;
-            island.transform.localScale *= scale;
-
-            // 缩放会改变包围盒，重新取一次再对位
-            if (!TryGetWorldBounds(island, out bounds))
-            {
-                return;
-            }
-
-            GridGeometry geometry = _presenter.Geometry;
-            Vector3 mapCenter = geometry.CellCorner(map.Width / 2, map.Length / 2, 0);
-            Vector3 offset = new Vector3(
-                mapCenter.x - bounds.center.x,
-                islandTopY - bounds.max.y,
-                mapCenter.z - bounds.center.z);
-            island.transform.position += offset;
-
-            Debug.Log($"[表现] 岛屿模型已对齐：缩放 ×{scale:0.###} → {span} 格跨度（{targetMeters:0.#} m），" +
-                      $"顶面 y={islandTopY:0.##}，中心对到地图中心 ({map.Width / 2}, {map.Length / 2})。");
+            Debug.Log($"[表现] 岛屿模型已对位：{cellSpan} 格跨度，平台面对到 y={IslandFitter.SurfaceY:0.##}，" +
+                      $"中心对到地图中心 ({map.Width / 2}, {map.Length / 2})，测得 {heights.Count} 格岛面。");
         }
 
         private void SpawnElements(BuildBoard board)

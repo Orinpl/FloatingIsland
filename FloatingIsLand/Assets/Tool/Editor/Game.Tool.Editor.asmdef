@@ -5,6 +5,7 @@
         "Game.App",
         "Game.UI",
         "Game.Config",
+        "Game.Domain",
         "Game.Input",
         "UnityEngine.UI"
     ],
