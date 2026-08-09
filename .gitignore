@@ -45,7 +45,10 @@ __pycache__/
 *.7z
 
 # ---------- 项目 ----------
-# 美术生成管线与参考图库（生成产物不入库；Res 图可由 ArtGen 流程重新生成）
+# 美术生成管线的中间产物不入库：ArtGen/ 里是 2K 原图、4K 贴图版 FBX 与任务状态，
+# 交付物已压缩后落在 Assets/Res/。流水线脚本本身在 FloatingIsLand/Tools/ArtGen/（入库）。
 FloatingIsLand/ArtGen/
-FloatingIsLand/Assets/Res/
-FloatingIsLand/Assets/Res.meta
+
+# 注意：Assets/Res/ 必须入库。Assets/Resources/Prefab 下的 Prefab 只是壳，
+# 网格与材质全靠 GUID 指向 Assets/Res/ 下的 fbx 与 mat；把 Res 排除掉，
+# 别人拉下来会得到一堆 Missing Mesh 的空 GameObject，而且不报任何错。

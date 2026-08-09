@@ -51,10 +51,14 @@ namespace FloatingIsLand.Config
 
                 BuildingRelationRow relation = Tables.BuildingRelation.GetOrNull(variant.buildingId);
 
+                // 显示名以变体为准：一个模板挂多个变体时（居民区有方形/L 形/凹形三种占地），
+                // 全用模板名会让手牌上三张牌长得一模一样。变体没填就沿用模板名。
+                string nameCn = string.IsNullOrEmpty(variant.nameCn) ? building.nameCn : variant.nameCn;
+
                 blueprints.Add(new BuildingBlueprint(
                     variant.variantId,
                     variant.buildingId,
-                    building.nameCn,
+                    nameCn,
                     building.category,
                     Footprint.Parse(variant.footprint, $"BuildingVariant[{variant.variantId}].footprint"),
                     ParsePlacement(building.placement, variant.buildingId),

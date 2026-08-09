@@ -35,6 +35,21 @@ python3 Tools/ArtGen/fbx_probe.py .  # 质检：读 FBX 二进制报顶点/面�
 3. **平台偶发生成失败**：出现 "未能生成图像，请调整 prompt" 时不是超时，重试同样的提示词大概率还是失败，
    要把提示词改简单（去掉 "orthographic/no perspective distortion" 这类堆叠约束）再提交。
 
+## 导入 Unity 后必跑一步：提取材质与贴图
+
+**FBX 里的贴图是内嵌的，Unity 不会自动展开** —— 只会建一个空材质（Albedo 留白），模型看起来就是白模。
+这不是模型没贴图，rodin 每个模型都自带 `texture_diffuse / _normal / _metallic / _roughness` 四张图。
+
+跑菜单 **Tools → 美术 → 提取模型材质与贴图（FBX → mat/）**（
+[ModelMaterialExtractor.cs](../../Assets/Script/Config/Editor/ModelMaterialExtractor.cs)），它会：
+
+1. 把内嵌贴图提取到 `Assets/Res/<资产名>/mat/`，法线图自动标成 Normal map
+2. 把内嵌材质提取成 `mat/<资产名>.mat`，并写进 FBX 的 `externalObjects`（以后重新导入模型不会覆盖）
+3. 按文件名把贴图挂到材质槽：diffuse→`_MainTex`、normal→`_BumpMap`、metallic→`_MetallicGlossMap`，
+   并把 `_Color` 复位成白色（否则会和贴图相乘偏色）
+
+**新生成一批模型后要重跑一次**。已有的 Prefab 不带材质覆盖，会自动跟随 FBX 更新，不用重新生成。
+
 ## 贴图压缩（fbx_shrink.py）
 
 rodin 产出的 FBX 内嵌 4K PBR 贴图，单个 20~30MB。`fbx_shrink.py` 做完整的

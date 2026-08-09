@@ -121,7 +121,7 @@ Newtonsoft.Json 13，首次 `dotnet run` 自动还原。读表层锁 C# 9 是为
 | Sheet | 类型 | 主键 | 内容 | 对应设计 |
 |---|---|---|---|---|
 | `Building` | 行表 | `buildingId` string | **模板表**，15 栋建筑：分类、建造限制、半径、基础分、`elementBonus` 地图元素加分（微格式 `元素Id:分值[:上限]`；判定用元素的 radius；写了 `giantWindmill` 条目=专属分替代通用分）、物流覆盖资格、风力曲线（船坞/风帆/居民区/风向标各自专列）、MVP 批次 | §6、§11、§12、§14、§19 |
-| `BuildingVariant` | 行表 | `variantId` string | **表现表**，一行一个变体：`buildingId` 归属模板、`footprint` 占地掩码（`#`=占用 `.`=空、\|分行，如 2×2=`##\|##`、L形=`##\|#.\|#.`）、`prefabPath` 表现 Prefab。一个模板可挂多套占地/外观（如居民区 3 种结构），抽哪个变体由 `Level` 表的抽取池直接配到变体粒度；摆放旋转不配表，默认全部允许 90° 旋转 | 占地与表现 |
+| `BuildingVariant` | 行表 | `variantId` string | **表现表**，一行一个变体：`buildingId` 归属模板、`nameCn` 变体显示名（空=沿用 `Building.nameCn`）、`footprint` 占地掩码（`#`=占用 `.`=空、\|分行，如 2×2=`##\|##`、L形=`##\|#.\|#.`）、`prefabPath` 表现 Prefab。一个模板可挂多套占地/外观（如居民区 3 种结构），抽哪个变体由 `Level` 表的抽取池直接配到变体粒度；摆放旋转不配表，默认全部允许 90° 旋转。**一个模板挂多个变体时 `nameCn` 必须逐个填**——手牌是按变体发的，都叫「居民区」玩家分不出方形和 L 形（UI 另有形状图标辅助） | 占地与表现 |
 | `BuildingRelation` | 行表 | `buildingId` string | 每建筑一行的有向邻接关系（真值表 A/B + 单向 + 双向 + 负面 + 同类）：`bonusFrom` 加分来源 / `penaltyFrom` 扣分来源两列，单元格微格式 `来源Id:分值[:上限]`、多条目用 `\|` 分隔；判定范围一律用结算建筑自身 `radius`；来源=自己即同类关系；方向不可反读，双向关系在两行各写一条。解析器 `RelationEntry.ParseAll`，ConfigVerify 会校验格式与建筑 Id 外键 | §13、§15～§18 |
 | `MapElement` | 行表 | `elementId` string | 7 种地图元素：占地掩码、有效范围、生成数量区间 | §5.2 |
 | `WindLevel` | 行表 | `level` int | 风力 0~5 级：名称、通用风力倍率 | §8.3 |
@@ -141,17 +141,37 @@ footprint 掩码合法性（行长一致、只含 `#`/`.`、至少一个 `#`）�
 三条不进表的全局规则（写死在代码/由字段组合表达）：巨型风车"专属替代通用"的结算逻辑、
 船坞"每座只归属一个锚点（最近优先/少者优先）"、物流覆盖"同建筑只计一次"。
 
-**配表驱动美术资产**：`Assets/Res/<资产名>/fbx/*.fbx` 导入时会被
-[BuildingModelPostprocessor](../Assets/Script/Config/Editor/BuildingModelPostprocessor.cs) 自动对齐——
-按 `BuildingVariant.footprint` / `MapElement.footprint` 的格数 × `GameConfig.cellSize` 算目标尺寸，
-把模型 XZ 包围盒等比缩放到刚好放进占地（取 min 保证不越格），轴心归到占地最小角、底面 y=0
-（与 EGB `GetCellWorldPosition` 返回格子角点的口径一致，摆放时直接赋 position 即可）。
-改了对齐规则要把该文件里的 `GetVersion()` 返回值 +1，Unity 才会重新导入已有模型。
+**配表驱动美术资产**：`Assets/Res/<资产名>/fbx/*.fbx` 由菜单 **Tools/美术/生成白模 Prefab** 转成
+`Assets/Resources/Prefab/{Building,Element,Stage}/<id>.prefab`，路径填进配表的 `prefabPath` 列。
+对齐由 [ModelPrefabGenerator](../Assets/Script/Config/Editor/ModelPrefabGenerator.cs) 在**生成 Prefab 时**做
+（不是导入时）：按 `footprint` 的格数 × `GameConfig.cellSize` 算目标尺寸，把模型 XZ 包围盒等比缩放到
+刚好放进占地（取 min 保证不越格），再在占地矩形里 **XZ 居中、底面 y=0**。
 
-> **踩过的坑：单位换算要算进去。** 这批 FBX 以厘米为单位，导入器已经把 `root.localScale` 设成 100；
-> 而包围盒是在 root **局部空间**量的，不含这个 100。直接用局部尺寸求倍数再 `*=` 上去，
-> 等于把 100 又乘了一遍，模型会大 100 倍（一栋 4 m 的房子变 400 m，在场景里看起来就是一片贴脸的灰面）。
-> 正确做法：先算「当前世界尺寸 = 局部尺寸 × root 缩放」，再求还差多少倍。
+生成出来的 Prefab 是**两层结构**，这是整条表现链路的地基，别去动它：
+
+```
+<id>              ← 包装根：identity（pos 0 / rot 0 / scale 1），原点 = 占地矩形最小角
+└── <FBX 实例>    ← 承载 Z-up→Y-up 轴向修正(-90°X)、cm 单位换算(×100)、按格缩放、居中偏移
+```
+
+摆放时表现层只碰包装根，`ModelSpawner.PlaceAt` 把它放到锚点格角点并按朝向补一段平移
+（`Footprint` 的占地恒从锚点向 +X/+Z 展开，而 Unity 绕 Y 轴转会把矩形甩向负半轴）。
+
+> **工作流铁律：改了 FBX、改了 `footprint` 或改了 `cellSize`，必须重跑一次生成菜单。**
+> 对齐结果是烤在 Prefab 的 transform override 里的，重导 FBX 只换网格、不重算缩放和轴心——
+> 会出现「模型换了、尺寸没换」且哪里都不报错。兜底有两层：FBX 重导后会自动跑一次校验，
+> 也可以随时手动点 **Tools/美术/校验模型对位**（查包装根是否 identity、模型是否居中贴地不越格、
+> Prefab 与配表 `prefabPath` 是否互相对得上）。
+> `BuildingModelPostprocessor.GetVersion()` 现在只管导入开关（关动画/相机/灯光），改那些才需要 +1。
+
+> **踩过的三个坑（都出在"在哪个空间量包围盒"）：**
+> 1. **单位换算要算进去。** 这批 FBX 以厘米为单位，导入器把 `root.localScale` 设成了 100。
+>    按局部尺寸求倍数再 `*=` 上去等于把 100 又乘一遍，4 m 的房子会变 400 m。
+>    现在在 identity 包装根下量**世界**包围盒，这个 100 天然包含在内，不用再单独补。
+> 2. **不能在模型根的局部空间量。** 模型根自带 -90°X 的轴向修正，它的局部空间还是 Z-up ——
+>    在那里量出来的 `size.z` 是**高度**不是进深，按格缩放会拿目标进深去除以高度。包一层壳再量才对。
+> 3. **模型要居中，不能贴占地最小角。** min() 缩放注定有一轴填不满；贴角的话转 180° 模型会翻到
+>    占地矩形另一侧，同一栋楼滚轮转半圈就横跳一整格（2×1 占地实测跳 2 m）。
 
 想重建 Excel：删 `Tables\FloatingIsland.xlsx` 后跑 `dotnet run --project Tools\TableTool -- bootstrap`
 （种子在 `Tools\TableTool\bootstrap\FloatingIsland-*.seed.json`）。注意 Excel 才是正本——

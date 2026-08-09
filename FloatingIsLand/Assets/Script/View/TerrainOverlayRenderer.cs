@@ -48,10 +48,28 @@ namespace FloatingIsLand.View
         [Range(0f, 0.3f)]
         [SerializeField] private float cellInset = 0.04f;
 
+        [Tooltip("聚焦模式（建造时跟随光标）下以光标格为中心保持全亮的圈数，再往外线性渐隐到不可见")]
+        [Range(1, 12)]
+        [SerializeField] private int focusRings = 3;
+
+        [Tooltip("聚焦时高度层差算作几圈平面距离——上下层的格子应该比同层邻居先淡出")]
+        [Range(1, 8)]
+        [SerializeField] private int layerRingWeight = 2;
+
         private Mesh _mesh;
         private MeshRenderer _renderer;
         private readonly Dictionary<string, Color> _colorById = new Dictionary<string, Color>(StringComparer.Ordinal);
         private readonly HashSet<string> _warnedIds = new HashSet<string>(StringComparer.Ordinal);
+
+        /// <summary>最近一次 Rebuild 的格子表与它们的原始颜色，聚焦时只改 alpha，不重建顶点。</summary>
+        private IReadOnlyList<MapCell> _cells;
+        private Color[] _baseColors;
+        private Color[] _tintedColors;
+
+        private bool _hasFocus;
+        private int _focusX;
+        private int _focusZ;
+        private int _focusLayer;
 
         /// <summary>当前已画出的地块数（= 快照的 PaintedCount）。</summary>
         public int RenderedCellCount { get; private set; }
@@ -121,6 +139,9 @@ namespace FloatingIsLand.View
 
             _mesh.Clear();
             RenderedCellCount = 0;
+            _cells = null;
+            _baseColors = null;
+            _tintedColors = null;
 
             if (snapshot == null || snapshot.PaintedCount == 0 || !geometry.IsValid)
             {
@@ -173,6 +194,12 @@ namespace FloatingIsLand.View
             _mesh.RecalculateBounds();
 
             RenderedCellCount = count;
+            _cells = cells;
+            _baseColors = colors;
+            _tintedColors = new Color[colors.Length];
+
+            // 重建等于换了一张图，之前的聚焦点没有意义了
+            _hasFocus = false;
         }
 
         /// <summary>整块 overlay 显隐（进出建造模式用）。</summary>
@@ -183,6 +210,90 @@ namespace FloatingIsLand.View
                 _renderer = GetComponent<MeshRenderer>();
             }
             _renderer.enabled = visible;
+        }
+
+        /// <summary>
+        /// 聚焦到某个格子：只有它周围 <c>focusRings</c> 圈内的格子保持全亮，往外线性渐隐到透明。
+        /// 建造时跟随光标调用；坐标没变时直接返回，不重复写顶点色。
+        /// </summary>
+        public void SetFocus(int x, int z, int layer)
+        {
+            if (_hasFocus && _focusX == x && _focusZ == z && _focusLayer == layer)
+            {
+                return;
+            }
+
+            _hasFocus = true;
+            _focusX = x;
+            _focusZ = z;
+            _focusLayer = layer;
+            ApplyFocus();
+        }
+
+        /// <summary>取消聚焦，整张图按原色显示（编辑器刷子与纯看图模式的默认状态）。</summary>
+        public void ClearFocus()
+        {
+            if (!_hasFocus)
+            {
+                return;
+            }
+            _hasFocus = false;
+            ApplyFocus();
+        }
+
+        /// <summary>按当前聚焦点重写顶点 alpha。顶点数不变，只改颜色数组，比重建 Mesh 便宜得多。</summary>
+        private void ApplyFocus()
+        {
+            if (_mesh == null || _cells == null || _baseColors == null || _tintedColors == null)
+            {
+                return;
+            }
+
+            if (!_hasFocus)
+            {
+                _mesh.colors = _baseColors;
+                return;
+            }
+
+            for (int i = 0; i < _cells.Count; i++)
+            {
+                MapCell cell = _cells[i];
+                float factor = FocusFactor(cell);
+                int v = i * 4;
+                for (int k = 0; k < 4; k++)
+                {
+                    Color color = _baseColors[v + k];
+                    color.a *= factor;
+                    _tintedColors[v + k] = color;
+                }
+            }
+            _mesh.colors = _tintedColors;
+        }
+
+        /// <summary>
+        /// 某格离聚焦点几圈：平面上取切比雪夫距离（正方形一圈一圈往外数），
+        /// 层差按 <c>layerRingWeight</c> 折算成圈——上下层的格子应该比同层邻居先淡出。
+        /// </summary>
+        private float FocusFactor(MapCell cell)
+        {
+            int ring = Mathf.Max(Mathf.Abs(cell.X - _focusX), Mathf.Abs(cell.Z - _focusZ))
+                       + Mathf.Abs(cell.Layer - _focusLayer) * layerRingWeight;
+            return FocusVisibility(ring, focusRings);
+        }
+
+        /// <summary>
+        /// 聚焦渐隐曲线：第 <paramref name="ring"/> 圈的可见度（1 = 原色，0 = 完全透明）。
+        ///
+        /// 分母取 rings 而分子多给一圈，于是第 1 圈仍是满亮、第 rings+1 圈正好归零——
+        /// 边缘是一圈渐隐而不是硬切边。抽成公开静态纯函数，这条曲线才能被单测钉住。
+        /// </summary>
+        public static float FocusVisibility(int ring, int rings)
+        {
+            if (rings <= 0)
+            {
+                return ring <= 0 ? 1f : 0f;
+            }
+            return Mathf.Clamp01((rings + 1 - ring) / (float)rings);
         }
 
         private void RebuildPalette()

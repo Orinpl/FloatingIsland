@@ -1,34 +1,37 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
-using Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
 
 namespace FloatingIsLand.Config.EditorTools
 {
     /// <summary>
-    /// Assets/Res/&lt;资产名&gt;/fbx/&lt;资产名&gt;.fbx 导入后处理：
-    /// 按配表 footprint 把模型缩放到对应格数，并把轴心对到「占地最小角 + 地面」。
+    /// Assets/Res/&lt;资产名&gt;/fbx/&lt;资产名&gt;.fbx 的导入设置：关掉这批资产用不到的子资产，省导入时间。
     ///
-    /// AI 生成的模型尺寸是随机的，手动逐个对格子太慢；这里以配表为唯一真相自动对齐：
-    ///   缩放系数 = min(目标宽 / 包围盒宽, 目标深 / 包围盒深)  —— 取 min 保证不越格（设计要求可以不占满，但不能超出）
-    ///   目标宽/深 = footprint 列数/行数 × GameConfig.cellSize
-    /// 轴心放在占地最小角、底面 y=0，与 EGB 的 GetCellWorldPosition（返回格子角点）对齐，
-    /// 摆放时直接把 transform.position 设成该格角点即可，不用再补偏移。
+    /// **这里不做任何对位。** 按 footprint 缩放、轴心归位都在 <see cref="ModelPrefabGenerator"/> 里做，
+    /// 原因有两条，都踩过：
+    ///   1. 这批 FBX 是 Blender 导出的 Z-up，导入器把 -90°X 的轴向修正烤在模型根 Transform 上，
+    ///      导入后处理器看到的根局部空间还是 Z-up——在那里量包围盒，「宽 × 深」量出来的其实是「宽 × 高」，
+    ///      按格缩放从一开始就对不准。
+    ///   2. 轴心归位要把网格相对根节点挪一段，可这批模型是单节点 FBX，网格就挂在根上、根没法相对自己偏移，
+    ///      遍历子节点的写法是空转。必须在外面包一层才有地方放偏移。
+    /// 两件事都要求「模型已经在一层 identity 的壳里」，那是 Prefab 生成阶段才有的条件。
     /// </summary>
     public sealed class BuildingModelPostprocessor : AssetPostprocessor
     {
         private const string ResRoot = "Assets/Res/";
-        private const string TableDir = "Assets/Resources/Tables";
 
         /// <summary>
-        /// 改了对齐规则后把这个数 +1：Unity 用它判断后处理器是否变更，
-        /// 变更时自动重新导入所有受影响的模型（否则已导入的资产不会重跑对齐）。
+        /// 改了导入规则后把这个数 +1：Unity 用它判断后处理器是否变更，
+        /// 变更时自动重新导入所有受影响的模型（否则已导入的资产不会重跑）。
+        ///
+        /// 3 → 4：移除了按 footprint 的缩放与轴心归位，重导一次让 v3 烤进导入资产的缩放归零、
+        /// FBX 根恢复成单位换算的 100，便于人工核对。
+        /// 注意这不是顺序敏感的硬约束：<c>AlignToFootprint</c> 是绝对拟合（缩放系数 = 目标尺寸 / 当前实测尺寸），
+        /// 进来时残留多少倍都会被算掉，不会二次缩放。
         /// </summary>
         public override uint GetVersion()
         {
-            return 3;
+            return 5;
         }
 
         private void OnPreprocessModel()
@@ -44,302 +47,57 @@ namespace FloatingIsLand.Config.EditorTools
             importer.importCameras = false;
             importer.importLights = false;
             importer.importVisibility = false;
+            // 打开 Read/Write：占格探针要逐三角形投影到 XZ 平面量模型实际盖住哪些格，
+            // 关着的话连编辑器里都读不到顶点（Unity 会报 "Not allowed to access vertices"），
+            // 而探针读不到就只能给出"没量到"——比不量更危险。
+            // 代价是网格数据在内存里多留一份；这批是 22 个低模，可以忽略。
+            importer.isReadable = true;
         }
 
-        private void OnPostprocessModel(GameObject root)
+        /// <summary>
+        /// FBX 重导后自动跑一次对位校验。
+        ///
+        /// 对齐结果是烤在 Prefab 的 transform override 里的，重导只会换掉网格、不会重算缩放和轴心。
+        /// 也就是说「美术换了模型」之后，模型变了、尺寸没变，而且编辑器、运行时、Console 三处都不会吭声。
+        /// 改造前对齐挂在导入后处理里、这条路径是自愈的，所以必须补一个信号把静默退化变成一条可见的报错。
+        /// 这里只做校验不自动重生成：在导入回调里批量改 Prefab 资产太容易和 AssetDatabase 的批处理打架。
+        /// </summary>
+        private static void OnPostprocessAllAssets(
+            string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
-            if (!IsResModel(assetPath))
+            if (_validationQueued)
             {
                 return;
             }
 
-            string assetId = Path.GetFileNameWithoutExtension(assetPath);
-            string[] footprint = FootprintCache.Lookup(assetId);
-            if (footprint == null)
+            foreach (string path in importedAssets)
             {
-                // 关卡岛屿（stage_*）等没有占地定义的资产不参与对齐
+                if (!IsResModel(path))
+                {
+                    continue;
+                }
+
+                _validationQueued = true;
+                // 延到本轮导入结束再跑：校验要加载 Prefab 内容与配表，导入回调里做不安全
+                EditorApplication.delayCall += RunQueuedValidation;
                 return;
             }
+        }
 
-            int cols, rows;
-            if (!TryMeasure(footprint, out cols, out rows))
-            {
-                Debug.LogWarning($"[模型对齐] {assetId} 的 footprint 非法，跳过缩放。");
-                return;
-            }
+        private static bool _validationQueued;
 
-            Bounds bounds;
-            if (!TryGetLocalBounds(root, out bounds))
-            {
-                Debug.LogWarning($"[模型对齐] {assetId} 没有任何网格，跳过缩放。");
-                return;
-            }
-
-            float cellSize = FootprintCache.CellSize;
-            float targetX = cols * cellSize;
-            float targetZ = rows * cellSize;
-            if (bounds.size.x <= Mathf.Epsilon || bounds.size.z <= Mathf.Epsilon)
-            {
-                Debug.LogWarning($"[模型对齐] {assetId} 的包围盒在 XZ 上为零，跳过缩放。");
-                return;
-            }
-
-            // bounds 是 root **局部空间**的尺寸，不含 root 自身的缩放；而这批 FBX 以厘米为单位，
-            // 导入器已经把 root.localScale 设成了 100 来做单位换算。
-            // 所以必须先算出「当前世界尺寸 = 局部尺寸 × root 缩放」，再求还差多少倍——
-            // 直接拿局部尺寸求倍数然后 *= 上去，等于把那 100 倍又乘一遍，模型会大 100 倍。
-            Vector3 rootScale = root.transform.localScale;
-            float worldSizeX = bounds.size.x * Mathf.Abs(rootScale.x);
-            float worldSizeZ = bounds.size.z * Mathf.Abs(rootScale.z);
-            if (worldSizeX <= Mathf.Epsilon || worldSizeZ <= Mathf.Epsilon)
-            {
-                Debug.LogWarning($"[模型对齐] {assetId} 的 root 缩放为零，跳过缩放。");
-                return;
-            }
-
-            float scale = Mathf.Min(targetX / worldSizeX, targetZ / worldSizeZ);
-
-            // 轴心归位要在缩放前做：children 的 localPosition 与 bounds 都在 root 局部空间，
-            // 平移完再让 root 整体缩放，两者不会互相干扰。
-            Vector3 offset = new Vector3(-bounds.min.x, -bounds.min.y, -bounds.min.z);
-            foreach (Transform child in root.transform)
-            {
-                child.localPosition += offset;
-            }
-
-            root.transform.localScale *= scale;
-
-            Debug.Log($"[模型对齐] {assetId}: footprint {cols}×{rows} 格 → 目标 {targetX:0.##}×{targetZ:0.##}m，" +
-                      $"导入后世界尺寸 {worldSizeX:0.####}×{worldSizeZ:0.####}m（root 缩放 {rootScale.x:0.##}），" +
-                      $"再缩放 ×{scale:0.####} → 最终 {worldSizeX * scale:0.##}×{worldSizeZ * scale:0.##}m");
+        private static void RunQueuedValidation()
+        {
+            _validationQueued = false;
+            Debug.Log("[模型导入] 检测到 Assets/Res 下的 FBX 重新导入，自动校验一次 Prefab 对位" +
+                      "（对齐是烤在 Prefab 里的，重导不会自动更新——有问题就跑 Tools/美术/生成白模 Prefab）。");
+            ModelPrefabGenerator.ValidateAlignment();
         }
 
         private static bool IsResModel(string path)
         {
             return path.StartsWith(ResRoot, StringComparison.Ordinal)
                    && path.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase);
-        }
-
-        /// <summary>掩码行列数；行长不一致或全空返回 false。</summary>
-        private static bool TryMeasure(string[] footprint, out int cols, out int rows)
-        {
-            cols = 0;
-            rows = 0;
-            if (footprint == null || footprint.Length == 0)
-            {
-                return false;
-            }
-
-            cols = footprint[0] == null ? 0 : footprint[0].Length;
-            rows = footprint.Length;
-            if (cols == 0)
-            {
-                return false;
-            }
-
-            bool hasSolid = false;
-            for (int i = 0; i < footprint.Length; i++)
-            {
-                string line = footprint[i];
-                if (line == null || line.Length != cols)
-                {
-                    return false;
-                }
-                if (line.IndexOf('#') >= 0)
-                {
-                    hasSolid = true;
-                }
-            }
-            return hasSolid;
-        }
-
-        /// <summary>合并所有网格在 root 局部空间的包围盒。</summary>
-        private static bool TryGetLocalBounds(GameObject root, out Bounds bounds)
-        {
-            bounds = new Bounds();
-            bool any = false;
-            MeshFilter[] filters = root.GetComponentsInChildren<MeshFilter>(true);
-            Transform rootTransform = root.transform;
-
-            foreach (MeshFilter filter in filters)
-            {
-                Mesh mesh = filter.sharedMesh;
-                if (mesh == null)
-                {
-                    continue;
-                }
-
-                Bounds local = mesh.bounds;
-                // 网格局部 → root 局部：只需 root 的逆矩阵乘子物体矩阵
-                Matrix4x4 toRoot = rootTransform.worldToLocalMatrix * filter.transform.localToWorldMatrix;
-                Vector3 center = local.center;
-                Vector3 extents = local.extents;
-
-                for (int i = 0; i < 8; i++)
-                {
-                    var corner = new Vector3(
-                        center.x + ((i & 1) == 0 ? -extents.x : extents.x),
-                        center.y + ((i & 2) == 0 ? -extents.y : extents.y),
-                        center.z + ((i & 4) == 0 ? -extents.z : extents.z));
-                    Vector3 p = toRoot.MultiplyPoint3x4(corner);
-                    if (!any)
-                    {
-                        bounds = new Bounds(p, Vector3.zero);
-                        any = true;
-                    }
-                    else
-                    {
-                        bounds.Encapsulate(p);
-                    }
-                }
-            }
-
-            return any;
-        }
-
-        /// <summary>
-        /// 直接读 Assets/Resources/Tables 下的 JSON，而不是走 TableLoader ——
-        /// 后者要求全部表齐备，且资产导入期间不宜调 Resources API。按文件写入时间失效重载。
-        /// </summary>
-        private static class FootprintCache
-        {
-            private static Dictionary<string, string[]> _byId;
-            private static float _cellSize = 2f;
-            private static DateTime _stamp;
-
-            public static float CellSize
-            {
-                get
-                {
-                    EnsureLoaded();
-                    return _cellSize;
-                }
-            }
-
-            public static string[] Lookup(string assetId)
-            {
-                EnsureLoaded();
-                string[] mask;
-                return _byId != null && _byId.TryGetValue(assetId, out mask) ? mask : null;
-            }
-
-            private static void EnsureLoaded()
-            {
-                DateTime latest = LatestWriteTime();
-                if (_byId != null && latest == _stamp)
-                {
-                    return;
-                }
-
-                _byId = new Dictionary<string, string[]>(StringComparer.Ordinal);
-                _stamp = latest;
-
-                Merge<BuildingVariantRow>("BuildingVariant", r => r.variantId, r => r.footprint);
-                Merge<MapElementRow>("MapElement", r => r.elementId, r => r.footprint);
-                MergeVariantsByBuildingId();
-
-                GameConfig config = ReadJson<GameConfig>("GameConfig");
-                if (config != null && config.cellSize > 0f)
-                {
-                    _cellSize = config.cellSize;
-                }
-            }
-
-            /// <summary>
-            /// 美术资产多数以 buildingId 命名（farm.fbx），而 footprint 挂在 variantId（farm_01）上。
-            /// buildingId 只对应唯一变体时补一条别名；一对多（residence 有 3 个变体）时占地不唯一，
-            /// 不猜——那种资产本来就按 variantId 命名（residence_01.fbx）。
-            /// </summary>
-            private static void MergeVariantsByBuildingId()
-            {
-                List<BuildingVariantRow> rows = ReadJson<List<BuildingVariantRow>>("BuildingVariant");
-                if (rows == null)
-                {
-                    return;
-                }
-
-                var countByBuilding = new Dictionary<string, int>(StringComparer.Ordinal);
-                foreach (BuildingVariantRow row in rows)
-                {
-                    if (row == null || string.IsNullOrEmpty(row.buildingId))
-                    {
-                        continue;
-                    }
-                    int n;
-                    countByBuilding.TryGetValue(row.buildingId, out n);
-                    countByBuilding[row.buildingId] = n + 1;
-                }
-
-                foreach (BuildingVariantRow row in rows)
-                {
-                    if (row == null || string.IsNullOrEmpty(row.buildingId))
-                    {
-                        continue;
-                    }
-                    if (countByBuilding[row.buildingId] == 1 && !_byId.ContainsKey(row.buildingId))
-                    {
-                        _byId[row.buildingId] = row.footprint;
-                    }
-                }
-            }
-
-            private static void Merge<TRow>(string table, Func<TRow, string> keyOf, Func<TRow, string[]> maskOf)
-                where TRow : class
-            {
-                List<TRow> rows = ReadJson<List<TRow>>(table);
-                if (rows == null)
-                {
-                    return;
-                }
-                foreach (TRow row in rows)
-                {
-                    if (row == null)
-                    {
-                        continue;
-                    }
-                    string key = keyOf(row);
-                    if (!string.IsNullOrEmpty(key))
-                    {
-                        _byId[key] = maskOf(row);
-                    }
-                }
-            }
-
-            private static T ReadJson<T>(string table) where T : class
-            {
-                string path = Path.Combine(TableDir, table + ".json");
-                if (!File.Exists(path))
-                {
-                    return null;
-                }
-                try
-                {
-                    return JsonConvert.DeserializeObject<T>(File.ReadAllText(path));
-                }
-                catch (Exception e)
-                {
-                    Debug.LogWarning($"[模型对齐] 读 {path} 失败：{e.Message}");
-                    return null;
-                }
-            }
-
-            private static DateTime LatestWriteTime()
-            {
-                DateTime latest = DateTime.MinValue;
-                foreach (string table in new[] { "BuildingVariant", "MapElement", "GameConfig" })
-                {
-                    string path = Path.Combine(TableDir, table + ".json");
-                    if (File.Exists(path))
-                    {
-                        DateTime t = File.GetLastWriteTimeUtc(path);
-                        if (t > latest)
-                        {
-                            latest = t;
-                        }
-                    }
-                }
-                return latest;
-            }
         }
     }
 }

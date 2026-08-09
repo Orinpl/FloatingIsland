@@ -32,6 +32,7 @@ namespace FloatingIsLand.View
 
         private IGridPresenter _presenter;
         private GameSession _session;
+        private TerrainOverlayRenderer _terrainOverlay;
 
         private GameObject _ghost;
         private string _ghostVariantId;
@@ -75,6 +76,17 @@ namespace FloatingIsLand.View
             OnSelectionChanged();
         }
 
+        /// <summary>
+        /// 接管地形 overlay 的显隐。绑定后网格不再常显：只有进入建造模式、且光标确实落在某个格子上时
+        /// 才亮起，并且只亮光标附近几圈（渐隐由 <see cref="TerrainOverlayRenderer.SetFocus"/> 负责）。
+        /// 由 MapBootstrap 在建造链路就绪后调用；不调用则 overlay 维持原来的常显行为。
+        /// </summary>
+        public void BindTerrainOverlay(TerrainOverlayRenderer overlay)
+        {
+            _terrainOverlay = overlay;
+            HideTerrainOverlay();
+        }
+
         private void Unbind()
         {
             if (_session != null)
@@ -88,6 +100,7 @@ namespace FloatingIsLand.View
         {
             // 失活时必须归还滚轮，否则相机永远缩放不了
             InputArbiter.ScrollConsumedByGameplay = false;
+            HideTerrainOverlay();
         }
 
         private void OnDestroy()
@@ -95,6 +108,15 @@ namespace FloatingIsLand.View
             Unbind();
             InputArbiter.Reset();
             DestroyGhost();
+        }
+
+        private void HideTerrainOverlay()
+        {
+            if (_terrainOverlay != null)
+            {
+                _terrainOverlay.ClearFocus();
+                _terrainOverlay.SetVisible(false);
+            }
         }
 
         private void Update()
@@ -115,13 +137,37 @@ namespace FloatingIsLand.View
                 _hasHover = false;
                 HoverMessage = string.Empty;
                 DestroyGhost();
+                HideTerrainOverlay();
                 return;
             }
 
             EnsureGhost(blueprint);
             HandleRotation();
             UpdateHover(blueprint);
+            UpdateTerrainFocus();
             HandleClicks();
+        }
+
+        /// <summary>
+        /// 建造模式下的网格显示：跟着光标走，只亮附近几圈。
+        /// 光标不在格子上（悬在 UI 上或指向天空）时整块收起，而不是退回全图常显——
+        /// 那样一移开鼠标满屏格子会突然全亮，比不显示还刺眼。
+        /// </summary>
+        private void UpdateTerrainFocus()
+        {
+            if (_terrainOverlay == null)
+            {
+                return;
+            }
+
+            if (!_hasHover)
+            {
+                HideTerrainOverlay();
+                return;
+            }
+
+            _terrainOverlay.SetVisible(true);
+            _terrainOverlay.SetFocus(_hoverX, _hoverZ, _hoverLayer);
         }
 
         /// <summary>滚轮 → 90° 步进旋转。Windows 原始值 ±120/格，与相机控制器同一套折算口径。</summary>
@@ -180,7 +226,8 @@ namespace FloatingIsLand.View
             {
                 _ghost.SetActive(true);
                 Vector3 corner = _presenter.Geometry.CellCorner(_hoverX, _hoverZ, _hoverLayer);
-                _ghost.transform.SetPositionAndRotation(corner, Quaternion.Euler(0f, _rotation.ToDegrees(), 0f));
+                // 位姿口径必须和落地时同一份，否则预览和实际落点会差一截
+                ModelSpawner.PlaceAt(_ghost, corner, _rotation, blueprint.Footprint, _presenter.CellSize);
                 ModelSpawner.ApplyGhostAppearance(_ghost, _hoverValid ? validTint : invalidTint);
             }
         }
@@ -230,9 +277,7 @@ namespace FloatingIsLand.View
             _ghost = ModelSpawner.Spawn(
                 blueprint.PrefabPath, Vector3.zero, _rotation, transform,
                 $"Ghost_{blueprint.VariantId}",
-                blueprint.Footprint.SpanX(_rotation),
-                blueprint.Footprint.SpanZ(_rotation),
-                _presenter.CellSize);
+                blueprint.Footprint, _presenter.CellSize);
             ModelSpawner.ApplyGhostAppearance(_ghost, validTint);
         }
 

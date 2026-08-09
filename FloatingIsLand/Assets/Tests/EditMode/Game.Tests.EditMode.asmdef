@@ -4,6 +4,7 @@
     "references": [
         "Game.Domain",
         "Game.Config",
+        "Game.View",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

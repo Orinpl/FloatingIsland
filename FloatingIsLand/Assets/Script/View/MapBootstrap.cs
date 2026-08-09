@@ -131,6 +131,9 @@ namespace FloatingIsLand.View
             if (placementController != null)
             {
                 placementController.Bind(session);
+                // 网格交给摆放交互全权控制：不进建造模式就不显示（用户要求 3）。
+                // 没有 placementController 的纯看图 / 刷图模式走不到这里，overlay 保持常显。
+                placementController.BindTerrainOverlay(terrainOverlay);
             }
         }
 

@@ -43,6 +43,8 @@ namespace FloatingIsLand.Config
         public string variantId;
         /// <summary>所属建筑模板 Id → Building 表（一个模板可挂多个变体；计分/关系/建造限制走模板，占地与外观走变体）</summary>
         public string buildingId;
+        /// <summary>变体显示名（UI 手牌用）。空=沿用 Building.nameCn；一个模板挂多个变体时必须逐个填，否则玩家在手牌里分不出 2×2 居民区和 L 形居民区</summary>
+        public string nameCn;
         /// <summary>占地形状掩码：每个元素是一行（自上而下）、|分隔，#=占用 .=空，各行长度须一致且至少一个#。如 2×2=##|##，L形(3+1)=###|#..，凹形(3+2)=#.#|###。占用格全部要求满足模板的 placement 地形</summary>
         public string[] footprint;
         /// <summary>表现 Prefab 路径（Resources 相对路径或 Addressables key，表现层统一口径；空=白模占位）。由菜单 Tools/美术/生成白模 Prefab 从 Assets/Res/&lt;资产名&gt;/fbx/ 批量生成到 Assets/Resources/Prefab/Building/</summary>

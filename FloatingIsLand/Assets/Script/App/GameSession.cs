@@ -171,7 +171,7 @@ namespace FloatingIsLand.App
         }
 
         /// <summary>
-        /// 把当前选中的建筑落到这里：校验 → 落地 → 结算即时分 → 消耗手牌 → 自动选中下一张。
+        /// 把当前选中的建筑落到这里：校验 → 落地 → 结算即时分 → 消耗手牌 → 退出摆放模式。
         /// 非法位置返回 false 且不改变任何状态（原因见返回的 check）。
         /// </summary>
         public bool TryPlaceSelected(int x, int z, int layer, Rotation rotation, out PlacementCheck check, out ScoreBreakdown breakdown)
@@ -198,12 +198,10 @@ namespace FloatingIsLand.App
             _run.AddBuildScore(breakdown.Total);
             _run.ConsumeFromHand(consumed);
 
-            // 消耗后手牌整体前移：停在同一个下标就是「自动选中下一张」，
-            // 摆到最后一张时下标越界，退回未选中。
-            if (consumed >= _run.Hand.Count)
-            {
-                _selectedHandIndex = _run.Hand.Count > 0 ? _run.Hand.Count - 1 : -1;
-            }
+            // 一次点击只造一栋：落地后退出摆放模式，不自动顺延到下一张手牌。
+            // 自动顺延会让玩家在没察觉的情况下把下一栋也甩出去——尤其是手牌前移后
+            // 同一个下标已经换成了另一种建筑，鼠标还停在原地就更容易误建。
+            _selectedHandIndex = -1;
             SelectionChanged?.Invoke();
             return true;
         }

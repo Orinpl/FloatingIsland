@@ -110,6 +110,32 @@ namespace FloatingIsLand.Domain.Build
         NoWind,
     }
 
+    /// <summary>
+    /// 单格的占地判定结果（表现层画落点格用）。
+    ///
+    /// 只反映**逐格规则**（越界 / 虚空 / 已被占 / 压到元素 / 地形不符）。
+    /// 矿脉范围、风带这类整体规则不属于任何一格，所以可能出现「每格都 IsValid、整体却摆不下」——
+    /// 整体结论一律以 <see cref="BuildBoard.CanPlace"/> 为准。
+    /// </summary>
+    public readonly struct CellPlacement
+    {
+        /// <summary>格坐标（已含旋转）。</summary>
+        public readonly CellCoord Cell;
+
+        /// <summary>本格自身是否合格。</summary>
+        public readonly bool IsValid;
+
+        /// <summary>本格不合格的原因；合格时为 <see cref="PlacementFailure.None"/>。</summary>
+        public readonly PlacementFailure Failure;
+
+        public CellPlacement(CellCoord cell, bool isValid, PlacementFailure failure)
+        {
+            Cell = cell;
+            IsValid = isValid;
+            Failure = failure;
+        }
+    }
+
     /// <summary>摆放校验结果。</summary>
     public readonly struct PlacementCheck
     {
@@ -301,33 +327,10 @@ namespace FloatingIsLand.Domain.Build
 
             for (int i = 0; i < _scratch.Count; i++)
             {
-                CellCoord cell = _scratch[i];
-
-                if (!_map.InBounds(cell.X, cell.Z, layer))
+                PlacementCheck cellCheck = CheckCell(blueprint, _scratch[i], layer);
+                if (!cellCheck.IsValid)
                 {
-                    return PlacementCheck.Fail(PlacementFailure.OutOfBounds, "超出地图范围。");
-                }
-
-                string terrain = _map.GetElementIdOrNull(cell.X, cell.Z, layer);
-                if (terrain == null)
-                {
-                    return PlacementCheck.Fail(PlacementFailure.Void, "占地压到虚空，必须整块建在已有地形上。");
-                }
-
-                if (IsOccupied(cell.X, cell.Z, layer))
-                {
-                    return PlacementCheck.Fail(PlacementFailure.Occupied, "占地与已有建筑重叠。");
-                }
-
-                if (GetElementAt(cell.X, cell.Z, layer) != null)
-                {
-                    return PlacementCheck.Fail(PlacementFailure.BlockedByElement, "占地压到地图元素。");
-                }
-
-                PlacementCheck terrainCheck = CheckTerrain(blueprint, terrain);
-                if (!terrainCheck.IsValid)
-                {
-                    return terrainCheck;
+                    return cellCheck;
                 }
             }
 
@@ -356,6 +359,64 @@ namespace FloatingIsLand.Domain.Build
             }
 
             return PlacementCheck.Ok();
+        }
+
+        /// <summary>
+        /// 逐格给出占地判定，供表现层把落点格逐个标绿/标红。
+        ///
+        /// 与 <see cref="CanPlace"/> 的分工：那边碰到第一个坏格就返回（玩家只需要一条原因），
+        /// 这边每格都判，好让玩家一眼看出**是哪几格**挡住了。两边共用同一个 <see cref="CheckCell"/>，
+        /// 不会出现「格子标绿但摆不下」这种预览与裁决分叉。
+        /// 整体规则（矿脉范围 / 风带）不属于任何单格，不在这里体现。
+        /// </summary>
+        public void CheckCells(
+            BuildingBlueprint blueprint, int x, int z, int layer, Rotation rotation, List<CellPlacement> result)
+        {
+            if (result == null)
+            {
+                throw new ArgumentNullException(nameof(result));
+            }
+
+            result.Clear();
+            if (blueprint == null)
+            {
+                return;
+            }
+
+            blueprint.Footprint.GetCells(x, z, rotation, _scratch);
+            for (int i = 0; i < _scratch.Count; i++)
+            {
+                CellCoord cell = _scratch[i];
+                PlacementCheck check = CheckCell(blueprint, cell, layer);
+                result.Add(new CellPlacement(cell, check.IsValid, check.Failure));
+            }
+        }
+
+        /// <summary>单格的逐格规则：越界 / 虚空 / 已被占 / 压到元素 / 地形不符。</summary>
+        private PlacementCheck CheckCell(BuildingBlueprint blueprint, CellCoord cell, int layer)
+        {
+            if (!_map.InBounds(cell.X, cell.Z, layer))
+            {
+                return PlacementCheck.Fail(PlacementFailure.OutOfBounds, "超出地图范围。");
+            }
+
+            string terrain = _map.GetElementIdOrNull(cell.X, cell.Z, layer);
+            if (terrain == null)
+            {
+                return PlacementCheck.Fail(PlacementFailure.Void, "占地压到虚空，必须整块建在已有地形上。");
+            }
+
+            if (IsOccupied(cell.X, cell.Z, layer))
+            {
+                return PlacementCheck.Fail(PlacementFailure.Occupied, "占地与已有建筑重叠。");
+            }
+
+            if (GetElementAt(cell.X, cell.Z, layer) != null)
+            {
+                return PlacementCheck.Fail(PlacementFailure.BlockedByElement, "占地压到地图元素。");
+            }
+
+            return CheckTerrain(blueprint, terrain);
         }
 
         private PlacementCheck CheckTerrain(BuildingBlueprint blueprint, string terrain)

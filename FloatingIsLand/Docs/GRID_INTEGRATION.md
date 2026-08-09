@@ -134,6 +134,13 @@ MapSnapshot（Domain，纯数据）→ BuildGrid(快照尺寸) → TerrainOverla
 **核心约定：没有 MapCell 的坐标 = 虚空 = 不可建造、不渲染。** 未刷的格子不生成任何顶点，
 所以"建造模式下没刷过的格子不显示"是结构上成立的，不需要逐格开关。
 
+**网格不常显。** 平时（看图、选建筑组、手牌没选中）整块 overlay 是关的，只有进入摆放模式
+且光标确实落在某个格子上时才亮，而且只亮光标附近 `focusRings`（默认 3）圈，往外线性渐隐到透明——
+渐隐靠改顶点 alpha（`SetFocus` / `ClearFocus`），顶点数不变，不重建 Mesh。
+接线在 `MapBootstrap.AttachToSession` → `BuildPlacementController.BindTerrainOverlay`：
+**只有建造链路起来了才交出控制权**，纯看图 / 刷图模式走不到那一步，overlay 维持常显。
+渐隐曲线由 [TerrainFocusTests](../Assets/Tests/EditMode/TerrainFocusTests.cs) 钉住。
+
 | 位置 | 程序集 | 职责 |
 |---|---|---|
 | [Domain/Map/MapSnapshot.cs](../Assets/Script/Domain/Map/MapSnapshot.cs) | Game.Domain | 稀疏地块 + `IsPainted`；越界/重复/空 id 构造时即抛 |

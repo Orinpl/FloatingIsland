@@ -126,9 +126,7 @@ namespace FloatingIsLand.View
                 ModelSpawner.Spawn(
                     def.PrefabPath, corner, element.Rotation, _elementRoot,
                     $"{def.ElementId}_{element.Id}",
-                    def.Footprint.SpanX(element.Rotation),
-                    def.Footprint.SpanZ(element.Rotation),
-                    cellSize);
+                    def.Footprint, cellSize);
                 spawned++;
             }
 
@@ -143,29 +141,8 @@ namespace FloatingIsLand.View
             ModelSpawner.Spawn(
                 building.Blueprint.PrefabPath, corner, building.Rotation, _buildingRoot,
                 $"{building.Blueprint.VariantId}_{building.Id}",
-                building.Blueprint.Footprint.SpanX(building.Rotation),
-                building.Blueprint.Footprint.SpanZ(building.Rotation),
-                _presenter.CellSize);
+                building.Blueprint.Footprint, _presenter.CellSize);
         }
 
-        private static bool TryGetWorldBounds(GameObject root, out Bounds bounds)
-        {
-            bounds = new Bounds();
-            bool any = false;
-            var renderers = root.GetComponentsInChildren<Renderer>(true);
-            foreach (Renderer renderer in renderers)
-            {
-                if (!any)
-                {
-                    bounds = renderer.bounds;
-                    any = true;
-                }
-                else
-                {
-                    bounds.Encapsulate(renderer.bounds);
-                }
-            }
-            return any;
-        }
     }
 }

@@ -10,8 +10,10 @@ namespace FloatingIsLand.Domain.Map
     /// EGB 的占地只支持矩形装不下异形，所以占用判定全在领域层（GRID_INTEGRATION §1）。
     ///
     /// 坐标约定：掩码第 r 行第 c 列 → 相对锚点的偏移 (dx=c, dz=rows-1-r)。
-    /// 即掩码最后一行贴着 z 最小侧，与「锚点=占地最小角」和 EGB 的格角点口径一致，
-    /// 这样 Prefab 直接摆在锚点格的角点上就能对齐（见 BuildingModelPostprocessor 的轴心归位）。
+    /// 即掩码最后一行贴着 z 最小侧，与「锚点=占地最小角」和 EGB 的格角点口径一致。
+    /// Prefab 那边的轴心也归到占地最小角（ModelPrefabGenerator 生成时对齐），所以 0° 朝向下
+    /// 把 Prefab 直接摆到锚点格的角点上就对齐了；90/180/270° 因为 Unity 绕 Y 轴转会把模型甩向负半轴，
+    /// 表现层要按 <see cref="SpanX"/>/<see cref="SpanZ"/> 补一段平移（见 ModelSpawner.PlaceAt）。
     /// </summary>
     public sealed class Footprint
     {

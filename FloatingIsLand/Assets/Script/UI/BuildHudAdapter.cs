@@ -21,7 +21,7 @@ namespace FloatingIsLand.UI
         private UIManager _ui;
         private HudPanel _hud;
         private GameSession _session;
-        private readonly List<string> _handLabels = new List<string>();
+        private readonly List<HudPanel.HandItemView> _handItems = new List<HudPanel.HandItemView>();
         private readonly List<string> _offerLabels = new List<string>();
 
         private void Start()
@@ -142,11 +142,15 @@ namespace FloatingIsLand.UI
 
             BuildRunState run = _session.Run;
 
-            _handLabels.Clear();
+            _handItems.Clear();
             for (int i = 0; i < run.Hand.Count; i++)
             {
-                BuildingBlueprint blueprint = _session.Rules.GetBlueprintOrNull(run.Hand[i]);
-                _handLabels.Add(blueprint != null ? blueprint.NameCn : run.Hand[i]);
+                string variantId = run.Hand[i];
+                BuildingBlueprint blueprint = _session.Rules.GetBlueprintOrNull(variantId);
+                _handItems.Add(new HudPanel.HandItemView(
+                    variantId,
+                    blueprint != null ? blueprint.NameCn : variantId,
+                    blueprint != null ? blueprint.Footprint : null));
             }
 
             _offerLabels.Clear();
@@ -178,7 +182,7 @@ namespace FloatingIsLand.UI
                                 || (!lastLevel && (_session.DemoFreeUnlock || run.CanAffordNextLevel()));
 
             _hud.SetScoreboard(run.TotalScore, run.Gold, run.Level, run.TotalLevels, buttonLabel, interactable);
-            _hud.SetHand(_handLabels, _session.SelectedHandIndex);
+            _hud.SetHand(_handItems, _session.SelectedHandIndex);
             _hud.SetOffers(_offerLabels);
             _hud.SetHint(BuildHint(run));
         }
@@ -197,7 +201,7 @@ namespace FloatingIsLand.UI
             {
                 return "点下方建筑进入摆放模式。";
             }
-            return "滚轮旋转，左键放置，Esc 取消。";
+            return "滚轮旋转，左键放置（放完退出摆放模式），Esc 取消。";
         }
 
         private string DescribeGroup(BuildingGroup group)

@@ -243,7 +243,12 @@ namespace FloatingIsLand.ViewEGB.EditorTools
 
             GameObject island = Object.Instantiate(prefab);
             island.name = "__MapAutoBuilder_TempIsland";
-            island.hideFlags = HideFlags.HideAndDontSave;
+            // 整棵树都要打标记，不能只打根：Prefab 是「identity 包装根 + FBX 子节点」两层结构，
+            // 只标根的话一旦这期间发生域重载，DontSave 的根被丢掉、可保存的子节点会留成孤儿污染用户场景
+            foreach (Transform node in island.GetComponentsInChildren<Transform>(true))
+            {
+                node.gameObject.hideFlags = HideFlags.HideAndDontSave;
+            }
             // 缩放/对位交给 IslandFitter（与运行时共用同一份），这里只负责实例化
             return island;
         }
