@@ -118,6 +118,59 @@ namespace FloatingIsLand.Tests
         }
 
         [Test]
+        public void 光标格换算成锚点格_建筑落在光标周围而不是右上方()
+        {
+            // 4×4：跨度为偶数没有正中格，约定偏向最小角一侧 → 锚点 = 光标 - 1，占 [光标-1, 光标+2]
+            Footprint big = Footprint.Parse(new[] { "####", "####", "####", "####" }, "test");
+            big.AnchorFromCenter(10, 20, Rotation.Deg0, out int originX, out int originZ);
+            Assert.AreEqual(9, originX);
+            Assert.AreEqual(19, originZ);
+
+            // 3×3：跨度为奇数，光标正好是正中格
+            Footprint odd = Footprint.Parse(new[] { "###", "###", "###" }, "test");
+            odd.AnchorFromCenter(10, 20, Rotation.Deg0, out originX, out originZ);
+            Assert.AreEqual(9, originX);
+            Assert.AreEqual(19, originZ);
+
+            // 1×1：锚点就是光标格
+            Footprint single = Footprint.Parse(new[] { "#" }, "test");
+            single.AnchorFromCenter(10, 20, Rotation.Deg0, out originX, out originZ);
+            Assert.AreEqual(10, originX);
+            Assert.AreEqual(20, originZ);
+        }
+
+        [Test]
+        public void 光标格换算成锚点格_跨度随朝向互换时换算跟着变()
+        {
+            Footprint footprint = Footprint.Parse(new[] { "###" }, "test"); // 3 列 1 行
+
+            footprint.AnchorFromCenter(10, 20, Rotation.Deg0, out int x0, out int z0);
+            Assert.AreEqual(9, x0, "0°：X 跨度 3，锚点应左移 1");
+            Assert.AreEqual(20, z0, "0°：Z 跨度 1，锚点不动");
+
+            footprint.AnchorFromCenter(10, 20, Rotation.Deg90, out int x90, out int z90);
+            Assert.AreEqual(10, x90, "90°：X 跨度变 1，锚点不动");
+            Assert.AreEqual(19, z90, "90°：Z 跨度变 3，锚点应下移 1");
+        }
+
+        [Test]
+        public void 光标格换算成锚点格_光标始终落在占用格的跨度范围内()
+        {
+            Footprint footprint = Footprint.Parse(new[] { "####", "#..." }, "test");
+
+            for (int r = 0; r < 4; r++)
+            {
+                var rotation = (Rotation)r;
+                footprint.AnchorFromCenter(30, 40, rotation, out int originX, out int originZ);
+
+                Assert.GreaterOrEqual(30, originX, $"旋转 {r * 90}°：光标跑到占地左边去了");
+                Assert.Less(30, originX + footprint.SpanX(rotation), $"旋转 {r * 90}°：光标跑到占地右边去了");
+                Assert.GreaterOrEqual(40, originZ, $"旋转 {r * 90}°：光标跑到占地下边去了");
+                Assert.Less(40, originZ + footprint.SpanZ(rotation), $"旋转 {r * 90}°：光标跑到占地上边去了");
+            }
+        }
+
+        [Test]
         public void 旋转步进为负数时规约到合法区间()
         {
             Assert.AreEqual(Rotation.Deg270, Rotation.Deg0.Step(-1));

@@ -17,22 +17,42 @@ namespace FloatingIsLand.View
     /// 相机控制器读同一个标志位跳过缩放。
     ///
     /// 合法性与得分全部回领域层问（<see cref="GameSession"/> 干跑），这里只负责把鼠标位置换成格子、
-    /// 把结果画成绿/红 ghost。
+    /// 把结果画出来。预览分两层，各管一件事：
+    ///
+    /// - **落点格标记**（<see cref="PlacementFootprintRenderer"/>）——绿/红画在**地上**，
+    ///   逐格反映「这一格能不能建」，跟着朝向一起转；
+    /// - **建筑虚影**（<see cref="GhostAppearance"/>）——保留原材质，叠一层虚影 shader 再染色，
+    ///   玩家仍然认得出摆的是哪栋楼、转到了哪个朝向。
     /// </summary>
     public sealed class BuildPlacementController : MonoBehaviour
     {
         [Tooltip("实现 IGridPresenter 的组件（当前是 EGBGridPresenter）")]
         [SerializeField] private MonoBehaviour gridPresenterBehaviour;
 
-        [Tooltip("可摆放时的 ghost 颜色")]
-        [SerializeField] private Color validTint = new Color(0.3f, 1f, 0.4f, 0.45f);
+        [Header("落点格标记")]
+        [Tooltip("整体可摆时，每个落点格的颜色")]
+        [SerializeField] private Color cellValidColor = new Color(0.25f, 1f, 0.45f, 0.45f);
 
-        [Tooltip("不可摆放时的 ghost 颜色")]
-        [SerializeField] private Color invalidTint = new Color(1f, 0.3f, 0.3f, 0.45f);
+        [Tooltip("整体摆不下、但这一格自身没问题时的颜色（淡红：问题不在这格）")]
+        [SerializeField] private Color cellInvalidColor = new Color(1f, 0.55f, 0.25f, 0.30f);
+
+        [Tooltip("这一格自身就是障碍（虚空 / 已被占 / 压到元素 / 地形不符）时的颜色")]
+        [SerializeField] private Color cellBlockedColor = new Color(1f, 0.15f, 0.15f, 0.62f);
+
+        [Header("建筑虚影染色")]
+        [Tooltip("可摆放时叠在原材质上的虚影染色")]
+        [SerializeField] private Color ghostValidTint = new Color(0.35f, 1f, 0.55f, 1f);
+
+        [Tooltip("不可摆放时叠在原材质上的虚影染色")]
+        [SerializeField] private Color ghostInvalidTint = new Color(1f, 0.32f, 0.28f, 1f);
 
         private IGridPresenter _presenter;
         private GameSession _session;
         private TerrainOverlayRenderer _terrainOverlay;
+        private PlacementFootprintRenderer _footprintRenderer;
+
+        /// <summary>逐格判定的复用缓冲，避免每帧分配。</summary>
+        private readonly List<CellPlacement> _cellChecks = new List<CellPlacement>(36);
 
         private GameObject _ghost;
         private string _ghostVariantId;
@@ -43,6 +63,11 @@ namespace FloatingIsLand.View
         private int _hoverZ;
         private int _hoverLayer;
         private bool _hoverValid;
+
+        // 光标格 = 建筑中心；锚点格 = 旋转后占地的最小角（领域层与摆放口径都按锚点算）。
+        // 两者必须分开存：光标格来自鼠标，锚点格随朝向变，混用就会出现"预览和落点差一截"。
+        private int _anchorX;
+        private int _anchorZ;
 
         /// <summary>当前 ghost 的朝向。</summary>
         public Rotation CurrentRotation
@@ -101,6 +126,7 @@ namespace FloatingIsLand.View
             // 失活时必须归还滚轮，否则相机永远缩放不了
             InputArbiter.ScrollConsumedByGameplay = false;
             HideTerrainOverlay();
+            HideFootprint();
         }
 
         private void OnDestroy()
@@ -117,6 +143,34 @@ namespace FloatingIsLand.View
                 _terrainOverlay.ClearFocus();
                 _terrainOverlay.SetVisible(false);
             }
+        }
+
+        private void HideFootprint()
+        {
+            if (_footprintRenderer != null)
+            {
+                _footprintRenderer.Hide();
+            }
+        }
+
+        /// <summary>
+        /// 落点格标记的渲染器按需现建。场景是编辑器菜单生成的，往里加一个节点就得重跑生成流程；
+        /// 而这东西没有任何需要美术调的序列化引用（配色在本组件上），运行时建更省事。
+        /// </summary>
+        private PlacementFootprintRenderer EnsureFootprintRenderer()
+        {
+            if (_footprintRenderer == null)
+            {
+                var go = new GameObject(
+                    "PlacementFootprint",
+                    typeof(MeshFilter), typeof(MeshRenderer), typeof(PlacementFootprintRenderer));
+                go.transform.SetParent(transform, false);
+                // 顶点是**世界坐标**（GridGeometry 算出来的），所以自身位姿必须是单位变换，
+                // 否则挂到一个有偏移的父节点下，整片标记会跟着漂走
+                go.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+                _footprintRenderer = go.GetComponent<PlacementFootprintRenderer>();
+            }
+            return _footprintRenderer;
         }
 
         private void Update()
@@ -138,6 +192,7 @@ namespace FloatingIsLand.View
                 HoverMessage = string.Empty;
                 DestroyGhost();
                 HideTerrainOverlay();
+                HideFootprint();
                 return;
             }
 
@@ -201,6 +256,7 @@ namespace FloatingIsLand.View
             {
                 _hoverValid = false;
                 HoverMessage = string.Empty;
+                HideFootprint();
                 if (_ghost != null)
                 {
                     _ghost.SetActive(false);
@@ -208,13 +264,15 @@ namespace FloatingIsLand.View
                 return;
             }
 
-            // ghost 的锚点要跟着旋转后的跨度走，否则转 90° 后模型会整体偏出光标所在格
-            PlacementCheck check = _session.CheckSelectedPlacement(_hoverX, _hoverZ, _hoverLayer, _rotation);
+            // 光标格是建筑**中心**，领域层要的是锚点格（占地最小角）——换算随朝向变，每帧重算
+            blueprint.Footprint.AnchorFromCenter(_hoverX, _hoverZ, _rotation, out _anchorX, out _anchorZ);
+
+            PlacementCheck check = _session.CheckSelectedPlacement(_anchorX, _anchorZ, _hoverLayer, _rotation);
             _hoverValid = check.IsValid;
 
             if (check.IsValid)
             {
-                ScoreBreakdown preview = _session.PreviewSelectedScore(_hoverX, _hoverZ, _hoverLayer, _rotation);
+                ScoreBreakdown preview = _session.PreviewSelectedScore(_anchorX, _anchorZ, _hoverLayer, _rotation);
                 HoverMessage = preview != null ? $"预计得分 {preview.Total}" : string.Empty;
             }
             else
@@ -222,13 +280,20 @@ namespace FloatingIsLand.View
                 HoverMessage = check.Reason;
             }
 
+            // 落点格逐格标绿 / 标红。格子由 Footprint.GetCells 展开，**天然跟着朝向转**——
+            // 转 90° 时占地矩形跟着转，不是只有模型在转；异形占地也是逐格画，不退化成外接矩形。
+            _session.CheckSelectedCells(_anchorX, _anchorZ, _hoverLayer, _rotation, _cellChecks);
+            EnsureFootprintRenderer().Show(
+                _cellChecks, _hoverLayer, _presenter.Geometry, _hoverValid,
+                cellValidColor, cellInvalidColor, cellBlockedColor);
+
             if (_ghost != null)
             {
                 _ghost.SetActive(true);
-                Vector3 corner = _presenter.Geometry.CellCorner(_hoverX, _hoverZ, _hoverLayer);
+                Vector3 corner = _presenter.Geometry.CellCorner(_anchorX, _anchorZ, _hoverLayer);
                 // 位姿口径必须和落地时同一份，否则预览和实际落点会差一截
                 ModelSpawner.PlaceAt(_ghost, corner, _rotation, blueprint.Footprint, _presenter.CellSize);
-                ModelSpawner.ApplyGhostAppearance(_ghost, _hoverValid ? validTint : invalidTint);
+                ModelSpawner.ApplyGhostAppearance(_ghost, _hoverValid ? ghostValidTint : ghostInvalidTint);
             }
         }
 
@@ -257,7 +322,8 @@ namespace FloatingIsLand.View
 
             PlacementCheck check;
             ScoreBreakdown breakdown;
-            if (_session.TryPlaceSelected(_hoverX, _hoverZ, _hoverLayer, _rotation, out check, out breakdown))
+            // 用 UpdateHover 算好的锚点格，不能拿光标格：那样落点会和刚才预览的位置差半栋楼
+            if (_session.TryPlaceSelected(_anchorX, _anchorZ, _hoverLayer, _rotation, out check, out breakdown))
             {
                 return;
             }
@@ -278,7 +344,7 @@ namespace FloatingIsLand.View
                 blueprint.PrefabPath, Vector3.zero, _rotation, transform,
                 $"Ghost_{blueprint.VariantId}",
                 blueprint.Footprint, _presenter.CellSize);
-            ModelSpawner.ApplyGhostAppearance(_ghost, validTint);
+            ModelSpawner.ApplyGhostAppearance(_ghost, ghostValidTint);
         }
 
         private void DestroyGhost()

@@ -1,4 +1,5 @@
 using System;
+using FloatingIsLand.App;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -43,6 +44,16 @@ namespace FloatingIsLand.ViewEGB
         {
             if (presenter == null || !presenter.enabled)
             {
+                return;
+            }
+
+            if (IsPlacingBuilding())
+            {
+                // 建造模式下地格反馈全归 BuildPlacementController 的落点格标记：
+                // 那边是整块占地、逐格红绿、跟着朝向转，而这里只有光标下孤零零一个白框，
+                // 既不体现占地也不跟旋转——两个一起画，玩家只会以为"转了但格子没转"。
+                _hoverQuad.gameObject.SetActive(false);
+                _selectedQuad.gameObject.SetActive(false);
                 return;
             }
 
@@ -96,6 +107,14 @@ namespace FloatingIsLand.ViewEGB
             quad.position = center;
             quad.localScale = new Vector3(cellSize * 0.95f, cellSize * 0.95f, 1f);
             quad.gameObject.SetActive(true);
+        }
+
+        /// <summary>当前是否正拿着一张建筑手牌在摆放。</summary>
+        private static bool IsPlacingBuilding()
+        {
+            GameFlow flow = GameFlow.Instance;
+            GameSession session = flow != null ? flow.CurrentSession : null;
+            return session != null && session.SelectedBlueprint != null;
         }
 
         private static bool IsPointerOverUI()

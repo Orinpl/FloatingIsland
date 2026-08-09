@@ -201,62 +201,25 @@ namespace FloatingIsLand.View
             return _whiteBoxMaterial;
         }
 
-        /// <summary>把一棵实例整体设成半透明的 ghost 外观（摆放预览用）。</summary>
+        /// <summary>
+        /// 把一棵实例设成摆放预览的虚影外观，并按合法性染色。可以每帧调。
+        ///
+        /// 具体做法见 <see cref="GhostAppearance"/>：**保留原材质的贴图与主色**，只换成虚影 shader，
+        /// 而不是整体刷成一片半透明绿/红——那样玩家看不出摆的是哪栋建筑，也看不出转了没有。
+        /// </summary>
         public static void ApplyGhostAppearance(GameObject instance, Color tint)
         {
-            var renderers = instance.GetComponentsInChildren<Renderer>(true);
-            foreach (Renderer renderer in renderers)
+            if (instance == null)
             {
-                var materials = new Material[renderer.sharedMaterials.Length];
-                for (int i = 0; i < materials.Length; i++)
-                {
-                    materials[i] = CreateGhostMaterial(tint);
-                }
-                renderer.materials = materials;
+                return;
             }
 
-            // ghost 只是预览，不该参与任何物理查询
-            var colliders = instance.GetComponentsInChildren<Collider>(true);
-            foreach (Collider collider in colliders)
+            GhostAppearance ghost = instance.GetComponent<GhostAppearance>();
+            if (ghost == null)
             {
-                collider.enabled = false;
+                ghost = instance.AddComponent<GhostAppearance>();
             }
-        }
-
-        private static Material CreateGhostMaterial(Color tint)
-        {
-            if (!UsingScriptableRenderPipeline)
-            {
-                // Built-in 下用 Sprites/Default：本来就是「不受光 + 按 _Color 的 alpha 混合」，
-                // 不用手动配混合状态。Unlit/Color 不行——它是不透明的，ghost 会变成实心色块。
-                var builtIn = new Material(Shader.Find("Sprites/Default"))
-                {
-                    hideFlags = HideFlags.DontSave,
-                    color = tint,
-                };
-                return builtIn;
-            }
-
-            var material = new Material(Shader.Find("Universal Render Pipeline/Unlit"))
-            {
-                hideFlags = HideFlags.DontSave,
-            };
-            material.color = tint;
-
-            // URP Lit/Unlit 的透明开关是一组 keyword + 渲染队列，少一样都会变成不透明
-            material.SetFloat("_Surface", 1f);
-            material.SetFloat("_Blend", 0f);
-            material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
-            material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-            material.SetFloat("_ZWrite", 0f);
-            material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-            material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-            material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
-            if (material.HasProperty("_BaseColor"))
-            {
-                material.SetColor("_BaseColor", tint);
-            }
-            return material;
+            ghost.SetTint(tint);
         }
     }
 }

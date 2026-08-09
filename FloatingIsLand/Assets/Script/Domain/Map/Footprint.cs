@@ -110,6 +110,22 @@ namespace FloatingIsLand.Domain.Map
             }
         }
 
+        /// <summary>
+        /// 把「玩家想让建筑落在哪一格」换算成锚点格（= 旋转后占地的最小角）。
+        ///
+        /// 摆放交互必须按**中心**对齐才符合直觉：光标应该在建筑正中，而不是在它的某个角上。
+        /// 直接拿光标格当锚点的话，4×4 的市民中心会整栋长在光标的右上方，
+        /// 玩家看着光标在空地上、建筑却压到了别的地方。
+        ///
+        /// 偶数跨度没有正中的那一格，统一偏向最小角一侧（整除向下取整），
+        /// 保证同一朝向下换算是确定的、可逆的。
+        /// </summary>
+        public void AnchorFromCenter(int centerX, int centerZ, Rotation rotation, out int originX, out int originZ)
+        {
+            originX = centerX - (SpanX(rotation) - 1) / 2;
+            originZ = centerZ - (SpanZ(rotation) - 1) / 2;
+        }
+
         /// <summary>旋转后的 X 跨度（格）。</summary>
         public int SpanX(Rotation rotation)
         {

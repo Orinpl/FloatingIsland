@@ -163,6 +163,22 @@ namespace FloatingIsLand.App
             return _board.CanPlace(blueprint, x, z, layer, rotation);
         }
 
+        /// <summary>
+        /// 干跑：当前选中的建筑在这里**逐格**的落点合法性（表现层把落点格逐个标绿/标红用）。
+        /// 整体结论仍以 <see cref="CheckSelectedPlacement"/> 为准——矿脉范围、风带这类整体规则
+        /// 不属于任何单格，可能出现「每格都合格、整体却摆不下」。
+        /// </summary>
+        public void CheckSelectedCells(int x, int z, int layer, Rotation rotation, List<CellPlacement> result)
+        {
+            BuildingBlueprint blueprint = SelectedBlueprint;
+            if (blueprint == null)
+            {
+                result?.Clear();
+                return;
+            }
+            _board.CheckCells(blueprint, x, z, layer, rotation, result);
+        }
+
         /// <summary>干跑：当前选中的建筑摆在这里能得多少分（摆放前预览用，§7.4）。</summary>
         public ScoreBreakdown PreviewSelectedScore(int x, int z, int layer, Rotation rotation)
         {
