@@ -28,9 +28,12 @@ namespace FloatingIsLand.Config.EditorTools
             int done = 0;
             int skipped = 0;
 
+            // 注意：这里**不能**包 StartAssetEditing/StopAssetEditing。
+            // 那会把导入全部延迟到 Stop 之后，而 ExtractAsset 依赖「写完 remap 立刻重新导入 FBX」
+            // 才能把材质绑到渲染器上；批处理里做完，externalObjects 是对的、导入结果却还是旧的，
+            // 表现为运行时渲染器上挂着 Default-Material（踩过一次，别再包回去）。
             try
             {
-                AssetDatabase.StartAssetEditing();
                 for (int i = 0; i < guids.Length; i++)
                 {
                     string fbxPath = AssetDatabase.GUIDToAssetPath(guids[i]);
@@ -47,7 +50,6 @@ namespace FloatingIsLand.Config.EditorTools
             }
             finally
             {
-                AssetDatabase.StopAssetEditing();
                 EditorUtility.ClearProgressBar();
             }
 
@@ -65,6 +67,59 @@ namespace FloatingIsLand.Config.EditorTools
 
             AssetDatabase.SaveAssets();
             Debug.Log($"[材质提取] 提取 {done} 个模型（跳过 {skipped}），回挂贴图 {fixedUp} 个。\n{log}");
+
+            ReimportAndVerify();
+        }
+
+        /// <summary>
+        /// 强制重新导入 Assets/Res 下的模型，并逐个报告渲染器上真正绑到的材质。
+        ///
+        /// externalObjects 里写着重映射不等于导入结果已经生效——Library 里缓存的导入结果不会自己更新。
+        /// 报告里出现 Default-Material 就说明这个模型的材质没绑上（Unity 找不到材质时的替身）。
+        /// </summary>
+        [MenuItem("Tools/美术/重新导入模型并校验材质绑定", false, 41)]
+        public static void ReimportAndVerify()
+        {
+            string[] guids = AssetDatabase.FindAssets("t:Model", new[] { ResRoot });
+            foreach (string guid in guids)
+            {
+                AssetDatabase.ImportAsset(AssetDatabase.GUIDToAssetPath(guid), ImportAssetOptions.ForceUpdate);
+            }
+
+            var log = new StringBuilder();
+            int bad = 0;
+            foreach (string guid in guids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                var go = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                if (go == null)
+                {
+                    continue;
+                }
+
+                foreach (MeshRenderer renderer in go.GetComponentsInChildren<MeshRenderer>(true))
+                {
+                    foreach (Material material in renderer.sharedMaterials)
+                    {
+                        string name = material == null ? "<无材质>" : material.name;
+                        bool ok = material != null && name != "Default-Material";
+                        if (!ok)
+                        {
+                            bad++;
+                            log.AppendLine($"  X {Path.GetFileNameWithoutExtension(path)} → {name}");
+                        }
+                    }
+                }
+            }
+
+            if (bad > 0)
+            {
+                Debug.LogError($"[材质校验] {guids.Length} 个模型里有 {bad} 处没绑上材质：\n{log}");
+            }
+            else
+            {
+                Debug.Log($"[材质校验] {guids.Length} 个模型的材质全部绑定正常。");
+            }
         }
 
         /// <summary>提取单个 FBX 的贴图与材质到同级 mat/ 目录。</summary>

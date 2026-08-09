@@ -50,6 +50,20 @@ python3 Tools/ArtGen/fbx_probe.py .  # 质检：读 FBX 二进制报顶点/面�
 
 **新生成一批模型后要重跑一次**。已有的 Prefab 不带材质覆盖，会自动跟随 FBX 更新，不用重新生成。
 
+### 这一步的三个坑（都踩过）
+
+1. **提取循环不能包 `AssetDatabase.StartAssetEditing()`。** 那会把导入延迟到 `StopAssetEditing` 之后统一做，而
+   `ExtractAsset` 依赖「写完 remap 立刻重新导入 FBX」才能把材质绑到渲染器上。包进批处理的结果是：
+   `.meta` 的 `externalObjects` 和 `.mat` 的贴图引用**全都是对的**，运行时渲染器上却挂着 `Default-Material`
+   —— 磁盘配置正确、画面就是不对，极难定位。
+2. **校验要看渲染器实际绑定，不能只看 `.meta`。** 跑菜单 **Tools/美术/重新导入模型并校验材质绑定**，
+   它强制重导后逐个检查 `MeshRenderer.sharedMaterials` 里有没有 `Default-Material`（Unity 找不到材质时的替身）。
+3. **纯品红不是材质丢失。** 材质真丢渲染成**灰白**。品红查两处：装了 URP 包但没启用管线
+   （`Shader.Find("URP/Lit")` 找得到、Built-in 下所有 SubShader 被跳过），或 `TerrainOverlayRenderer`
+   的 `fallbackColor` 配色表缺 elementId、半透明盖在模型上。
+
+> 通用版流水线（含全部脚本与两侧陷阱）已抽成 `ai-3d-asset-pipeline` skill，落地到别的工程直接用它。
+
 ## 贴图压缩（fbx_shrink.py）
 
 rodin 产出的 FBX 内嵌 4K PBR 贴图，单个 20~30MB。`fbx_shrink.py` 做完整的

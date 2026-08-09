@@ -103,8 +103,38 @@ Main.unity
    鼠标跟随吸附 / 滚轮 90° 旋转 / 左键落地 / Esc 取消；**建造模式下滚轮归玩法**，
    相机通过 `App/InputArbiter` 让出缩放，其余相机操作（WASD / 右键拖旋转 / 中键拖平移 / Shift・Ctrl 升降）保持原有逻辑；
 4. 风帆落地前的左/右转选择弹窗（设计 §9.2）插在确认与落地之间 —— **待做（随风系统 M3）**；
-5. View 自绘格子 overlay（加减分高亮、覆盖范围）—— **部分完成**：ghost 已按干跑结果实时红/绿，
+5. View 自绘格子 overlay（加减分高亮、覆盖范围）—— **部分完成**：摆放预览已分两层落地（见 §6.1），
    加减分对象与作用范围高亮待做。
+
+### 6.1 摆放预览的两层
+
+预览刻意拆成「地上一层 + 建筑一层」，两层各答一个问题：
+
+| 层 | 组件 | 回答 |
+|---|---|---|
+| 落点格标记 | [PlacementFootprintRenderer](../Assets/Script/View/PlacementFootprintRenderer.cs) | **占哪几格、哪几格建不了** |
+| 建筑虚影 | [GhostAppearance](../Assets/Script/View/GhostAppearance.cs) + `Resources/Shaders/BuildGhost.shader` | **摆的是哪栋楼、转到了哪个朝向** |
+
+三条容易写错的地方：
+
+1. **格子来自 `Footprint.GetCells(锚点, rotation)`，不是外接矩形。** 所以转 90° 时占地跟着转、
+   L 形/凹形也是逐格画。只转模型不转格子，玩家会以为旋转没生效。
+2. **逐格判定，不是一个整体红绿。** `BuildBoard.CheckCells` 与 `CanPlace` 共用同一个 `CheckCell`，
+   不会出现"格子标绿但摆不下"。三档配色：整体可摆=绿；整体不可摆时，本格自身没问题=淡红、
+   本格就是障碍=深红——6×6 的船坞压到一格虚空时，玩家要看得出该往哪挪。
+   矿脉范围/风带是**整体**规则，不属于任何单格，所以会出现「每格淡红」= 格子都没问题但整体不满足。
+3. **虚影保留原材质。** `BuildGhost.shader` 继承原材质的贴图与主色（`_MainTex`/`_BaseMap`、
+   `_Color`/`_BaseColor`），只叠半透明 + 菲涅尔边缘光 + 扫描线再染色。整体刷成一片半透明绿/红的话，
+   门窗屋顶朝向全丢，玩家既认不出建筑也看不出转没转。
+   染色每帧走 `MaterialPropertyBlock`，**不要**改回每帧 `new Material` 赋给 `renderer.materials`——
+   那些实例既不销毁也不回收，摆放模式开着就一直漏。
+
+落点格标记用 `Resources/Shaders/CellOverlay.shader`，`ZTest Always`：建筑正压在自己的落点格上，
+默认 `LEqual` 会把标记挡掉大半。队列上 `CellOverlay` = Transparent、`BuildGhost` = Transparent+1，
+所以虚影仍盖在标记之上。两个 shader 放 Resources 下是为了保证进包。
+
+同一时刻只能有一套地格反馈：`ViewEGB/GridCellHighlighter` 的单格白框在摆放模式下自动让位
+（它不体现占地也不跟旋转，跟落点格标记叠在一起只会互相矛盾）。
 
 ## 7. 开放问题
 
@@ -112,7 +142,7 @@ Main.unity
 |---|---|---|
 | 1 | 风跨高度层规则（撞高台截断/爬升/穿过、落层） | 设计未定（GAME_DESIGN §20），M3 前必须闭合；MVP 手工图可先单层回避 |
 | 2 | 层高折算系数 k 的数值 | **已闭合**：`GameConfig.layerHeightFactor = 1`（对齐 EGB 预制体 cellSize 2 / verticalGridHeight 2），`RangeMath` 与表现层共用 |
-| 3 | ghost 实时红绿高亮 | **已完成**：`BuildPlacementController` 每帧拿领域层干跑结果给 ghost 上色，并在 HUD 提示预计得分 / 非法原因 |
+| 3 | ghost 实时红绿高亮 | **已完成**：落点格逐格标绿/标红 + 建筑套虚影 shader 染色（§6.1），HUD 同步提示预计得分 / 非法原因 |
 | 4 | 半径数值口径 | 球形欧氏下斜向 1 格 = √2，拍数值时按欧氏口径；配表注释里的"切比雪夫"字样下轮改表时清理 |
 
 ---
