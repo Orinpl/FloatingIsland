@@ -16,9 +16,9 @@ namespace FloatingIsLand.Config
         public string category;
         /// <summary>建造限制：any 普通合法地块 / greenField 必须绿地 / windPath 必须风带 / floatingZone 只能浮空区域 / oreRange 必须矿藏有效范围内（§11）</summary>
         public string placement;
-        /// <summary>作用半径（格，切比雪夫距离，自占地边缘起算；邻接计分默认用本建筑半径；0=待定）</summary>
+        /// <summary>作用半径（格，球形欧氏距离，自占地边缘起算；邻接计分默认用本建筑半径）。§11 建议范围档位换算：小=3 / 中=5 / 大=7 / 极大=10</summary>
         public int radius;
-        /// <summary>基础分（落地即得；0=待定）</summary>
+        /// <summary>基础分（落地即得）</summary>
         public int baseScore;
         /// <summary>地图元素加分：元素Id:分值[:上限]，多个用|分隔（元素Id → MapElement 表；判定范围用元素自身的 radius 有效范围）。巨型风车条目=专属加分，替代 GameConfig.giantWindmillGenericScore 的通用加分不叠加（§6.3），没写巨型风车条目的建筑吃通用加分。例 anchor:20:1。空=无元素加分</summary>
         public string[] elementBonus;
@@ -45,25 +45,25 @@ namespace FloatingIsLand.Config
         public string buildingId;
         /// <summary>占地形状掩码：每个元素是一行（自上而下）、|分隔，#=占用 .=空，各行长度须一致且至少一个#。如 2×2=##|##，L形(3+1)=###|#..，凹形(3+2)=#.#|###。占用格全部要求满足模板的 placement 地形</summary>
         public string[] footprint;
-        /// <summary>表现 Prefab 路径（Resources 相对路径或 Addressables key，表现层统一口径；空=白模占位）</summary>
+        /// <summary>表现 Prefab 路径（Resources 相对路径或 Addressables key，表现层统一口径；空=白模占位）。由菜单 Tools/美术/生成白模 Prefab 从 Assets/Res/&lt;资产名&gt;/fbx/ 批量生成到 Assets/Resources/Prefab/Building/</summary>
         public string prefabPath;
     }
 
     /// <summary>FloatingIsland.xlsx!BuildingRelation</summary>
     public sealed class BuildingRelationRow
     {
-        /// <summary>结算建筑 Id（主键 → Building 表）。本行描述'它因附近什么建筑而加/扣分'；方向不可反读：A 因 B 加分不代表 B 因 A 加分（§13.1），双向关系要在两行各写一条</summary>
+        /// <summary>结算建筑 Id（主键 → Building 表）。关系有向：本行只描述「本建筑因周围有谁而加/扣分」，反向要在对方行里再写一条（§13 结算原则）</summary>
         public string buildingId;
-        /// <summary>加分来源：来源Id:分值[:上限]，多个用|分隔。上限=最多计入个数（省略或0=不限，居民区上限见§12.13、物流点专属建议2个§10.7）。判定范围一律用本建筑的 radius。来源=自己表示同类聚集加分。例 restaurant:10:2</summary>
+        /// <summary>加分来源：来源Id:分值[:上限]，多个用|分隔。上限=最多计入几个来源，省略/0=不限。来源填自己=同类聚集加分（如 residence:8:4）。判定范围一律用本建筑 Building.radius</summary>
         public string[] bonusFrom;
-        /// <summary>扣分来源：格式同左，分值填正数=扣多少分。来源=自己表示同类排斥（§15），判定范围同样用本建筑的 radius。空=无扣分关系</summary>
+        /// <summary>扣分来源：格式同上，分值填正数表示扣多少分。来源填自己=同类拥挤惩罚（§15）</summary>
         public string[] penaltyFrom;
     }
 
     /// <summary>FloatingIsland.xlsx!MapElement</summary>
     public sealed class MapElementRow
     {
-        /// <summary>地图元素 Id（主键，camelCase，被 BuildingMapElement/Building.placement 引用）</summary>
+        /// <summary>地图元素 Id（主键，camelCase，被 Building.elementBonus 与地图 JSON 引用，一字不差）</summary>
         public string elementId;
         /// <summary>显示名</summary>
         public string nameCn;
@@ -71,10 +71,14 @@ namespace FloatingIsLand.Config
         public string[] footprint;
         /// <summary>有效范围（格，自占地边缘起算；巨型风车加分范围 / 锚点有效范围 / 矿藏有效范围；地形类元素填 0）</summary>
         public int radius;
-        /// <summary>地图生成数量下限（巨型风车固定 1；windSource 即初始风数量 §20；0=待定）</summary>
+        /// <summary>地图生成数量下限（巨型风车固定 1；windSource 即初始风数量 §20；0=不生成）</summary>
         public int countMin;
-        /// <summary>地图生成数量上限（0=待定；island/floatingZone 为区域填充，数量列可不启用）</summary>
+        /// <summary>地图生成数量上限（island/floatingZone 为区域填充，数量列不启用填 0）</summary>
         public int countMax;
+        /// <summary>是否可刷地形：TRUE=1×1 区域填充地形，地图编辑器刷子调色板只列出本列为 TRUE 的行；FALSE=多格元素或点元素，走摆放流程不走刷子</summary>
+        public bool isTerrain;
+        /// <summary>表现 Prefab 路径（Resources 相对路径，与 BuildingVariant.prefabPath 同口径；空=无独立模型，地形类元素靠地形层着色表现）。由菜单 Tools/美术/生成白模 Prefab 生成到 Assets/Resources/Prefab/Element/</summary>
+        public string prefabPath;
     }
 
     /// <summary>FloatingIsland.xlsx!WindLevel</summary>
@@ -93,7 +97,7 @@ namespace FloatingIsLand.Config
     {
         /// <summary>等级（主键 1~20，§4.1）</summary>
         public int level;
-        /// <summary>解锁本级费用（金币；第 1 级免费=0，随等级递增 §4.1；0=待定）</summary>
+        /// <summary>解锁本级费用（金币；第 1 级免费=0，随等级递增 §4.1）</summary>
         public int unlockCost;
         /// <summary>本级提供的建筑组数（二选一=2，§4.1）</summary>
         public int groupCount;
@@ -101,7 +105,7 @@ namespace FloatingIsLand.Config
         public int groupSizeMin;
         /// <summary>每组建筑数量上限（设计建议 5，§4.2）</summary>
         public int groupSizeMax;
-        /// <summary>本级抽取池：变体Id:数量，多条用|分隔（变体Id → BuildingVariant 表主键，配到占地结构粒度；数量=该建筑在本级池中的份数，同组可重复 §4.2）。例 residence_01:2|farm_01:3。空=待设计</summary>
+        /// <summary>本级抽取池：变体Id:数量，多条用|分隔（变体Id → BuildingVariant 表主键，配到占地结构粒度；数量=该建筑在本级池中的份数，同组可重复 §4.2）。例 residence_01:2|farm_01:3。池按等级渐进解锁：前期只放 placement=any 的易放建筑，后期才引入需要绿地/矿藏/浮空区域的限制建筑</summary>
         public string[] pool;
     }
 
@@ -112,12 +116,14 @@ namespace FloatingIsLand.Config
         public int stageId;
         /// <summary>关卡显示名</summary>
         public string nameCn;
-        /// <summary>本关地图宽（格；需求=250）</summary>
+        /// <summary>本关地图宽（格；需求=250。地图稀疏存储，岛屿只占其中一部分，其余为虚空）</summary>
         public int mapWidth;
         /// <summary>本关地图高（格；需求=250）</summary>
         public int mapHeight;
-        /// <summary>关卡岛屿模型/场景资源路径（Resources 相对路径或 Addressables key，与 BuildingVariant.prefabPath 同口径；空=白模占位）</summary>
+        /// <summary>关卡岛屿模型/场景资源路径（Resources 相对路径或 Addressables key，与 BuildingVariant.prefabPath 同口径；空=白模占位）。由菜单 Tools/美术/生成白模 Prefab 生成到 Assets/Resources/Prefab/Stage/</summary>
         public string prefabPath;
+        /// <summary>岛屿模型入场时缩放到的可玩跨度（格）：把模型 XZ 包围盒的长边等比缩放到 islandCellSpan × GameConfig.cellSize 米，居中放在地图中心。地形刷子按缩放后的岛面轮廓描摹地块</summary>
+        public int islandCellSpan;
     }
 
     /// <summary>FloatingIsland.xlsx!GameConfig（单例参数组）</summary>
@@ -139,6 +145,8 @@ namespace FloatingIsLand.Config
         public bool guaranteeEasyBuilding;
         /// <summary>巨型风车通用加分——范围内任意普通建筑获得；有专属条目（BuildingMapElement.exclusive=TRUE）的建筑用专属分替代不叠加（§6；0=待定）</summary>
         public int giantWindmillGenericScore;
+        /// <summary>层高折算系数 k（决策 26）：建筑/元素的影响范围为球形，三维欧氏距离 = √(水平格距² + (高度层差×k)²)。表现层的 EGB verticalGridHeight = k × cellSize，两边必须同一个 k（当前预制体 2/2 → k=1）</summary>
+        public float layerHeightFactor;
         /// <summary>同一锚点下第 N 座船坞的锚点收益倍率（§12.8 已定：1|0.5|0.25|0，第 4 座及以后 0）</summary>
         public float[] anchorDockDecayPercents;
     }

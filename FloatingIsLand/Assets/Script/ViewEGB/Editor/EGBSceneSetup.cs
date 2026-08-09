@@ -1,3 +1,4 @@
+using FloatingIsLand.View;
 using SoulGames.EasyGridBuilderPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -113,11 +114,34 @@ namespace FloatingIsLand.ViewEGB.EditorTools
             var highlighter = root.AddComponent<GridCellHighlighter>();
             SetSerializedReference(highlighter, "presenter", presenter);
 
+            // 地形 overlay：网格可视化的实际承担者（EGB 自己的面片已在 OverrideGridSize 里关掉）。
+            // 单独挂子物体是因为它 RequireComponent(MeshFilter, MeshRenderer)，不该塞进 GridSystems 根节点。
+            var overlayGo = new GameObject("TerrainOverlay");
+            overlayGo.transform.SetParent(root.transform, false);
+            var overlay = overlayGo.AddComponent<TerrainOverlayRenderer>();
+
+            // 世界表现：岛屿 / 地图元素 / 已落地建筑。单独挂子物体，实例化出来的模型集中在它下面。
+            var worldGo = new GameObject("World");
+            worldGo.transform.SetParent(root.transform, false);
+            var worldRenderer = worldGo.AddComponent<WorldRenderer>();
+            SetSerializedReference(worldRenderer, "gridPresenterBehaviour", presenter);
+
+            var placement = root.AddComponent<BuildPlacementController>();
+            SetSerializedReference(placement, "gridPresenterBehaviour", presenter);
+
+            var mapBootstrap = root.AddComponent<MapBootstrap>();
+            SetSerializedReference(mapBootstrap, "gridPresenterBehaviour", presenter);
+            SetSerializedReference(mapBootstrap, "terrainOverlay", overlay);
+            SetSerializedReference(mapBootstrap, "worldRenderer", worldRenderer);
+            SetSerializedReference(mapBootstrap, "placementController", placement);
+
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
             Debug.Log("[网格] EGB 已接入 Main 场景（成品 prefab 模板）：GridSystems = Grid Managers + EGB Pro 2 Grid XZ " +
-                      $"{DefaultWidth}×{DefaultLength}×{DefaultLayerCount}层 + Presenter，射线检测层已对齐 Layer {GridSystemLayer}。" +
-                      "Play 进入 Main 后应能看到半透明网格，左上角显示悬停格子坐标。");
+                      $"{DefaultWidth}×{DefaultLength}×{DefaultLayerCount}层 + Presenter + TerrainOverlay + World + 摆放控制 + MapBootstrap，" +
+                      $"射线检测层已对齐 Layer {GridSystemLayer}。" +
+                      "EGB 自带网格面片已关闭——网格由 TerrainOverlayRenderer 按已刷地块绘制，没刷过的格子不显示。" +
+                      "先用 Tools → 地图 → 地形刷子 刷一张并保存，再 Play 进 Main。");
         }
 
         private static void OverrideGridSize(EasyGridBuilderPro grid)
@@ -127,8 +151,13 @@ namespace FloatingIsLand.ViewEGB.EditorTools
             SetInt(so, "gridLength", DefaultLength);
             SetInt(so, "verticalGridsCount", DefaultLayerCount);
 
-            // prefab 出厂的网格显示色是"黑色 + alpha 1"（不透明实心板，看起来一片白/黑）；
-            // 覆盖成插件 3D 示例场景（3D City Builder Demo）验证过的半透明灰叠加配色。
+            // 关掉插件自带的 Object Grid 面片：本项目要求"没刷过的地块不显示"，而 EGB 每个垂直层只有
+            // 一整块面片、无逐格显隐 API（alphaMask 是跟随光标的单一遮罩，EasyGridBuilderPro.cs:85-91）。
+            // 网格可视化改由 TerrainOverlayRenderer 按已刷地块合批绘制。
+            SetBool(so, "displayObjectGrid", false);
+
+            // 出厂的网格显示色是"黑色 + alpha 1"（不透明实心板）。面片虽已关闭，配色仍按示例场景修正——
+            // 将来若要临时打开 displayObjectGrid 排查问题，不用再踩一遍这个坑。
             SetColor(so, "objectGridSettings.gridShowColor", new Color(0.5f, 0.5f, 0.5f, 0.5882353f));
             SetColor(so, "objectGridSettings.gridHideColor", new Color(0.47058824f, 0.47058824f, 0.47058824f, 0f));
             SetColor(so, "objectGridSettings.gridShowColorHDR", new Color(0f, 0f, 0f, 0f));
@@ -151,6 +180,13 @@ namespace FloatingIsLand.ViewEGB.EditorTools
             SerializedProperty p = so.FindProperty(field);
             if (p == null) { WarnMissing(so, field); return; }
             p.colorValue = value;
+        }
+
+        private static void SetBool(SerializedObject so, string field, bool value)
+        {
+            SerializedProperty p = so.FindProperty(field);
+            if (p == null) { WarnMissing(so, field); return; }
+            p.boolValue = value;
         }
 
         private static void SetSerializedInt(Component target, string field, int value)

@@ -28,7 +28,7 @@ namespace FloatingIsLand.Config.EditorTools
         /// </summary>
         public override uint GetVersion()
         {
-            return 1;
+            return 2;
         }
 
         private void OnPreprocessModel()
@@ -222,11 +222,50 @@ namespace FloatingIsLand.Config.EditorTools
 
                 Merge<BuildingVariantRow>("BuildingVariant", r => r.variantId, r => r.footprint);
                 Merge<MapElementRow>("MapElement", r => r.elementId, r => r.footprint);
+                MergeVariantsByBuildingId();
 
                 GameConfig config = ReadJson<GameConfig>("GameConfig");
                 if (config != null && config.cellSize > 0f)
                 {
                     _cellSize = config.cellSize;
+                }
+            }
+
+            /// <summary>
+            /// 美术资产多数以 buildingId 命名（farm.fbx），而 footprint 挂在 variantId（farm_01）上。
+            /// buildingId 只对应唯一变体时补一条别名；一对多（residence 有 3 个变体）时占地不唯一，
+            /// 不猜——那种资产本来就按 variantId 命名（residence_01.fbx）。
+            /// </summary>
+            private static void MergeVariantsByBuildingId()
+            {
+                List<BuildingVariantRow> rows = ReadJson<List<BuildingVariantRow>>("BuildingVariant");
+                if (rows == null)
+                {
+                    return;
+                }
+
+                var countByBuilding = new Dictionary<string, int>(StringComparer.Ordinal);
+                foreach (BuildingVariantRow row in rows)
+                {
+                    if (row == null || string.IsNullOrEmpty(row.buildingId))
+                    {
+                        continue;
+                    }
+                    int n;
+                    countByBuilding.TryGetValue(row.buildingId, out n);
+                    countByBuilding[row.buildingId] = n + 1;
+                }
+
+                foreach (BuildingVariantRow row in rows)
+                {
+                    if (row == null || string.IsNullOrEmpty(row.buildingId))
+                    {
+                        continue;
+                    }
+                    if (countByBuilding[row.buildingId] == 1 && !_byId.ContainsKey(row.buildingId))
+                    {
+                        _byId[row.buildingId] = row.footprint;
+                    }
                 }
             }
 

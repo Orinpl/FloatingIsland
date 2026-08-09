@@ -40,6 +40,28 @@ namespace FloatingIsLand.ViewEGB
             get { return gridSystem.GetCellSize(); }
         }
 
+        /// <summary>
+        /// 每次读取都按 EGB 当前的序列化参数现算——BuildGrid 改了尺寸后原点会变，缓存会过期。
+        /// 这些 getter 都是字段直返（EasyGridBuilderProXZ.cs:4043-4089），不碰运行时才建的 gridList，
+        /// 所以编辑器态也能取（地形刷子就靠这个）。
+        /// </summary>
+        public GridGeometry Geometry
+        {
+            get
+            {
+                return new GridGeometry(
+                    gridSystem.transform.position,
+                    gridSystem.GetGridWidth(),
+                    gridSystem.GetGridLength(),
+                    gridSystem.GetCellSize(),
+                    gridSystem.GetVerticalGridHeight(),
+                    gridSystem.GetGridOriginType() == GridOrigin.Center);
+            }
+        }
+
+        /// <summary>EGB 内部格子列表已就绪、可以安全调用 BuildGrid / 坐标转换。地图装载要等它（MapBootstrap）。</summary>
+        public bool IsReady { get; private set; }
+
         private System.Collections.IEnumerator Start()
         {
             if (gridSystem == null)
@@ -53,6 +75,7 @@ namespace FloatingIsLand.ViewEGB
             // 与本组件 Start 同帧且顺序不保证——空一帧再动它，否则 SetGridWidthAndLength 会 NRE。
             yield return null;
             BuildGrid(defaultWidth, defaultLength);
+            IsReady = true;
         }
 
         public void BuildGrid(int width, int length)

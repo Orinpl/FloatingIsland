@@ -5,158 +5,292 @@
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
-    "pool": []
+    "pool": [
+      "residence_01:4",
+      "residence_02:2",
+      "workshop_01:2"
+    ]
   },
   {
     "level": 2,
-    "unlockCost": 0,
+    "unlockCost": 60,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
-    "pool": []
+    "pool": [
+      "residence_01:4",
+      "residence_02:3",
+      "residence_03:2",
+      "workshop_01:2"
+    ]
   },
   {
     "level": 3,
-    "unlockCost": 0,
+    "unlockCost": 110,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
-    "pool": []
+    "pool": [
+      "residence_01:3",
+      "residence_02:3",
+      "residence_03:3",
+      "workshop_01:2",
+      "windmill_01:2"
+    ]
   },
   {
     "level": 4,
-    "unlockCost": 0,
+    "unlockCost": 170,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
-    "pool": []
+    "pool": [
+      "residence_01:3",
+      "residence_02:2",
+      "residence_03:2",
+      "workshop_01:2",
+      "windmill_01:3",
+      "farm_01:3"
+    ]
   },
   {
     "level": 5,
-    "unlockCost": 0,
+    "unlockCost": 240,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
-    "pool": []
+    "pool": [
+      "residence_01:3",
+      "residence_02:2",
+      "residence_03:2",
+      "workshop_01:2",
+      "windmill_01:3",
+      "farm_01:4"
+    ]
   },
   {
     "level": 6,
-    "unlockCost": 0,
+    "unlockCost": 320,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
-    "pool": []
+    "pool": [
+      "residence_01:3",
+      "residence_03:2",
+      "workshop_01:2",
+      "windmill_01:2",
+      "farm_01:3",
+      "granary_01:3"
+    ]
   },
   {
     "level": 7,
-    "unlockCost": 0,
+    "unlockCost": 410,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
-    "pool": []
+    "pool": [
+      "residence_01:3",
+      "residence_02:2",
+      "workshop_01:2",
+      "farm_01:3",
+      "granary_01:3",
+      "miningStation_01:3"
+    ]
   },
   {
     "level": 8,
-    "unlockCost": 0,
+    "unlockCost": 510,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
-    "pool": []
+    "pool": [
+      "residence_01:3",
+      "residence_03:2",
+      "workshop_01:3",
+      "windmill_01:2",
+      "miningStation_01:3",
+      "logisticsPoint_01:3"
+    ]
   },
   {
     "level": 9,
-    "unlockCost": 0,
+    "unlockCost": 620,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
-    "pool": []
+    "pool": [
+      "residence_01:3",
+      "residence_02:2",
+      "workshop_01:2",
+      "granary_01:2",
+      "miningStation_01:2",
+      "logisticsPoint_01:3",
+      "restaurant_01:3"
+    ]
   },
   {
     "level": 10,
-    "unlockCost": 0,
+    "unlockCost": 740,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
-    "pool": []
+    "pool": [
+      "residence_01:3",
+      "residence_03:3",
+      "restaurant_01:3",
+      "shop_01:3",
+      "logisticsPoint_01:2",
+      "workshop_01:2"
+    ]
   },
   {
     "level": 11,
-    "unlockCost": 0,
+    "unlockCost": 870,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
-    "pool": []
+    "pool": [
+      "residence_02:3",
+      "residence_03:2",
+      "restaurant_01:3",
+      "shop_01:3",
+      "potentialTower_01:3",
+      "windmill_01:2"
+    ]
   },
   {
     "level": 12,
-    "unlockCost": 0,
+    "unlockCost": 1010,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
-    "pool": []
+    "pool": [
+      "residence_01:2",
+      "restaurant_01:2",
+      "shop_01:3",
+      "potentialTower_01:3",
+      "logisticsPoint_01:2",
+      "granary_01:2"
+    ]
   },
   {
     "level": 13,
-    "unlockCost": 0,
+    "unlockCost": 1160,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
-    "pool": []
+    "pool": [
+      "residence_03:3",
+      "potentialTower_01:3",
+      "sail_01:3",
+      "windmill_01:2",
+      "workshop_01:2",
+      "logisticsPoint_01:2"
+    ]
   },
   {
     "level": 14,
-    "unlockCost": 0,
+    "unlockCost": 1320,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
-    "pool": []
+    "pool": [
+      "residence_01:2",
+      "sail_01:3",
+      "dock_01:2",
+      "potentialTower_01:2",
+      "shop_01:2",
+      "granary_01:2"
+    ]
   },
   {
     "level": 15,
-    "unlockCost": 0,
+    "unlockCost": 1490,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
-    "pool": []
+    "pool": [
+      "residence_02:2",
+      "sail_01:2",
+      "dock_01:3",
+      "logisticsPoint_01:3",
+      "workshop_01:2",
+      "restaurant_01:2"
+    ]
   },
   {
     "level": 16,
-    "unlockCost": 0,
+    "unlockCost": 1670,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
-    "pool": []
+    "pool": [
+      "residence_01:3",
+      "citizenCenter_01:2",
+      "dock_01:2",
+      "shop_01:2",
+      "restaurant_01:2",
+      "potentialTower_01:2"
+    ]
   },
   {
     "level": 17,
-    "unlockCost": 0,
+    "unlockCost": 1860,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
-    "pool": []
+    "pool": [
+      "residence_03:3",
+      "citizenCenter_01:2",
+      "logisticsHub_01:2",
+      "logisticsPoint_01:3",
+      "granary_01:2"
+    ]
   },
   {
     "level": 18,
-    "unlockCost": 0,
+    "unlockCost": 2060,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
-    "pool": []
+    "pool": [
+      "residence_01:3",
+      "citizenCenter_01:2",
+      "logisticsHub_01:3",
+      "shop_01:2",
+      "workshop_01:2",
+      "dock_01:2"
+    ]
   },
   {
     "level": 19,
-    "unlockCost": 0,
+    "unlockCost": 2270,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
-    "pool": []
+    "pool": [
+      "residence_02:3",
+      "windVane_01:3",
+      "citizenCenter_01:2",
+      "logisticsHub_01:2",
+      "sail_01:2",
+      "potentialTower_01:2"
+    ]
   },
   {
     "level": 20,
-    "unlockCost": 0,
+    "unlockCost": 2490,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
-    "pool": []
+    "pool": [
+      "residence_01:2",
+      "residence_03:2",
+      "windVane_01:3",
+      "citizenCenter_01:3",
+      "logisticsHub_01:3",
+      "dock_01:2"
+    ]
   }
 ]

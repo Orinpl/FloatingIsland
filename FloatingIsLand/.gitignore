@@ -110,3 +110,6 @@ InitTestScene*.unity*
 # 但它们的编译产物不进库
 /[Tt]ools/**/[Bb]in/
 /[Tt]ools/**/[Oo]bj/
+
+# Claude Code 本地个人设置（含权限白名单），不入库
+.claude/settings.local.json

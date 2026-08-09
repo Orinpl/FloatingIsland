@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- 数值仿真工程：脱离 Unity，链接编译领域层 + 读表层 + 转表生成的 Tables.g.cs，
+       用一个贪心 AI 玩家把一局跑完，输出「每级金币 vs 解锁费用」的积分曲线，
+       用来判断建筑组配表 / 得分配表 / 范围配表 的难易度是否合理。
+       LangVersion 9 与读表层、领域层保持同一口径（Unity 2022 兼容）。 -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>9</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <RootNamespace>BalanceSim</RootNamespace>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 非递归通配：只取读表层核心文件，天然排除 Unity/（引 UnityEngine）与 Editor/ -->
+    <Compile Include="../../Assets/Script/Config/*.cs" LinkBase="Config" />
+    <Compile Include="../../Assets/Script/Config/Generated/Tables.g.cs" LinkBase="Generated" />
+    <Compile Include="../../Assets/Script/Domain/**/*.cs" LinkBase="Domain" />
+  </ItemGroup>
+
+</Project>

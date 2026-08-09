@@ -6,13 +6,14 @@
   "fields": [
     { "name": "stageId", "type": "int", "desc": "关卡 Id（主键，1 起；每关一张独立的浮空岛地图）" },
     { "name": "nameCn", "type": "string", "desc": "关卡显示名" },
-    { "name": "mapWidth", "type": "int", "desc": "本关地图宽（格；需求=250）" },
+    { "name": "mapWidth", "type": "int", "desc": "本关地图宽（格；需求=250。地图稀疏存储，岛屿只占其中一部分，其余为虚空）" },
     { "name": "mapHeight", "type": "int", "desc": "本关地图高（格；需求=250）" },
-    { "name": "prefabPath", "type": "string", "desc": "关卡岛屿模型/场景资源路径（Resources 相对路径或 Addressables key，与 BuildingVariant.prefabPath 同口径；空=白模占位）" }
+    { "name": "prefabPath", "type": "string", "desc": "关卡岛屿模型/场景资源路径（Resources 相对路径或 Addressables key，与 BuildingVariant.prefabPath 同口径；空=白模占位）。由菜单 Tools/美术/生成白模 Prefab 生成到 Assets/Resources/Prefab/Stage/" },
+    { "name": "islandCellSpan", "type": "int", "desc": "岛屿模型入场时缩放到的可玩跨度（格）：把模型 XZ 包围盒的长边等比缩放到 islandCellSpan × GameConfig.cellSize 米，居中放在地图中心。地形刷子按缩放后的岛面轮廓描摹地块" }
   ],
   "rows": [
-    { "stageId": 1, "nameCn": "浮空岛·一", "mapWidth": 250, "mapHeight": 250, "prefabPath": "" },
-    { "stageId": 2, "nameCn": "浮空岛·二", "mapWidth": 250, "mapHeight": 250, "prefabPath": "" },
-    { "stageId": 3, "nameCn": "浮空岛·三", "mapWidth": 250, "mapHeight": 250, "prefabPath": "" }
+    { "stageId": 1, "nameCn": "浮空岛·一", "mapWidth": 250, "mapHeight": 250, "prefabPath": "Prefab/Stage/stage_01", "islandCellSpan": 40 },
+    { "stageId": 2, "nameCn": "浮空岛·二", "mapWidth": 250, "mapHeight": 250, "prefabPath": "Prefab/Stage/stage_02", "islandCellSpan": 40 },
+    { "stageId": 3, "nameCn": "浮空岛·三", "mapWidth": 250, "mapHeight": 250, "prefabPath": "Prefab/Stage/stage_03", "islandCellSpan": 40 }
   ]
 }

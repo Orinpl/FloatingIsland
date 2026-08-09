@@ -12,18 +12,20 @@
     { "name": "skipPenaltyScore", "type": "int", "desc": "跳过一栋无法合法放置建筑的扣分（负值，§4.3 保护机制；0=不启用）" },
     { "name": "guaranteeEasyBuilding", "type": "bool", "desc": "是否保证每组至少一栋容易放置的建筑（§4.3 保护机制）" },
     { "name": "giantWindmillGenericScore", "type": "int", "desc": "巨型风车通用加分——范围内任意普通建筑获得；有专属条目（BuildingMapElement.exclusive=TRUE）的建筑用专属分替代不叠加（§6；0=待定）" },
+    { "name": "layerHeightFactor", "type": "float", "desc": "层高折算系数 k（决策 26）：建筑/元素的影响范围为球形，三维欧氏距离 = √(水平格距² + (高度层差×k)²)。表现层的 EGB verticalGridHeight = k × cellSize，两边必须同一个 k（当前预制体 2/2 → k=1）" },
     { "name": "anchorDockDecayPercents", "type": "float[]", "desc": "同一锚点下第 N 座船坞的锚点收益倍率（§12.8 已定：1|0.5|0.25|0，第 4 座及以后 0）" }
   ],
   "rows": [
     {
       "cellSize": 2,
       "totalLevels": 20,
-      "scoreToGoldRatio": 0,
-      "freeRefreshCount": 0,
-      "refreshCostGold": 0,
-      "skipPenaltyScore": 0,
-      "guaranteeEasyBuilding": false,
-      "giantWindmillGenericScore": 0,
+      "scoreToGoldRatio": 1.0,
+      "freeRefreshCount": 1,
+      "refreshCostGold": 60,
+      "skipPenaltyScore": -20,
+      "guaranteeEasyBuilding": true,
+      "giantWindmillGenericScore": 10,
+      "layerHeightFactor": 1,
       "anchorDockDecayPercents": [1, 0.5, 0.25, 0]
     }
   ]

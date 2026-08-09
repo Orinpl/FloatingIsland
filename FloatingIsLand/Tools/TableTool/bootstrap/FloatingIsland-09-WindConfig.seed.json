@@ -13,10 +13,10 @@
   "rows": [
     {
       "maxWindLevel": 5,
-      "initialWindLevelMin": 0,
-      "initialWindLevelMax": 0,
-      "initialWindLengthMin": 0,
-      "initialWindLengthMax": 0
+      "initialWindLevelMin": 1,
+      "initialWindLevelMax": 3,
+      "initialWindLengthMin": 8,
+      "initialWindLengthMax": 16
     }
   ]
 }

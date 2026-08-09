@@ -146,6 +146,7 @@ namespace FloatingIsLand.EditorTools
             uiRootGo.AddComponent<GraphicRaycaster>();
             uiRootGo.AddComponent<UIManager>();
             uiRootGo.AddComponent<FlowUIAdapter>();
+            uiRootGo.AddComponent<BuildHudAdapter>(); // 局内建造 HUD 的桥接（计分区 / 手牌 / 二选一）
 
             BuildMainMenuPanel(uiRootGo.transform);
             BuildLoadingPanel(uiRootGo.transform);
@@ -179,15 +180,112 @@ namespace FloatingIsLand.EditorTools
             HudPanel panel = CreatePanel<HudPanel>(uiRoot, "HudPanel", Color.clear);
             panel.GetComponent<Image>().raycastTarget = false; // 全屏透明底不挡 3D 拾取
 
-            Text info = CreateText(panel.transform, "RunInfo", "", 28, new Vector2(0f, -40f), new Vector2(1200f, 60f));
+            Text info = CreateText(panel.transform, "RunInfo", "", 26, new Vector2(0f, -34f), new Vector2(1200f, 50f));
             SetAnchor(info.rectTransform, new Vector2(0.5f, 1f));
             panel.runInfoText = info;
 
-            Button endButton = CreateButton(panel.transform, "EndRunButton", "结束本局（占位）", new Vector2(0f, 80f), new Vector2(300f, 64f));
-            SetAnchor((RectTransform)endButton.transform, new Vector2(0.5f, 0f));
+            Button endButton = CreateButton(panel.transform, "EndRunButton", "结束本局（占位）", new Vector2(-30f, -34f), new Vector2(240f, 52f));
+            SetAnchor((RectTransform)endButton.transform, new Vector2(1f, 1f));
             panel.endRunButton = endButton;
 
+            BuildScoreboard(panel);
+            BuildHandBar(panel);
+            BuildOfferBar(panel);
+
+            Text hint = CreateText(panel.transform, "Hint", "", 24, new Vector2(0f, 210f), new Vector2(900f, 40f));
+            SetAnchor(hint.rectTransform, new Vector2(0.5f, 0f));
+            panel.hintText = hint;
+
             panel.gameObject.SetActive(false);
+        }
+
+        /// <summary>左下角计分区：总分 / 金币 / 等级 + 解锁下一组建筑按钮（GAME_DESIGN §7.4）。</summary>
+        private static void BuildScoreboard(HudPanel panel)
+        {
+            GameObject boardGo = CreateUIObject("Scoreboard", panel.transform);
+            var boardRt = (RectTransform)boardGo.transform;
+            boardRt.sizeDelta = new Vector2(360f, 230f);
+            boardRt.anchoredPosition = new Vector2(24f, 24f);
+            SetAnchor(boardRt, new Vector2(0f, 0f));
+            Image boardBg = boardGo.AddComponent<Image>();
+            boardBg.color = new Color(0.06f, 0.07f, 0.10f, 0.72f);
+
+            panel.scoreText = CreateLeftText(boardGo.transform, "Score", "总分 0", 34, new Vector2(18f, -18f), new Vector2(320f, 44f));
+            panel.goldText = CreateLeftText(boardGo.transform, "Gold", "金币 0", 28, new Vector2(18f, -64f), new Vector2(320f, 38f));
+            panel.levelText = CreateLeftText(boardGo.transform, "Level", "等级 0 / 20", 24, new Vector2(18f, -104f), new Vector2(320f, 34f));
+
+            Button next = CreateButton(boardGo.transform, "NextGroupButton", "解锁下一组", new Vector2(18f, -148f), new Vector2(324f, 62f));
+            SetAnchor((RectTransform)next.transform, new Vector2(0f, 1f));
+            panel.nextGroupButton = next;
+            panel.nextGroupButtonLabel = next.GetComponentInChildren<Text>(true);
+        }
+
+        /// <summary>中下建筑列表（手牌）：横向排布，点一张进入摆放模式。</summary>
+        private static void BuildHandBar(HudPanel panel)
+        {
+            GameObject barGo = CreateUIObject("HandBar", panel.transform);
+            var barRt = (RectTransform)barGo.transform;
+            barRt.sizeDelta = new Vector2(1200f, 130f);
+            barRt.anchoredPosition = new Vector2(0f, 30f);
+            SetAnchor(barRt, new Vector2(0.5f, 0f));
+
+            var layout = barGo.AddComponent<HorizontalLayoutGroup>();
+            layout.spacing = 12f;
+            layout.childAlignment = TextAnchor.MiddleCenter;
+            layout.childForceExpandWidth = false;
+            layout.childForceExpandHeight = false;
+
+            panel.handRoot = barRt;
+            panel.handItemTemplate = CreateListItemTemplate(barGo.transform, "HandItemTemplate", new Vector2(150f, 108f));
+        }
+
+        /// <summary>屏幕中部的建筑组二选一。没有待选组时整块隐藏。</summary>
+        private static void BuildOfferBar(HudPanel panel)
+        {
+            GameObject barGo = CreateUIObject("OfferBar", panel.transform);
+            var barRt = (RectTransform)barGo.transform;
+            barRt.sizeDelta = new Vector2(1000f, 120f);
+            barRt.anchoredPosition = new Vector2(0f, 0f);
+            SetAnchor(barRt, new Vector2(0.5f, 0.5f));
+
+            var layout = barGo.AddComponent<VerticalLayoutGroup>();
+            layout.spacing = 14f;
+            layout.childAlignment = TextAnchor.MiddleCenter;
+            layout.childForceExpandWidth = false;
+            layout.childForceExpandHeight = false;
+
+            panel.offerRoot = barRt;
+            panel.offerItemTemplate = CreateListItemTemplate(barGo.transform, "OfferItemTemplate", new Vector2(760f, 76f));
+            barGo.SetActive(false);
+        }
+
+        /// <summary>
+        /// 列表条目模板：本体常驻隐藏，运行时按数量克隆。
+        /// 样式集中在这里改，HudPanel 里就不用手搓 RectTransform。
+        /// </summary>
+        private static Button CreateListItemTemplate(Transform parent, string name, Vector2 size)
+        {
+            Button button = CreateButton(parent, name, "", Vector2.zero, size);
+            var layoutElement = button.gameObject.AddComponent<LayoutElement>();
+            layoutElement.preferredWidth = size.x;
+            layoutElement.preferredHeight = size.y;
+            button.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.75f);
+
+            Text label = button.GetComponentInChildren<Text>(true);
+            label.color = new Color(0.08f, 0.09f, 0.13f, 1f);
+            label.fontSize = 26;
+
+            button.gameObject.SetActive(false);
+            return button;
+        }
+
+        /// <summary>左上角对齐的文本（计分区逐行排布用）。</summary>
+        private static Text CreateLeftText(Transform parent, string name, string content, int fontSize, Vector2 anchoredPos, Vector2 size)
+        {
+            Text text = CreateText(parent, name, content, fontSize, anchoredPos, size);
+            text.alignment = TextAnchor.MiddleLeft;
+            SetAnchor(text.rectTransform, new Vector2(0f, 1f));
+            return text;
         }
 
         private static void BuildSettlementPanel(Transform uiRoot)

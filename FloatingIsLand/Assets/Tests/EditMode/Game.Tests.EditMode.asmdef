@@ -3,6 +3,7 @@
     "rootNamespace": "FloatingIsLand.Tests",
     "references": [
         "Game.Domain",
+        "Game.Config",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

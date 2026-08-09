@@ -1,7 +1,7 @@
 {
-  "coverRadius": 0,
-  "baseCoverScore": 0,
-  "windExtendLength": 0,
+  "coverRadius": 5,
+  "baseCoverScore": 8,
+  "windExtendLength": 3,
   "windExtendMaxPerWind": 2,
-  "endgameScorePerCoveredBuilding": 0
+  "endgameScorePerCoveredBuilding": 5
 }

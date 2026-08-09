@@ -15,12 +15,26 @@ namespace FloatingIsLand.View
         /// <summary>按尺寸重建网格表现（骨架版由实现的 Inspector 默认值驱动；M1 起改为地图快照驱动）。</summary>
         void BuildGrid(int width, int length);
 
+        /// <summary>
+        /// 实现内部已初始化完毕、可以安全调用 BuildGrid 与坐标转换。
+        /// EGB 实现要等插件自己的 Start 建完内部格子列表，所以并非 Awake 后立即可用——
+        /// 地图装载（MapBootstrap）必须先等这个变 true。
+        /// </summary>
+        bool IsReady { get; }
+
         int Width { get; }
         int Length { get; }
         int LayerCount { get; }
 
         /// <summary>格子边长（世界单位）。</summary>
         float CellSize { get; }
+
+        /// <summary>
+        /// 格子 ↔ 世界坐标的几何参数。自绘 overlay（地形/风箭头/覆盖高亮）批量算坐标时用它，
+        /// 避免逐格回调插件；编辑器地形刷子用的也是同一份数学（<see cref="GridGeometry"/>）。
+        /// 注意：网格尺寸变化后需重新读取——BuildGrid 会改变原点。
+        /// </summary>
+        GridGeometry Geometry { get; }
 
         /// <summary>格子的世界坐标。已实测：EGB 返回的是格子**角点**（min 角），中心 = 角点 + (CellSize/2, 0, CellSize/2)。</summary>
         Vector3 CellToWorld(int x, int z, int layer);

@@ -4,7 +4,8 @@
     "references": [
         "Game.App",
         "Game.Domain",
-        "Game.Config"
+        "Game.Config",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

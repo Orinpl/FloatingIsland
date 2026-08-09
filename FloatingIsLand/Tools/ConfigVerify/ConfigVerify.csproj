@@ -19,9 +19,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- 非递归通配：只取读表层核心三个文件，天然排除 Unity/（引 UnityEngine）与 Editor/ -->
+    <!-- 非递归通配：只取读表层核心文件，天然排除 Unity/（引 UnityEngine）与 Editor/ -->
     <Compile Include="../../Assets/Script/Config/*.cs" LinkBase="Config" />
     <Compile Include="../../Assets/Script/Config/Generated/Tables.g.cs" LinkBase="Generated" />
+    <!-- 领域层同为纯 C#（Game.Domain 标了 noEngineReferences），MapJson 等读表层文件会引用它 -->
+    <Compile Include="../../Assets/Script/Domain/**/*.cs" LinkBase="Domain" />
   </ItemGroup>
 
 </Project>

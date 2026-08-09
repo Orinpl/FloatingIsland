@@ -2,42 +2,42 @@
   {
     "buildingId": "windVane",
     "bonusFrom": [
-      "residence:0"
+      "residence:10"
     ],
     "penaltyFrom": [
-      "windVane:0"
+      "windVane:30"
     ]
   },
   {
     "buildingId": "windmill",
     "bonusFrom": [
-      "farm:0",
-      "potentialTower:0",
-      "workshop:0",
-      "logisticsPoint:0:2"
+      "farm:12",
+      "potentialTower:8",
+      "workshop:8",
+      "logisticsPoint:10:2"
     ],
     "penaltyFrom": [
-      "windmill:0"
+      "windmill:30"
     ]
   },
   {
     "buildingId": "farm",
     "bonusFrom": [
-      "windmill:0",
-      "farm:0"
+      "windmill:12",
+      "farm:6:4"
     ],
     "penaltyFrom": []
   },
   {
     "buildingId": "potentialTower",
     "bonusFrom": [
-      "windmill:0",
-      "workshop:0",
-      "logisticsPoint:0:2",
-      "logisticsHub:0"
+      "windmill:10",
+      "workshop:8",
+      "logisticsPoint:10:2",
+      "logisticsHub:15"
     ],
     "penaltyFrom": [
-      "potentialTower:0"
+      "potentialTower:15"
     ]
   },
   {
@@ -49,49 +49,49 @@
     "buildingId": "miningStation",
     "bonusFrom": [],
     "penaltyFrom": [
-      "miningStation:0"
+      "miningStation:30"
     ]
   },
   {
     "buildingId": "workshop",
     "bonusFrom": [
-      "miningStation:0",
-      "logisticsPoint:0:2",
-      "logisticsHub:0"
+      "miningStation:15",
+      "logisticsPoint:10:2",
+      "logisticsHub:15"
     ],
     "penaltyFrom": []
   },
   {
     "buildingId": "dock",
     "bonusFrom": [
-      "workshop:0",
-      "logisticsPoint:0:2",
-      "logisticsHub:0"
+      "workshop:10",
+      "logisticsPoint:10:2",
+      "logisticsHub:15"
     ],
     "penaltyFrom": []
   },
   {
     "buildingId": "granary",
     "bonusFrom": [
-      "farm:0",
-      "logisticsPoint:0:2",
-      "logisticsHub:0"
+      "farm:12",
+      "logisticsPoint:10:2",
+      "logisticsHub:15"
     ],
     "penaltyFrom": []
   },
   {
     "buildingId": "restaurant",
     "bonusFrom": [
-      "residence:0"
+      "residence:10"
     ],
     "penaltyFrom": []
   },
   {
     "buildingId": "shop",
     "bonusFrom": [
-      "workshop:0",
-      "restaurant:0",
-      "residence:0"
+      "workshop:8",
+      "restaurant:8",
+      "residence:10"
     ],
     "penaltyFrom": []
   },
@@ -99,38 +99,38 @@
     "buildingId": "citizenCenter",
     "bonusFrom": [],
     "penaltyFrom": [
-      "citizenCenter:0"
+      "citizenCenter:30"
     ]
   },
   {
     "buildingId": "residence",
     "bonusFrom": [
-      "restaurant:0:2",
-      "shop:0:2",
-      "citizenCenter:0:1",
-      "residence:0:4",
-      "logisticsPoint:0:2",
-      "logisticsHub:0:1"
+      "restaurant:12:2",
+      "shop:12:2",
+      "citizenCenter:20:1",
+      "residence:8:4",
+      "logisticsPoint:10:2",
+      "logisticsHub:15:1"
     ],
     "penaltyFrom": [
-      "miningStation:0",
-      "workshop:0"
+      "miningStation:15",
+      "workshop:15"
     ]
   },
   {
     "buildingId": "logisticsPoint",
     "bonusFrom": [],
     "penaltyFrom": [
-      "logisticsPoint:0"
+      "logisticsPoint:15"
     ]
   },
   {
     "buildingId": "logisticsHub",
     "bonusFrom": [
-      "logisticsPoint:0"
+      "logisticsPoint:12"
     ],
     "penaltyFrom": [
-      "logisticsHub:0"
+      "logisticsHub:30"
     ]
   }
 ]

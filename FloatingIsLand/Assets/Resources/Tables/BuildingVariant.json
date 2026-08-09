@@ -5,7 +5,7 @@
     "footprint": [
       "#"
     ],
-    "prefabPath": ""
+    "prefabPath": "Prefab/Building/windVane_01"
   },
   {
     "variantId": "windmill_01",
@@ -22,7 +22,7 @@
     "footprint": [
       "#"
     ],
-    "prefabPath": ""
+    "prefabPath": "Prefab/Building/farm_01"
   },
   {
     "variantId": "potentialTower_01",
@@ -31,7 +31,7 @@
       "##",
       "##"
     ],
-    "prefabPath": ""
+    "prefabPath": "Prefab/Building/potentialTower_01"
   },
   {
     "variantId": "sail_01",
@@ -39,7 +39,7 @@
     "footprint": [
       "#"
     ],
-    "prefabPath": ""
+    "prefabPath": "Prefab/Building/sail_01"
   },
   {
     "variantId": "miningStation_01",
@@ -47,7 +47,7 @@
     "footprint": [
       "##"
     ],
-    "prefabPath": ""
+    "prefabPath": "Prefab/Building/miningStation_01"
   },
   {
     "variantId": "workshop_01",
@@ -57,7 +57,7 @@
       "###",
       "###"
     ],
-    "prefabPath": ""
+    "prefabPath": "Prefab/Building/workshop_01"
   },
   {
     "variantId": "dock_01",
@@ -70,7 +70,7 @@
       "######",
       "######"
     ],
-    "prefabPath": ""
+    "prefabPath": "Prefab/Building/dock_01"
   },
   {
     "variantId": "granary_01",
@@ -79,7 +79,7 @@
       "##",
       "##"
     ],
-    "prefabPath": ""
+    "prefabPath": "Prefab/Building/granary_01"
   },
   {
     "variantId": "restaurant_01",
@@ -88,7 +88,7 @@
       "##",
       "##"
     ],
-    "prefabPath": ""
+    "prefabPath": "Prefab/Building/restaurant_01"
   },
   {
     "variantId": "shop_01",
@@ -97,7 +97,7 @@
       "##",
       "##"
     ],
-    "prefabPath": ""
+    "prefabPath": "Prefab/Building/shop_01"
   },
   {
     "variantId": "citizenCenter_01",
@@ -108,7 +108,7 @@
       "####",
       "####"
     ],
-    "prefabPath": ""
+    "prefabPath": "Prefab/Building/citizenCenter_01"
   },
   {
     "variantId": "residence_01",
@@ -117,7 +117,7 @@
       "##",
       "##"
     ],
-    "prefabPath": ""
+    "prefabPath": "Prefab/Building/residence_01"
   },
   {
     "variantId": "residence_02",
@@ -126,7 +126,7 @@
       "###",
       "#.."
     ],
-    "prefabPath": ""
+    "prefabPath": "Prefab/Building/residence_02"
   },
   {
     "variantId": "residence_03",
@@ -135,7 +135,7 @@
       "#.#",
       "###"
     ],
-    "prefabPath": ""
+    "prefabPath": "Prefab/Building/residence_03"
   },
   {
     "variantId": "logisticsPoint_01",
@@ -144,7 +144,7 @@
       "##",
       "##"
     ],
-    "prefabPath": ""
+    "prefabPath": "Prefab/Building/logisticsPoint_01"
   },
   {
     "variantId": "logisticsHub_01",
@@ -155,6 +155,6 @@
       "####",
       "####"
     ],
-    "prefabPath": ""
+    "prefabPath": "Prefab/Building/logisticsHub_01"
   }
 ]

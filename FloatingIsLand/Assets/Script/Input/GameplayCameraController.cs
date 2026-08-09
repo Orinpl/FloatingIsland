@@ -1,3 +1,4 @@
+using FloatingIsLand.App;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -7,7 +8,7 @@ namespace FloatingIsLand.GameInput
     /// 局内自由相机（Unity 编辑器式操作逻辑）：
     /// - W/S/A/D：沿相机朝向的水平投影前后左右平移；
     /// - Shift / Ctrl：升 / 降；
-    /// - 滚轮：沿视线方向拉近拉远；
+    /// - 滚轮：沿视线方向拉近拉远（建造模式下让给建筑旋转，见 <see cref="InputArbiter"/>）；
     /// - 按住右键拖动：原地旋转（偏航 + 俯仰，编辑器飞行视角）；
     /// - 按住中键拖动：屏幕面整体平移（编辑器抓手：内容跟随光标，相机反向移动）。
     /// 直接轮询 Input System 设备——相机操作固定键位无重绑需求，不占 Action Map；
@@ -77,7 +78,8 @@ namespace FloatingIsLand.GameInput
             position.y += lift * liftSpeed * dt;
 
             // --- 滚轮：沿视线拉近拉远（Windows 原始值 ±120/格，其它平台多为 ±1，统一折算成"格"） ---
-            float scroll = mouse.scroll.ReadValue().y;
+            // 建造模式下滚轮归玩法（旋转建筑），相机让出缩放；其余相机操作不受影响。
+            float scroll = InputArbiter.ScrollConsumedByGameplay ? 0f : mouse.scroll.ReadValue().y;
             if (Mathf.Abs(scroll) > 0.01f)
             {
                 float notches = Mathf.Abs(scroll) > 10f ? scroll / 120f : scroll;

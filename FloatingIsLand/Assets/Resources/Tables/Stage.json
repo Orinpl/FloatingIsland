@@ -4,20 +4,23 @@
     "nameCn": "浮空岛·一",
     "mapWidth": 250,
     "mapHeight": 250,
-    "prefabPath": ""
+    "prefabPath": "Prefab/Stage/stage_01",
+    "islandCellSpan": 40
   },
   {
     "stageId": 2,
     "nameCn": "浮空岛·二",
     "mapWidth": 250,
     "mapHeight": 250,
-    "prefabPath": ""
+    "prefabPath": "Prefab/Stage/stage_02",
+    "islandCellSpan": 40
   },
   {
     "stageId": 3,
     "nameCn": "浮空岛·三",
     "mapWidth": 250,
     "mapHeight": 250,
-    "prefabPath": ""
+    "prefabPath": "Prefab/Stage/stage_03",
+    "islandCellSpan": 40
   }
 ]
