@@ -223,6 +223,53 @@ namespace FloatingIsLand.ViewEGB.EditorTools
             Debug.Log($"[生成地图] 第 {stage.stageId} 关已生成：地形 {terrain.Count} 格" +
                       $"（普通空岛 {island0} / 绿地 {green} / 浮空区域 {floating}），" +
                       $"地图元素 {elements.Count} 个 → {AssetPath(stage.stageId)}");
+
+            WarnIfUnderfilled(stage, rules, elements, island0);
+        }
+
+        /// <summary>
+        /// 散布数量不足配表 countMin 时报警。
+        ///
+        /// <see cref="MapElementScatter"/> 放不下就少放，**不会有任何提示**：可建造区一旦变小
+        /// （比如收紧了可建造高度带），矿藏可能从 3 个掉到 1 个，而日志只会说"地图元素 7 个"，
+        /// 看不出少的是什么、少了几个。等到局内发现资源不够，已经很难回想是哪一步导致的。
+        /// </summary>
+        private static void WarnIfUnderfilled(
+            StageRow stage, BuildRuleSet rules, List<MapElementPlacement> elements, int islandCells)
+        {
+            var actual = new Dictionary<string, int>();
+            for (int i = 0; i < elements.Count; i++)
+            {
+                string id = elements[i].ElementId;
+                int n;
+                actual.TryGetValue(id, out n);
+                actual[id] = n + 1;
+            }
+
+            var missing = new System.Text.StringBuilder();
+            for (int i = 0; i < rules.Elements.Count; i++)
+            {
+                MapElementDef def = rules.Elements[i];
+                if (def.IsTerrain || def.CountMin <= 0)
+                {
+                    continue;
+                }
+                int placed;
+                actual.TryGetValue(def.ElementId, out placed);
+                if (placed < def.CountMin)
+                {
+                    missing.Append($"  · {def.ElementId}：实放 {placed}，配表最少 {def.CountMin}");
+                }
+            }
+
+            if (missing.Length > 0)
+            {
+                Debug.LogWarning(
+                    $"[生成地图] 第 {stage.stageId} 关的元素没放满（可建造格只有 {islandCells} 个，" +
+                    "放不下就会静默少放)：\n" + missing +
+                    "\n可建造区太小时的常见处理：调大 Stage.islandCellSpan 让岛占更多格，" +
+                    "或放宽散布的最小间距。");
+            }
         }
 
         private static GameObject InstantiateIsland(StageRow stage)

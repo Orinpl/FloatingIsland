@@ -3,5 +3,6 @@
   "baseCoverScore": 8,
   "windExtendLength": 3,
   "windExtendMaxPerWind": 2,
-  "endgameScorePerCoveredBuilding": 5
+  "endgameScorePerCoveredBuilding": 5,
+  "windLinkScore": 30
 }

@@ -55,6 +55,7 @@ if (!File.Exists(mapPath))
 MapSnapshot map = MapJson.Load("stage_1", File.ReadAllText(mapPath));
 BuildRuleSet rules = BuildRuleSetFactory.Create();
 List<LevelDef> levels = BuildRuleSetFactory.CreateLevels();
+List<GroupThemeDef> themes = BuildRuleSetFactory.CreateGroupThemes();
 
 Console.WriteLine($"[仿真] 地图 stage_1：{map.Width}×{map.Length}，已刷 {map.PaintedCount} 格，元素 {map.Elements.Count} 个。");
 Console.WriteLine($"[仿真] 规则集：{rules.Blueprints.Count} 个建筑变体 / {rules.Elements.Count} 类元素；跑 {runs} 局。");
@@ -63,7 +64,7 @@ Console.WriteLine();
 var results = new List<RunOutcome>(runs);
 for (int seed = 1; seed <= runs; seed++)
 {
-    results.Add(Simulate(map, rules, levels, seed, freeUnlock));
+    results.Add(Simulate(map, rules, levels, themes, seed, freeUnlock));
 }
 
 Report(results, levels);
@@ -71,11 +72,12 @@ return 0;
 
 // ---------------------------------------------------------------- 仿真主体
 
-static RunOutcome Simulate(MapSnapshot map, BuildRuleSet rules, List<LevelDef> levels, int seed, bool freeUnlock)
+static RunOutcome Simulate(
+    MapSnapshot map, BuildRuleSet rules, List<LevelDef> levels, List<GroupThemeDef> themes, int seed, bool freeUnlock)
 {
     var board = new BuildBoard(map, rules);
     var scoring = new ScoreEngine(board);
-    var run = new BuildRunState(levels, rules, seed);
+    var run = new BuildRunState(levels, themes, rules, seed);
     var random = new DeterministicRandom(seed * 31 + 7);
 
     var outcome = new RunOutcome { Seed = seed };
@@ -97,6 +99,8 @@ static RunOutcome Simulate(MapSnapshot map, BuildRuleSet rules, List<LevelDef> l
                     best = g;
                 }
             }
+            // 主题分布是本次改版的验收口径之一：前期该只出生产线，后期才该出物流/港口
+            outcome.ThemeAtLevel[run.Level] = run.Offers[best].ThemeId;
             run.ChooseOffer(best);
         }
 
@@ -120,6 +124,8 @@ static RunOutcome Simulate(MapSnapshot map, BuildRuleSet rules, List<LevelDef> l
                 run.AddBuildScore(Tables.GameConfig.skipPenaltyScore);
                 run.ConsumeFromHand(0);
                 outcome.SkippedBuildings++;
+                outcome.SkippedByVariant.TryGetValue(blueprint.VariantId, out int skipped);
+                outcome.SkippedByVariant[blueprint.VariantId] = skipped + 1;
                 continue;
             }
 
@@ -127,6 +133,8 @@ static RunOutcome Simulate(MapSnapshot map, BuildRuleSet rules, List<LevelDef> l
             run.AddBuildScore(spot.Score);
             run.ConsumeFromHand(0);
             outcome.PlacedBuildings++;
+            outcome.PlacedByVariant.TryGetValue(blueprint.VariantId, out int placed);
+            outcome.PlacedByVariant[blueprint.VariantId] = placed + 1;
             levelIncome += Math.Max(0, spot.Score);
             levelPlaced++;
             placedAny = true;
@@ -334,6 +342,64 @@ static void Report(List<RunOutcome> results, List<LevelDef> levels)
     {
         Console.WriteLine($"  {group.Key}：{group.Count()} 局");
     }
+    Console.WriteLine();
+
+    ReportThemes(results, levels);
+    ReportVariantMix(results);
+}
+
+/// <summary>每级选中的主题分布——用来验收「前期生产 / 中期居住商业 / 后期物流港口」的节奏。</summary>
+static void ReportThemes(List<RunOutcome> results, List<LevelDef> levels)
+{
+    Console.WriteLine("== 每级选中的主题分布 ==");
+    Console.WriteLine("等级  样本   主题（次数）");
+    foreach (LevelDef level in levels)
+    {
+        var picks = results
+            .Where(r => r.ThemeAtLevel.ContainsKey(level.Level))
+            .Select(r => r.ThemeAtLevel[level.Level])
+            .ToList();
+        if (picks.Count == 0)
+        {
+            continue;
+        }
+        string detail = string.Join("  ", picks
+            .GroupBy(t => t)
+            .OrderByDescending(g => g.Count())
+            .Select(g => $"{g.Key}×{g.Count()}"));
+        Console.WriteLine($"{level.Level,-5} {picks.Count,-6} {detail}");
+    }
+    Console.WriteLine();
+}
+
+/// <summary>各建筑变体的落地/跳过统计——用来验收「核心建筑多、增幅建筑少」和放不下的风险。</summary>
+static void ReportVariantMix(List<RunOutcome> results)
+{
+    var placed = new Dictionary<string, int>();
+    var skipped = new Dictionary<string, int>();
+    foreach (RunOutcome r in results)
+    {
+        foreach (var kv in r.PlacedByVariant)
+        {
+            placed.TryGetValue(kv.Key, out int n);
+            placed[kv.Key] = n + kv.Value;
+        }
+        foreach (var kv in r.SkippedByVariant)
+        {
+            skipped.TryGetValue(kv.Key, out int n);
+            skipped[kv.Key] = n + kv.Value;
+        }
+    }
+
+    Console.WriteLine("== 建筑出现量（全部局合计） ==");
+    Console.WriteLine("变体              落地    跳过    每局落地");
+    foreach (var kv in placed.Concat(skipped.Where(s => !placed.ContainsKey(s.Key)))
+                 .OrderByDescending(kv => kv.Value))
+    {
+        placed.TryGetValue(kv.Key, out int ok);
+        skipped.TryGetValue(kv.Key, out int no);
+        Console.WriteLine($"{kv.Key,-17} {ok,-7} {no,-7} {(double)ok / results.Count,-8:0.0}");
+    }
 }
 
 // ---------------------------------------------------------------- 辅助
@@ -377,6 +443,12 @@ internal sealed class RunOutcome
     public int PlacedBuildings;
     public int SkippedBuildings;
     public string EndReason = "";
+    /// <summary>本级选中的那组来自哪个主题（验收分组节奏用）。</summary>
+    public readonly Dictionary<int, string> ThemeAtLevel = new Dictionary<int, string>();
+    /// <summary>各变体成功落地次数（验收组内配比用）。</summary>
+    public readonly Dictionary<string, int> PlacedByVariant = new Dictionary<string, int>();
+    /// <summary>各变体因放不下被跳过的次数（前期就给受地形限制的建筑，风险全在这一栏）。</summary>
+    public readonly Dictionary<string, int> SkippedByVariant = new Dictionary<string, int>();
     public readonly Dictionary<int, int> GoldAtLevel = new Dictionary<int, int>();
     public readonly Dictionary<int, int> ScoreAtLevel = new Dictionary<int, int>();
     /// <summary>本级内的正分收入（=可转金币部分）。</summary>

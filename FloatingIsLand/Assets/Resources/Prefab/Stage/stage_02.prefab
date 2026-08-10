@@ -80,6 +80,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -5754084199372789682, guid: fcc88a6153bf0d04ba067390caa50584, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 4300000, guid: cc78aa58500ada84c8979d27024d7780, type: 2}
     - target: {fileID: 919132149155446097, guid: fcc88a6153bf0d04ba067390caa50584, type: 3}
       propertyPath: m_Name
       value: stage_02
@@ -123,4 +127,4 @@ MeshCollider:
   serializedVersion: 5
   m_Convex: 0
   m_CookingOptions: 30
-  m_Mesh: {fileID: -5668984478841134232, guid: fcc88a6153bf0d04ba067390caa50584, type: 3}
+  m_Mesh: {fileID: 4300000, guid: cc78aa58500ada84c8979d27024d7780, type: 2}

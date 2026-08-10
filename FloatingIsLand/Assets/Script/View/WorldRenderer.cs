@@ -23,6 +23,13 @@ namespace FloatingIsLand.View
         private Transform _elementRoot;
         private Transform _buildingRoot;
         private GameSession _session;
+        private readonly WorldInstanceIndex _instances = new WorldInstanceIndex();
+
+        /// <summary>领域实例 Id → 场景模型。计分高亮靠它把归因落到具体那栋楼上。</summary>
+        public WorldInstanceIndex Instances
+        {
+            get { return _instances; }
+        }
 
         private void Awake()
         {
@@ -50,6 +57,10 @@ namespace FloatingIsLand.View
                 return;
             }
 
+            // 重复 Bind 会把上一局的订阅与索引留着——加了实例索引之后，这从「多一个模型」
+            // 升级成「字典撞键、辉光打到已销毁的对象上」，必须先解绑
+            Unbind();
+
             _session = session;
             SpawnIsland(session.Board.Map);
             SpawnElements(session.Board);
@@ -64,10 +75,17 @@ namespace FloatingIsLand.View
 
         private void OnDestroy()
         {
+            Unbind();
+        }
+
+        private void Unbind()
+        {
             if (_session != null && _session.Board != null)
             {
                 _session.Board.BuildingPlaced -= OnBuildingPlaced;
             }
+            _session = null;
+            _instances.Clear();
         }
 
         private void SpawnIsland(MapSnapshot map)
@@ -123,10 +141,11 @@ namespace FloatingIsLand.View
                 }
 
                 Vector3 corner = geometry.CellCorner(element.X, element.Z, element.Layer);
-                ModelSpawner.Spawn(
+                GameObject instance = ModelSpawner.Spawn(
                     def.PrefabPath, corner, element.Rotation, _elementRoot,
                     $"{def.ElementId}_{element.Id}",
                     def.Footprint, cellSize);
+                _instances.RegisterElement(element.Id, instance);
                 spawned++;
             }
 
@@ -138,10 +157,11 @@ namespace FloatingIsLand.View
             GridGeometry geometry = _presenter.Geometry;
             Vector3 corner = geometry.CellCorner(building.X, building.Z, building.Layer);
 
-            ModelSpawner.Spawn(
+            GameObject instance = ModelSpawner.Spawn(
                 building.Blueprint.PrefabPath, corner, building.Rotation, _buildingRoot,
                 $"{building.Blueprint.VariantId}_{building.Id}",
                 building.Blueprint.Footprint, _presenter.CellSize);
+            _instances.RegisterBuilding(building.Id, instance);
         }
 
     }

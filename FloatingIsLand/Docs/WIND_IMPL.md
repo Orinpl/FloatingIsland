@@ -201,7 +201,36 @@ View/Wind/
 - 物流延长：同点不重复、每股 ≤ windExtendMaxPerWind；LogisticsFromIndex 之后的格才算物流风；
 - 合成为纯函数：股序打乱结果不变。
 
-## 9. 决策记录
+## 9. 实装状态与定稿口径（M3 已落地）
+
+本节记录实际实装与本文早期设计的差异，均为用户定稿，口径以本节为准。
+
+### 9.1 已落地的代码位置
+
+| 层 | 文件 |
+|---|---|
+| 数据层 | `Assets/Script/Domain/Wind/`：WindTypes（Dir8/WindMath/各 struct）、WindStream、WindField、WindSimulator、WindSystem、WindScoreKeeper |
+| 计分接入 | `ScoreEngine`：风力即时分（原有）+ 物流风覆盖分支 + 居民区穿风惩罚 + 风向标居民区倍率 |
+| App 接线 | `GameSession.AttachMap` 创建 WindSystem 挂到 `BuildBoard.WindField`；`SettleWindAfterPlacement` 落地钩子；事件 `WindFieldChanged` / `WindAwardsGranted` |
+| 表现层 | `Assets/Script/View/Wind/WindFieldView.cs`（LineRenderer 流线 + 摆放预览 + 互联脉冲）；`ScoreHighlightPresenter.PlayWindAwards`（辉光/飘字） |
+| 单测 | `Assets/Tests/EditMode/WindSimulatorTests.cs`（§8 清单 + §4 基准表）、`WindScoreTests.cs`（计分语义） |
+
+### 9.2 与早期设计的差异 / 补充定稿
+
+- **渲染改为每股一条 LineRenderer**（起点 → 各拐点 → 终点的格心折线，物流风段独立配色，尾端收细表意方向），替代 §7 原计划的逐格箭头 Mesh；箭头 Mesh 与 UV 流动感留待打磨期。摆放风帆/物流点时半透明预览「假设摆了这栋」的新风场（主线暂隐）。
+- **风依附格子层级**：股在起点格的 layer 上传播，不跨层（PROJECT_BUILD 风险 8 的 MVP 口径）；所有查询按 (x, z, layer) 键。
+- **计分只在改变那一刻结算一次，从不回收**：
+  - 建筑的风相关分（风帆即时分、船坞曲线、居民区穿风惩罚、风向标倍率）只看建造那一刻的风场，之后风变不追溯；
+  - 风变更（放风帆/物流点 → 全量重算）能给已落地建筑发的新分只有物流风通道，由 `WindScoreKeeper` 记账：物流风覆盖分每建筑**一生一次**（与建造时本地覆盖同状态不重复，§10.3/10.4），物流点互联分每对**一生一次**；
+  - 互联配对为**链式相邻**：一股风依次经过物流点 A、B、C，连 A-B 与 B-C（不连 A-C），互联时表现层沿两点间风路径放脉冲特效。
+- **新配置**：`LogisticsConfig.windLinkScore`（=30，物流点经风互联的一次性加分），已进 Excel 正本并转表。
+- **风帆转向的输入映射**：1×1 的风帆复用滚轮旋转链路——`Rotation` 偶数（0°/180°）= 右转、奇数（90°/270°）= 左转（`WindSystem.TurnFromRotation`），滚轮一格即左右切换，预览流线实时跟随。
+- **物流风起点口径**：`LogisticsFromIndex` = 首个物流点的**下一格**（「经过后」携带物流效果），物流点自己那格不算物流风；若该「下一格」已在路径之外（点贴边出图），按「-1 = 从未」归位；单测锁定。
+- **「同点不重复延长」按建筑实例判定**（不是按格）：物流点占地 2×2，一股风连穿它两格仍只算一个点、只延长一次（`IWindBuildingQuery.TryGetLogisticsPoint` 返回点的实例 Id 供账本去重；账本 `SourceCell` 仍记触发格）；单测锁定。
+- **风源格有贴地标记**：windSource 元素无模型但占格挡建造，WindFieldView 在每股起点画一个与风力同色的贴地小圈（预览期间不隐藏），避免「看不见的元素挡建造」。
+- **风源展开**：`MapElementScatter` 按通用规则撒 `windSource` 元素；`WindSystem` 构造时以局种子加盐（与散布随机流解耦）确定性展开每股的方向（八向均匀）/ 强度 / 长度（WindConfig 区间），同种子同风。
+
+## 10. 决策记录
 
 | # | 决策 | 依据/理由 |
 |--:|---|---|

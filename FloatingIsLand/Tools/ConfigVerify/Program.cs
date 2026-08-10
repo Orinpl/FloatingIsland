@@ -39,7 +39,7 @@ namespace ConfigVerify
                 Console.WriteLine($"  - {name,-20} {Describe(name)}");
             }
 
-            if (!ValidateBuildingRelations() || !ValidateElementBonuses() || !ValidateFootprints() || !ValidateLevelPools())
+            if (!ValidateBuildingRelations() || !ValidateElementBonuses() || !ValidateFootprints() || !ValidateGroupThemes())
             {
                 return 1;
             }
@@ -256,57 +256,92 @@ namespace ConfigVerify
         }
 
         /// <summary>
-        /// 校验 Level 抽取池：条目格式须为 变体Id:数量（数量为正整数），变体 Id 须存在于 BuildingVariant 表。
+        /// 校验建筑组主题（BuildingGroupTheme + Level.themes）。除了格式与外键，这里还把
+        /// 「相互加分的放一组、相互扣分的分开放」这条设计约束变成硬校验——靠人肉记关系表迟早会漏：
+        ///
+        /// - **协同**：组内每个建筑至少要和组内另一个建筑（或同类的自己）存在一条 bonusFrom 有向边，
+        ///   否则它在这组里就是无关的搭头。完全没有关系条目的建筑（风帆靠风力分吃饭）豁免。
+        /// - **互斥**：组内不许出现异类 penaltyFrom 边（居民区被采矿站/工坊扣分 → 不能同组）。
+        ///   同类自扣（采矿站扎堆互扣）是设计要的空间取舍，不算错。
+        ///
+        /// 另外校验每级候选主题数够不够 groupCount，不够会导致同一级出两组同主题。
         /// 反射软依赖，表/列缺失时跳过。
         /// </summary>
-        private static bool ValidateLevelPools()
+        private static bool ValidateGroupThemes()
         {
-            object variantTable = typeof(Tables).GetProperty("BuildingVariant", BindingFlags.Public | BindingFlags.Static)?.GetValue(null);
-            object levelTable = typeof(Tables).GetProperty("Level", BindingFlags.Public | BindingFlags.Static)?.GetValue(null);
-            if (variantTable == null || levelTable == null)
+            List<Dictionary<string, object>> themeRows = ReadTable("BuildingGroupTheme");
+            List<Dictionary<string, object>> levelRows = ReadTable("Level");
+            List<Dictionary<string, object>> variantRows = ReadTable("BuildingVariant");
+            if (themeRows == null || levelRows == null || variantRows == null)
             {
-                Console.WriteLine("[验证] 跳过 Level 抽取池校验（表不存在）。");
+                Console.WriteLine("[验证] 跳过建筑组主题校验（表不存在）。");
                 return true;
             }
 
-            var variantIds = new HashSet<string>(StringComparer.Ordinal);
-            foreach (object row in (System.Collections.IEnumerable)variantTable.GetType().GetProperty("All").GetValue(variantTable))
+            var variantToBuilding = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (Dictionary<string, object> row in variantRows)
             {
-                variantIds.Add((string)row.GetType().GetField("variantId").GetValue(row));
+                variantToBuilding[Str(row, "variantId")] = Str(row, "buildingId");
             }
 
-            int refCount = 0;
+            Dictionary<string, HashSet<string>> bonusFrom = ReadRelationSets("bonusFrom");
+            Dictionary<string, HashSet<string>> penaltyFrom = ReadRelationSets("penaltyFrom");
+
             var errors = new List<string>();
-            foreach (object row in (System.Collections.IEnumerable)levelTable.GetType().GetProperty("All").GetValue(levelTable))
+
+            // 组大小上限取全表最小值：主题可能出现在任何一级，保底数量必须在最紧的那一级也塞得下
+            int groupSizeMaxFloor = int.MaxValue;
+            foreach (Dictionary<string, object> row in levelRows)
             {
-                Type rowType = row.GetType();
-                FieldInfo poolField = rowType.GetField("pool");
-                if (poolField == null)
+                groupSizeMaxFloor = Math.Min(groupSizeMaxFloor, Int(row, "groupSizeMax"));
+            }
+
+            var themesById = new Dictionary<string, ParsedTheme>(StringComparer.Ordinal);
+            foreach (Dictionary<string, object> row in themeRows)
+            {
+                ParsedTheme theme = ParseTheme(row, variantToBuilding, groupSizeMaxFloor, errors);
+                themesById[theme.ThemeId] = theme;
+                ValidateThemeCohesion(theme, bonusFrom, penaltyFrom, errors);
+            }
+
+            foreach (Dictionary<string, object> row in levelRows)
+            {
+                int level = Int(row, "level");
+                int groupCount = Int(row, "groupCount");
+                string[] forced = Arr(row, "themes");
+
+                var candidates = new List<string>();
+                foreach (string raw in forced)
                 {
-                    Console.WriteLine("[验证] 跳过 Level 抽取池校验（无 pool 列）。");
-                    return true;
-                }
-                int level = (int)rowType.GetField("level").GetValue(row);
-                string[] pool = (string[])poolField.GetValue(row) ?? new string[0];
-                foreach (string entry in pool)
-                {
-                    refCount++;
-                    string context = $"Level[{level}].pool";
-                    string[] parts = entry.Split(':');
-                    int count;
-                    if (parts.Length != 2 || !int.TryParse(parts[1].Trim(), out count))
+                    string themeId = (raw ?? string.Empty).Trim();
+                    if (themeId.Length == 0)
                     {
-                        errors.Add($"{context}: 条目 '{entry}' 格式非法（应为 变体Id:数量，如 residence_01:2）");
                         continue;
                     }
-                    if (count < 1)
+                    if (!themesById.ContainsKey(themeId))
                     {
-                        errors.Add($"{context}: 条目 '{entry}' 数量须为正整数");
+                        errors.Add($"Level[{level}].themes: 主题 '{themeId}' 在 BuildingGroupTheme 表中不存在");
+                        continue;
                     }
-                    if (!variantIds.Contains(parts[0].Trim()))
+                    candidates.Add(themeId);
+                }
+
+                if (candidates.Count == 0)
+                {
+                    foreach (ParsedTheme theme in themesById.Values)
                     {
-                        errors.Add($"{context}: 变体 '{parts[0].Trim()}' 在 BuildingVariant 表中不存在");
+                        if (theme.IsAvailableAt(level))
+                        {
+                            candidates.Add(theme.ThemeId);
+                        }
                     }
+                }
+
+                if (candidates.Count < groupCount)
+                {
+                    errors.Add(
+                        $"Level[{level}]: 本级可用主题只有 {candidates.Count} 个，凑不满 groupCount={groupCount} 组"
+                        + "（会退化成同一级出两组同主题，检查各主题的 minLevel/maxLevel 是否铺满 20 级）");
                 }
             }
 
@@ -316,12 +351,277 @@ namespace ConfigVerify
                 {
                     Console.Error.WriteLine("[验证] " + error);
                 }
-                Console.Error.WriteLine($"[验证] Level 抽取池校验失败：{errors.Count} 个错误。");
+                Console.Error.WriteLine($"[验证] 建筑组主题校验失败：{errors.Count} 个错误。");
                 return false;
             }
 
-            Console.WriteLine($"[验证] Level 抽取池校验通过：{refCount} 个变体引用均合法。");
+            Console.WriteLine(
+                $"[验证] 建筑组主题校验通过：{themesById.Count} 个主题，成员配方格式/外键、组内协同与互斥、每级候选数均合法。");
             return true;
+        }
+
+        private sealed class ParsedMember
+        {
+            public string VariantId = "";
+            public string BuildingId = "";
+            public int Weight;
+            public int MinCount;
+            public int MaxCount;
+        }
+
+        private sealed class ParsedTheme
+        {
+            public string ThemeId = "";
+            public int MinLevel;
+            public int MaxLevel;
+            public readonly List<ParsedMember> Members = new List<ParsedMember>();
+
+            public bool IsAvailableAt(int level)
+            {
+                if (MinLevel > 0 && level < MinLevel)
+                {
+                    return false;
+                }
+                return MaxLevel <= 0 || level <= MaxLevel;
+            }
+        }
+
+        private static ParsedTheme ParseTheme(
+            Dictionary<string, object> row,
+            Dictionary<string, string> variantToBuilding,
+            int groupSizeMaxFloor,
+            List<string> errors)
+        {
+            var theme = new ParsedTheme
+            {
+                ThemeId = Str(row, "themeId"),
+                MinLevel = Int(row, "minLevel"),
+                MaxLevel = Int(row, "maxLevel"),
+            };
+            string context = $"BuildingGroupTheme[{theme.ThemeId}]";
+
+            if (Int(row, "weight") <= 0)
+            {
+                errors.Add($"{context}: weight 须为正整数（0 权重的主题永远抽不到）");
+            }
+            if (theme.MaxLevel > 0 && theme.MinLevel > theme.MaxLevel)
+            {
+                errors.Add($"{context}: minLevel {theme.MinLevel} 大于 maxLevel {theme.MaxLevel}");
+            }
+
+            foreach (string cell in Arr(row, "members"))
+            {
+                if (string.IsNullOrWhiteSpace(cell))
+                {
+                    continue;
+                }
+
+                string entryContext = $"{context}.members 条目 '{cell}'";
+                string[] parts = cell.Split(':');
+                if (parts.Length < 2 || parts.Length > 4)
+                {
+                    errors.Add($"{entryContext}: 格式非法（应为 变体Id:权重[:最少[:最多]]）");
+                    continue;
+                }
+
+                var member = new ParsedMember { VariantId = parts[0].Trim() };
+                if (!variantToBuilding.TryGetValue(member.VariantId, out member.BuildingId))
+                {
+                    errors.Add($"{entryContext}: 变体 '{member.VariantId}' 在 BuildingVariant 表中不存在");
+                    continue;
+                }
+
+                if (!TryNonNegative(parts[1], out member.Weight)
+                    || (parts.Length > 2 && !TryNonNegative(parts[2], out member.MinCount))
+                    || (parts.Length > 3 && !TryNonNegative(parts[3], out member.MaxCount)))
+                {
+                    errors.Add($"{entryContext}: 权重/最少/最多须为非负整数");
+                    continue;
+                }
+                if (member.MaxCount > 0 && member.MinCount > member.MaxCount)
+                {
+                    errors.Add($"{entryContext}: 最少 {member.MinCount} 大于最多 {member.MaxCount}");
+                    continue;
+                }
+
+                theme.Members.Add(member);
+            }
+
+            if (theme.Members.Count == 0)
+            {
+                errors.Add($"{context}: members 为空（主题至少要有一个成员建筑）");
+                return theme;
+            }
+
+            int minTotal = 0;
+            bool anyWeight = false;
+            foreach (ParsedMember member in theme.Members)
+            {
+                minTotal += member.MinCount;
+                anyWeight |= member.Weight > 0;
+            }
+            if (!anyWeight)
+            {
+                errors.Add($"{context}: 全部成员权重都是 0，随机名额无从分配（至少留一个正权重成员）");
+            }
+            if (groupSizeMaxFloor != int.MaxValue && minTotal > groupSizeMaxFloor)
+            {
+                errors.Add(
+                    $"{context}: 成员保底数量之和 {minTotal} 超过 Level.groupSizeMax 的最小值 {groupSizeMaxFloor}"
+                    + "（保底优先于组大小，会撑出超规格的一组）");
+            }
+
+            return theme;
+        }
+
+        /// <summary>组内协同与互斥：本次改版的核心约束，见 <see cref="ValidateGroupThemes"/> 的说明。</summary>
+        private static void ValidateThemeCohesion(
+            ParsedTheme theme,
+            Dictionary<string, HashSet<string>> bonusFrom,
+            Dictionary<string, HashSet<string>> penaltyFrom,
+            List<string> errors)
+        {
+            var buildingIds = new HashSet<string>(StringComparer.Ordinal);
+            foreach (ParsedMember member in theme.Members)
+            {
+                if (member.BuildingId.Length > 0)
+                {
+                    buildingIds.Add(member.BuildingId);
+                }
+            }
+            string context = $"BuildingGroupTheme[{theme.ThemeId}]";
+
+            foreach (string self in buildingIds)
+            {
+                foreach (string source in Sources(penaltyFrom, self))
+                {
+                    // 同类自扣（扎堆惩罚）是设计要的空间取舍，只拦异类互扣
+                    if (!string.Equals(source, self, StringComparison.Ordinal) && buildingIds.Contains(source))
+                    {
+                        errors.Add(
+                            $"{context}: '{self}' 会被同组的 '{source}' 扣分（BuildingRelation.penaltyFrom），"
+                            + "互相扣分的建筑必须分属不同主题");
+                    }
+                }
+
+                bool hasAnyRelation = Sources(bonusFrom, self).Count > 0 || Sources(penaltyFrom, self).Count > 0;
+                if (!hasAnyRelation)
+                {
+                    continue; // 例如风帆：全靠风力分，本来就没有邻接关系，不参与协同判据
+                }
+
+                bool linked = false;
+                foreach (string source in Sources(bonusFrom, self))
+                {
+                    if (buildingIds.Contains(source))
+                    {
+                        linked = true;
+                        break;
+                    }
+                }
+                if (!linked)
+                {
+                    foreach (string other in buildingIds)
+                    {
+                        if (Sources(bonusFrom, other).Contains(self))
+                        {
+                            linked = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!linked)
+                {
+                    errors.Add(
+                        $"{context}: '{self}' 和组内其它建筑之间没有任何加分关系，"
+                        + "同组建筑必须互相加分（改配方或给 BuildingRelation 补一条边）");
+                }
+            }
+        }
+
+        private static HashSet<string> Sources(Dictionary<string, HashSet<string>> map, string buildingId)
+        {
+            HashSet<string> set;
+            return map.TryGetValue(buildingId, out set) ? set : EmptySources;
+        }
+
+        private static readonly HashSet<string> EmptySources = new HashSet<string>(StringComparer.Ordinal);
+
+        /// <summary>读 BuildingRelation 的一列，摊成 建筑Id → 来源建筑Id 集合。</summary>
+        private static Dictionary<string, HashSet<string>> ReadRelationSets(string column)
+        {
+            var result = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+            List<Dictionary<string, object>> rows = ReadTable("BuildingRelation");
+            if (rows == null)
+            {
+                return result;
+            }
+
+            foreach (Dictionary<string, object> row in rows)
+            {
+                string key = Str(row, "buildingId");
+                var sources = new HashSet<string>(StringComparer.Ordinal);
+                try
+                {
+                    foreach (RelationEntry entry in RelationEntry.ParseAll(Arr(row, column), $"BuildingRelation[{key}].{column}"))
+                    {
+                        sources.Add(entry.SourceId);
+                    }
+                }
+                catch (FormatException)
+                {
+                    // 格式错误由 ValidateBuildingRelations 报，这里只管取到能取的部分
+                }
+                result[key] = sources;
+            }
+            return result;
+        }
+
+        /// <summary>把一张表反射成 行 → 字段名/值 的字典，表或 All 属性不存在返回 null（软依赖）。</summary>
+        private static List<Dictionary<string, object>> ReadTable(string tableName)
+        {
+            object table = typeof(Tables).GetProperty(tableName, BindingFlags.Public | BindingFlags.Static)?.GetValue(null);
+            PropertyInfo all = table?.GetType().GetProperty("All");
+            if (all == null)
+            {
+                return null;
+            }
+
+            var rows = new List<Dictionary<string, object>>();
+            foreach (object row in (System.Collections.IEnumerable)all.GetValue(table))
+            {
+                var fields = new Dictionary<string, object>(StringComparer.Ordinal);
+                foreach (FieldInfo field in row.GetType().GetFields())
+                {
+                    fields[field.Name] = field.GetValue(row);
+                }
+                rows.Add(fields);
+            }
+            return rows;
+        }
+
+        private static string Str(Dictionary<string, object> row, string field)
+        {
+            object value;
+            return row.TryGetValue(field, out value) && value is string s ? s : string.Empty;
+        }
+
+        private static int Int(Dictionary<string, object> row, string field)
+        {
+            object value;
+            return row.TryGetValue(field, out value) && value is int i ? i : 0;
+        }
+
+        private static string[] Arr(Dictionary<string, object> row, string field)
+        {
+            object value;
+            return row.TryGetValue(field, out value) && value is string[] a ? a : new string[0];
+        }
+
+        private static bool TryNonNegative(string text, out int value)
+        {
+            return int.TryParse(text.Trim(), out value) && value >= 0;
         }
 
         private static void ValidateMask(string[] mask, string context, List<string> errors)

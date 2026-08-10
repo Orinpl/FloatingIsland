@@ -22,11 +22,15 @@ findpic() { # $1=id $2=名字（concept/front/side/top）→ 打印路径；找�
 
 statuscall() { atlas-skillhub gateway call-tool --service liclick --tool get_task_status task_id="$1" task_type=image 2>&1; }
 
+# 提示词必须把「相机架在哪、看到什么」讲成大白话。只写 orthographic / no perspective distortion
+# 这类术语，模型多半会忽略、直接照抄参考图的等距角度——三张图出得几乎一模一样。
+# 后果不只是浪费：rodin 靠俯视图定占地形状，喂它一张等距俯视图，重建出来的地基就是**斜 45°** 的，
+# 这正是早期整批资产地基全部歪掉的根源。下面的说法（直升机俯拍 / 建筑立面图）是实测能稳定出正交图的。
 viewprompt() { # $1=view
   case "$1" in
-    front) echo "Orthographic front elevation view of exactly the same subject as in the reference image, straight-on front camera at object height, no perspective distortion, no isometric angle, the whole object and its full base plate visible and centered, $COMMON";;
-    side)  echo "Orthographic left side elevation view of exactly the same subject as in the reference image, straight-on side camera at object height, no perspective distortion, no isometric angle, the whole object and its full base plate visible and centered, $COMMON";;
-    top)   echo "Orthographic top-down plan view of exactly the same subject as in the reference image, camera looking straight down from directly above, no perspective distortion, the complete base plate footprint clearly visible and centered, $COMMON";;
+    front) echo "Flat front elevation drawing of exactly the same subject as in the reference image, like the elevation page of an architectural blueprint: the camera is level with the middle of the object and points horizontally straight at its front face, so the ground base plate is seen edge-on as a thin horizontal strip along the bottom. No tilt, no isometric angle, no view from above. The whole object is centered and fully visible, $COMMON";;
+    side)  echo "Flat left side elevation drawing of exactly the same subject as in the reference image, like the elevation page of an architectural blueprint: the camera is level with the middle of the object and points horizontally straight at its left side, so the ground base plate is seen edge-on as a thin horizontal strip along the bottom. No tilt, no isometric angle, no view from above. The whole object is centered and fully visible, $COMMON";;
+    top)   echo "Strict top-down floor plan of exactly the same subject as in the reference image. The camera is mounted directly above the object pointing straight down at the ground, so the ground base plate appears as a flat axis-aligned rectangle squarely filling the frame with its edges parallel to the image borders, and only the roof and upward-facing surfaces are visible. This is a map view seen from a helicopter looking straight down, not an isometric or three-quarter angle, $COMMON";;
   esac
 }
 

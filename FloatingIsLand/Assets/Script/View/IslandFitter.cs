@@ -13,16 +13,29 @@ namespace FloatingIsLand.View
     /// 但顶面高度的 10%~90% 分位都落在 −8.4~−5.7 m —— 也就是说岛的主体是一块平顶，
     /// 顶上另有一个只占约 1% 格数的小尖峰。按包围盒顶面对齐等于按尖峰对齐，
     /// 整块平台会沉到网格平面以下 7 米，描摹只描得到山尖。
-    /// 所以对齐基准取**顶面高度的中位数**（对尖峰、凹坑都不敏感）。
+    ///
+    /// 对齐基准取**顶面高度的众数**（分布最密的那一档），不是中位数。岛面经
+    /// IslandSurfaceFlattener 分层压平后是多个台地，高度分布是多峰的；中位数在多峰分布上
+    /// 可能正好落进两层之间的空档——实测 stage_02 的中位面附近只有 1% 的格子，
+    /// 按它对齐会把整块主台地推偏几米，建筑全部浮空。众数则一定落在某个真实台地上。
     /// </summary>
     public static class IslandFitter
     {
         /// <summary>平台面相对网格平面的高度（略低一点，避免与地形 overlay Z-fighting）。</summary>
         public const float SurfaceY = -0.05f;
 
-        /// <summary>可建造平台的高度容差 = max(本常数, 岛高 × <see cref="BandHeightRatio"/>)。</summary>
-        private const float MinBand = 4f;
-        private const float BandHeightRatio = 0.08f;
+        /// <summary>
+        /// 可建造平台的高度容差（米）。
+        ///
+        /// 从前是 max(4m, 岛高×8%)——stage_01 算出来 4.46m，等于把主台地、上一层台地和它们之间的
+        /// 斜坡**全部**算成同一块可建造面，98% 的命中格都算可建造，建筑于是会陷进坡里。
+        /// 岛面压平之后主台地是数学平整的（实测顶面 20%~80% 分位跨度 0.1m），容差就该收到这个量级：
+        /// 比压平精度略宽，又远小于最小层间距（1.5m）的一半，才不会把邻层吃进来。
+        /// </summary>
+        private const float SurfaceBandMeters = 0.35f;
+
+        /// <summary>找主台地面用的高度分箱宽度（米）。</summary>
+        private const float SurfaceBinSize = 0.25f;
 
         /// <summary>射线缓冲：RaycastNonAlloc 结果无序且会被长度截断，太小可能丢掉最高面。</summary>
         private const int HitBufferSize = 32;
@@ -76,8 +89,8 @@ namespace FloatingIsLand.View
                 return heights;
             }
 
-            float median = Median(heights);
-            float shift = SurfaceY - median;
+            float mainSurface = MainSurface(heights);
+            float shift = SurfaceY - mainSurface;
             island.transform.position += new Vector3(0f, shift, 0f);
             Physics.SyncTransforms();
 
@@ -90,15 +103,10 @@ namespace FloatingIsLand.View
             return shifted;
         }
 
-        /// <summary>可建造平台的高度容差：与中位面相差在此之内的格子算平台，其余是尖峰或陡坡。</summary>
+        /// <summary>可建造平台的高度容差：与主台地面相差在此之内的格子算平台，其余是邻层、尖峰或陡坡。</summary>
         public static float SurfaceBand(GameObject island)
         {
-            Bounds bounds;
-            if (!TryGetWorldBounds(island, out bounds))
-            {
-                return MinBand;
-            }
-            return Mathf.Max(MinBand, bounds.size.y * BandHeightRatio);
+            return SurfaceBandMeters;
         }
 
         /// <summary>该格是否属于可建造平台面。</summary>
@@ -161,7 +169,13 @@ namespace FloatingIsLand.View
             }
         }
 
-        private static float Median(Dictionary<Vector3Int, float> heights)
+        /// <summary>
+        /// 主台地面的高度：一维直方图里格子最多的那一档，再用档内中位数精修。
+        ///
+        /// 用众数而不是中位数的理由见类注释——压平后的岛面是多峰分布，中位数可能落在层间空档。
+        /// 精修一步是因为峰值只精确到箱宽，直接拿箱心当平台面会有半个箱宽的系统偏差。
+        /// </summary>
+        private static float MainSurface(Dictionary<Vector3Int, float> heights)
         {
             var values = new List<float>(heights.Count);
             foreach (KeyValuePair<Vector3Int, float> kv in heights)
@@ -169,7 +183,35 @@ namespace FloatingIsLand.View
                 values.Add(kv.Value);
             }
             values.Sort();
-            return values[values.Count / 2];
+
+            float min = values[0];
+            float max = values[values.Count - 1];
+            int binCount = Mathf.Max(1, Mathf.CeilToInt((max - min) / SurfaceBinSize) + 1);
+            var bins = new int[binCount];
+            for (int i = 0; i < values.Count; i++)
+            {
+                bins[Mathf.Clamp((int)((values[i] - min) / SurfaceBinSize), 0, binCount - 1)]++;
+            }
+
+            int bestBin = 0;
+            for (int i = 1; i < binCount; i++)
+            {
+                if (bins[i] > bins[bestBin])
+                {
+                    bestBin = i;
+                }
+            }
+
+            float binMin = min + bestBin * SurfaceBinSize;
+            var inBin = new List<float>(bins[bestBin]);
+            for (int i = 0; i < values.Count; i++)
+            {
+                if (values[i] >= binMin && values[i] < binMin + SurfaceBinSize)
+                {
+                    inBin.Add(values[i]);
+                }
+            }
+            return inBin.Count > 0 ? inBin[inBin.Count / 2] : values[values.Count / 2];
         }
 
         private static bool TryGetWorldBounds(GameObject root, out Bounds bounds)

@@ -9,11 +9,19 @@ STATE="$ART/state"
 MANIFEST="$SCRIPTDIR/manifest.tsv"
 mkdir -p "$STATE"
 
+# 同 run_stage_b.sh：新下载的三视图是 .png，入库时统一转成 .jpg，两种都要认
+findpic() { # $1=id $2=名字 → 打印路径；找不到返回非 0
+  local base="$PROJ/Assets/Res/$1/picture/$2"
+  if [ -f "$base.png" ]; then echo "$base.png"; return 0; fi
+  if [ -f "$base.jpg" ]; then echo "$base.jpg"; return 0; fi
+  return 1
+}
+
 statuscall() { atlas-skillhub gateway call-tool --service liclick --tool get_task_status task_id="$1" task_type=model_3d 2>&1; }
 
 uploadview() { # $1=id $2=view → echo asset_id（优先用压缩版，避免网关 413）
   local f="$ART/views/$1.$2.jpg" cache="$STATE/$1.$2.vaid"
-  [ -f "$f" ] || f="$PROJ/Assets/Res/$1/picture/$2.png"
+  [ -f "$f" ] || f=$(findpic "$1" "$2")
   [ -f "$cache" ] && { cat "$cache"; return 0; }
   local out aid
   out=$(atlas-skillhub gateway call-tool --service liclick --tool upload_asset --file file_path="$f" asset_type=image 2>&1)
@@ -27,7 +35,7 @@ while IFS=$'\t' read -r id aspect prompt; do
   [ -f "$PROJ/Assets/Res/$id/fbx/$id.fbx" ] && { echo "[skip] $id 已有模型"; continue; }
   [ -f "$STATE/$id.3d.task" ] && { echo "[skip] $id 已提交"; continue; }
   ok=1
-  for v in front side top; do [ -f "$PROJ/Assets/Res/$id/picture/$v.png" ] || ok=0; done
+  for v in front side top; do findpic "$id" "$v" >/dev/null || ok=0; done
   [ "$ok" -eq 0 ] && { echo "[skip] $id 三视图不齐"; continue; }
 
   fa=$(uploadview "$id" front); sa=$(uploadview "$id" side); ta=$(uploadview "$id" top)

@@ -106,8 +106,9 @@ namespace FloatingIsLand.Config.EditorTools
                 {
                     string assetId = StageAssetId(stage.stageId);
                     string fbx = ResolveFbx(assetId);
-                    // 岛屿没有占地定义，不做按格对齐——入场缩放/居中由 IslandFitter 在运行时和编辑器里统一做
-                    if (Generate(fbx, StageSubDir, assetId, null, true, preview, log, ref unaligned))
+                    // 岛屿没有占地定义，不做按格对齐——入场缩放/居中由 IslandFitter 在运行时和编辑器里统一做；
+                    // 但顶面要按台地分层压平，否则建筑摆上去会浮空/陷地（见 IslandSurfaceFlattener）
+                    if (Generate(fbx, StageSubDir, assetId, null, true, preview, log, ref unaligned, stage.islandCellSpan))
                     {
                         made++;
                     }
@@ -127,7 +128,8 @@ namespace FloatingIsLand.Config.EditorTools
 
             // 对齐失败的 Prefab 照样存了盘（缺模型不该拦住整条链路），所以必须让它在结论行里显形，
             // 否则扫一眼"生成 N 个"会以为全绿
-            string summary = $"[白模 Prefab] 生成 {made} 个，缺模型 {missing} 个，对齐失败 {unaligned} 个。\n{log}";
+            string outPath = WriteReport("prefab_generate.txt", log.ToString());
+            string summary = $"[白模 Prefab] 生成 {made} 个，缺模型 {missing} 个，对齐失败 {unaligned} 个。明细：{outPath}\n{log}";
             if (unaligned > 0)
             {
                 Debug.LogWarning(summary);
@@ -177,9 +179,10 @@ namespace FloatingIsLand.Config.EditorTools
             return File.Exists(path) ? path : null;
         }
 
+        /// <param name="islandCellSpan">大于 0 表示这是关卡岛屿，按该跨度做顶面分层压平；建筑/元素传 0。</param>
         private static bool Generate(
             string fbxPath, string subDir, string assetId, string[] footprint, bool addCollider,
-            Scene workScene, StringBuilder log, ref int unaligned)
+            Scene workScene, StringBuilder log, ref int unaligned, int islandCellSpan = 0)
         {
             if (fbxPath == null)
             {
@@ -219,6 +222,14 @@ namespace FloatingIsLand.Config.EditorTools
                     {
                         unaligned++;
                     }
+                }
+
+                // 压平必须在补碰撞体之前：MeshCollider 挂的是 sharedMesh，顺序反了碰撞体上还是
+                // 压平前那张起伏网格，编辑器描摹地形和运行时 IslandFitter 测高读到的都会是旧面
+                if (islandCellSpan > 0)
+                {
+                    alignNote += "；" + IslandSurfaceFlattener.Flatten(
+                        root, assetId, islandCellSpan, Tables.GameConfig.cellSize);
                 }
 
                 if (addCollider)

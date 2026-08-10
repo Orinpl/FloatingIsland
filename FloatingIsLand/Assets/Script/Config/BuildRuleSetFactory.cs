@@ -70,7 +70,9 @@ namespace FloatingIsLand.Config
                     ToScoreSources(building.elementBonus, $"Building[{variant.buildingId}].elementBonus"),
                     ToScoreSources(relation?.bonusFrom, $"BuildingRelation[{variant.buildingId}].bonusFrom"),
                     ToScoreSources(relation?.penaltyFrom, $"BuildingRelation[{variant.buildingId}].penaltyFrom"),
-                    building.windScoreByLevel));
+                    building.windScoreByLevel,
+                    building.windPassPenaltyByLevel,
+                    building.residentWindMultByLevel));
             }
 
             return new BuildRuleSet(
@@ -82,9 +84,14 @@ namespace FloatingIsLand.Config
                 Tables.LogisticsConfig.coverRadius,
                 Tables.LogisticsConfig.baseCoverScore,
                 Tables.GameConfig.scoreToGoldRatio,
-                // 风系统是 M3（WIND_IMPL）。接入后这里改成读风场是否就绪，
-                // 在那之前整块风相关规则不参与结算——详见 BuildRuleSet.WindEnabled。
-                false);
+                maxWindLevel: Tables.WindConfig.maxWindLevel,
+                initialWindLevelMin: Tables.WindConfig.initialWindLevelMin,
+                initialWindLevelMax: Tables.WindConfig.initialWindLevelMax,
+                initialWindLengthMin: Tables.WindConfig.initialWindLengthMin,
+                initialWindLengthMax: Tables.WindConfig.initialWindLengthMax,
+                windExtendLength: Tables.LogisticsConfig.windExtendLength,
+                windExtendMaxPerWind: Tables.LogisticsConfig.windExtendMaxPerWind,
+                logisticsWindLinkScore: Tables.LogisticsConfig.windLinkScore);
         }
 
         /// <summary>装配 Level 表（局内 20 级进度）。</summary>
@@ -104,54 +111,111 @@ namespace FloatingIsLand.Config
                     row.groupCount,
                     row.groupSizeMin,
                     row.groupSizeMax,
-                    ExpandPool(row)));
+                    ReadForcedThemes(row)));
             }
             return levels;
         }
 
-        /// <summary>把 "变体Id:份数" 展开成一份一个元素的抽取池，抽取时直接均匀取下标即可。</summary>
-        private static List<string> ExpandPool(LevelRow row)
+        /// <summary>装配 BuildingGroupTheme 表（选组用的主题配方）。</summary>
+        public static List<GroupThemeDef> CreateGroupThemes()
         {
-            var pool = new List<string>();
-            if (row.pool == null)
+            if (!Tables.IsLoaded)
             {
-                return pool;
+                throw new InvalidOperationException("配表尚未加载，不能装配建筑组主题表。");
             }
 
-            for (int i = 0; i < row.pool.Length; i++)
+            var themes = new List<GroupThemeDef>(Tables.BuildingGroupTheme.Count);
+            foreach (BuildingGroupThemeRow row in Tables.BuildingGroupTheme.All)
             {
-                string cell = row.pool[i];
+                themes.Add(new GroupThemeDef(
+                    row.themeId,
+                    row.nameCn,
+                    row.minLevel,
+                    row.maxLevel,
+                    row.weight,
+                    ParseThemeMembers(row)));
+            }
+            return themes;
+        }
+
+        /// <summary>解析主题成员配方 "变体Id:权重[:最少[:最多]]"。</summary>
+        private static List<ThemeMember> ParseThemeMembers(BuildingGroupThemeRow row)
+        {
+            var members = new List<ThemeMember>();
+            if (row.members == null)
+            {
+                return members;
+            }
+
+            for (int i = 0; i < row.members.Length; i++)
+            {
+                string cell = row.members[i];
                 if (string.IsNullOrWhiteSpace(cell))
                 {
                     continue;
                 }
 
+                string context = $"BuildingGroupTheme[{row.themeId}].members 条目 '{cell}'";
                 string[] parts = cell.Split(':');
-                if (parts.Length != 2)
+                if (parts.Length < 2 || parts.Length > 4)
                 {
                     throw new InvalidOperationException(
-                        $"Level[{row.level}].pool 条目 '{cell}' 格式非法（应为 变体Id:份数）。");
+                        $"{context} 格式非法（应为 变体Id:权重[:最少[:最多]]）。");
                 }
 
                 string variantId = parts[0].Trim();
-                int count;
-                if (!int.TryParse(parts[1].Trim(), out count) || count <= 0)
-                {
-                    throw new InvalidOperationException(
-                        $"Level[{row.level}].pool 条目 '{cell}' 的份数不是正整数。");
-                }
                 if (Tables.BuildingVariant.GetOrNull(variantId) == null)
                 {
-                    throw new InvalidOperationException(
-                        $"Level[{row.level}].pool 条目 '{cell}' 的变体 Id 在 BuildingVariant 表里不存在。");
+                    throw new InvalidOperationException($"{context} 的变体 Id 在 BuildingVariant 表里不存在。");
                 }
 
-                for (int n = 0; n < count; n++)
+                int weight = ParseNonNegative(parts[1], context, "权重");
+                int minCount = parts.Length > 2 ? ParseNonNegative(parts[2], context, "最少数量") : 0;
+                int maxCount = parts.Length > 3 ? ParseNonNegative(parts[3], context, "最多数量") : 0;
+                if (maxCount > 0 && minCount > maxCount)
                 {
-                    pool.Add(variantId);
+                    throw new InvalidOperationException($"{context} 的最少数量大于最多数量。");
                 }
+
+                members.Add(new ThemeMember(variantId, weight, minCount, maxCount));
             }
-            return pool;
+            return members;
+        }
+
+        /// <summary>解析 Level.themes（可空；填了就是本级写死的主题列表）。</summary>
+        private static List<string> ReadForcedThemes(LevelRow row)
+        {
+            var themeIds = new List<string>();
+            if (row.themes == null)
+            {
+                return themeIds;
+            }
+
+            for (int i = 0; i < row.themes.Length; i++)
+            {
+                string themeId = (row.themes[i] ?? string.Empty).Trim();
+                if (themeId.Length == 0)
+                {
+                    continue;
+                }
+                if (Tables.BuildingGroupTheme.GetOrNull(themeId) == null)
+                {
+                    throw new InvalidOperationException(
+                        $"Level[{row.level}].themes 的主题 '{themeId}' 在 BuildingGroupTheme 表里不存在。");
+                }
+                themeIds.Add(themeId);
+            }
+            return themeIds;
+        }
+
+        private static int ParseNonNegative(string text, string context, string fieldName)
+        {
+            int value;
+            if (!int.TryParse(text.Trim(), out value) || value < 0)
+            {
+                throw new InvalidOperationException($"{context} 的{fieldName}不是非负整数。");
+            }
+            return value;
         }
 
         private static PlacementRule ParsePlacement(string placement, string buildingId)

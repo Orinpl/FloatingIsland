@@ -107,8 +107,25 @@ namespace FloatingIsLand.Config
         public int groupSizeMin;
         /// <summary>每组建筑数量上限（设计建议 5，§4.2）</summary>
         public int groupSizeMax;
-        /// <summary>本级抽取池：变体Id:数量，多条用|分隔（变体Id → BuildingVariant 表主键，配到占地结构粒度；数量=该建筑在本级池中的份数，同组可重复 §4.2）。例 residence_01:2|farm_01:3。池按等级渐进解锁：前期只放 placement=any 的易放建筑，后期才引入需要绿地/矿藏/浮空区域的限制建筑</summary>
-        public string[] pool;
+        /// <summary>本级强制使用的建筑组主题（主题Id → BuildingGroupTheme 表主键，多个用|分隔）。留空 = 按 BuildingGroupTheme 的 minLevel/maxLevel 自动筛选本级可用主题，这是常规做法；只有需要写死开局体验时才填</summary>
+        public string[] themes;
+    }
+
+    /// <summary>FloatingIsland.xlsx!BuildingGroupTheme</summary>
+    public sealed class BuildingGroupThemeRow
+    {
+        /// <summary>主题 Id（主键，camelCase）。一个主题 = 一组「互相加分」的建筑配方，选组时一组只出一个主题的建筑</summary>
+        public string themeId;
+        /// <summary>显示名（手牌选组按钮上会显示，让玩家一眼看懂这组是干什么的）</summary>
+        public string nameCn;
+        /// <summary>最早出现等级（含）。主题按阶段解锁：前期生产（矿业/农业）→ 中期居住商业 → 后期物流港口</summary>
+        public int minLevel;
+        /// <summary>最晚出现等级（含）。0 = 一直可用</summary>
+        public int maxLevel;
+        /// <summary>同一等级内被抽中的权重（正整数）。同一级的两组必定是两个不同主题，抽中后不放回</summary>
+        public int weight;
+        /// <summary>成员配方：变体Id:权重[:最少[:最多]]，多条用|分隔。权重=剩余名额里的抽取权重（核心建筑权重高=出得多），最少=本组保底几栋（默认 0），最多=本组上限（默认 0 = 不限）。例 miningStation_01:6:2:3|workshop_01:2:1:1 = 采矿站 2~3 栋、工坊恰好 1 栋</summary>
+        public string[] members;
     }
 
     /// <summary>FloatingIsland.xlsx!Stage</summary>
@@ -181,6 +198,8 @@ namespace FloatingIsLand.Config
         public int windExtendMaxPerWind;
         /// <summary>终局物流网络奖励：每个已接入物流的建筑在终局额外加分（只加分不给金币 §7.2；具体语义可再调整；0=待定）</summary>
         public int endgameScorePerCoveredBuilding;
+        /// <summary>物流点经物流风互联的一次性加分（每对物流点仅计一次，链式相邻配对；本次风系统实装新增）</summary>
+        public int windLinkScore;
     }
 
     public static class Tables
@@ -191,6 +210,7 @@ namespace FloatingIsLand.Config
         public static ConfigTable<string, MapElementRow> MapElement { get; private set; }
         public static ConfigTable<int, WindLevelRow> WindLevel { get; private set; }
         public static ConfigTable<int, LevelRow> Level { get; private set; }
+        public static ConfigTable<string, BuildingGroupThemeRow> BuildingGroupTheme { get; private set; }
         public static ConfigTable<int, StageRow> Stage { get; private set; }
         public static GameConfig GameConfig { get; private set; }
         public static WindConfig WindConfig { get; private set; }
@@ -204,6 +224,7 @@ namespace FloatingIsLand.Config
             "MapElement",
             "WindLevel",
             "Level",
+            "BuildingGroupTheme",
             "Stage",
             "GameConfig",
             "WindConfig",
@@ -220,6 +241,7 @@ namespace FloatingIsLand.Config
             MapElement = TableJson.LoadRows<string, MapElementRow>("MapElement", readJson("MapElement"), r => r.elementId);
             WindLevel = TableJson.LoadRows<int, WindLevelRow>("WindLevel", readJson("WindLevel"), r => r.level);
             Level = TableJson.LoadRows<int, LevelRow>("Level", readJson("Level"), r => r.level);
+            BuildingGroupTheme = TableJson.LoadRows<string, BuildingGroupThemeRow>("BuildingGroupTheme", readJson("BuildingGroupTheme"), r => r.themeId);
             Stage = TableJson.LoadRows<int, StageRow>("Stage", readJson("Stage"), r => r.stageId);
             GameConfig = TableJson.LoadSingleton<GameConfig>("GameConfig", readJson("GameConfig"));
             WindConfig = TableJson.LoadSingleton<WindConfig>("WindConfig", readJson("WindConfig"));

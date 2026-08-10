@@ -21,28 +21,41 @@ namespace FloatingIsLand.Domain.Build
         /// <summary>每组建筑数量上限。</summary>
         public int GroupSizeMax { get; }
 
-        /// <summary>抽取池：每个元素是一个变体 Id 的一份，同一变体出现几次就是几份权重。</summary>
-        public IReadOnlyList<string> Pool { get; }
+        /// <summary>
+        /// 本级强制使用的主题 Id 列表；为空表示按主题自己的等级区间自动筛选（常规做法）。
+        /// 只在需要写死体验时填，例如第 1 级固定「矿业 vs 农业」。
+        /// </summary>
+        public IReadOnlyList<string> ForcedThemeIds { get; }
 
-        public LevelDef(int level, int unlockCost, int groupCount, int groupSizeMin, int groupSizeMax, IReadOnlyList<string> pool)
+        public LevelDef(
+            int level, int unlockCost, int groupCount, int groupSizeMin, int groupSizeMax,
+            IReadOnlyList<string> forcedThemeIds)
         {
             Level = level;
             UnlockCost = unlockCost;
             GroupCount = groupCount;
             GroupSizeMin = groupSizeMin;
             GroupSizeMax = groupSizeMax;
-            Pool = pool ?? Array.Empty<string>();
+            ForcedThemeIds = forcedThemeIds ?? Array.Empty<string>();
         }
     }
 
     /// <summary>一组待选建筑（二选一的其中一组）。</summary>
     public sealed class BuildingGroup
     {
-        /// <summary>组内建筑变体 Id，允许重复（§4.2：同组可重复建筑）。</summary>
+        /// <summary>本组来自哪个主题（<see cref="GroupThemeDef.ThemeId"/>）。</summary>
+        public string ThemeId { get; }
+
+        /// <summary>主题显示名，UI 直接拿去当组标题。</summary>
+        public string NameCn { get; }
+
+        /// <summary>组内建筑变体 Id，允许重复（§4.2：同组可重复建筑）；按配方声明顺序聚在一起。</summary>
         public IReadOnlyList<string> VariantIds { get; }
 
-        public BuildingGroup(IReadOnlyList<string> variantIds)
+        public BuildingGroup(string themeId, string nameCn, IReadOnlyList<string> variantIds)
         {
+            ThemeId = themeId ?? string.Empty;
+            NameCn = nameCn ?? string.Empty;
             VariantIds = variantIds ?? Array.Empty<string>();
         }
     }
@@ -55,9 +68,12 @@ namespace FloatingIsLand.Domain.Build
     public sealed class BuildRunState
     {
         private readonly IReadOnlyList<LevelDef> _levels;
+        private readonly IReadOnlyList<GroupThemeDef> _themes;
         private readonly BuildRuleSet _rules;
         private readonly DeterministicRandom _random;
         private readonly List<string> _hand = new List<string>();
+        private readonly List<GroupThemeDef> _candidateThemes = new List<GroupThemeDef>();
+        private readonly List<GroupThemeDef> _remainingThemes = new List<GroupThemeDef>();
         private BuildingGroup[] _offers = Array.Empty<BuildingGroup>();
 
         /// <summary>当前等级（1 起）。</summary>
@@ -100,9 +116,14 @@ namespace FloatingIsLand.Domain.Build
         /// <summary>状态变更事件（分数 / 金币 / 手牌 / 待选组 任一变化都会触发）。</summary>
         public event Action Changed;
 
-        public BuildRunState(IReadOnlyList<LevelDef> levels, BuildRuleSet rules, int seed)
+        public BuildRunState(
+            IReadOnlyList<LevelDef> levels,
+            IReadOnlyList<GroupThemeDef> themes,
+            BuildRuleSet rules,
+            int seed)
         {
             _levels = levels ?? throw new ArgumentNullException(nameof(levels));
+            _themes = themes ?? throw new ArgumentNullException(nameof(themes));
             _rules = rules ?? throw new ArgumentNullException(nameof(rules));
             _random = new DeterministicRandom(seed);
             Level = 0;
@@ -201,29 +222,189 @@ namespace FloatingIsLand.Domain.Build
             RaiseChanged();
         }
 
-        /// <summary>抽出本级的若干组建筑。</summary>
+        /// <summary>
+        /// 抽出本级的若干组建筑。
+        ///
+        /// 一组 = 一个主题：先在本级可用的主题里**不放回**地抽 <see cref="LevelDef.GroupCount"/> 个，
+        /// 再各自按主题配方发牌。不放回是为了让二选一真的是「两条不同的路线」而不是同一堆建筑
+        /// 洗两次；组内只出同主题建筑，则保证了组里的建筑互相加分。
+        /// </summary>
         private BuildingGroup[] RollOffers(LevelDef level)
         {
-            if (level.Pool.Count == 0 || level.GroupCount <= 0)
+            if (level.GroupCount <= 0)
             {
                 return Array.Empty<BuildingGroup>();
             }
 
+            CollectCandidateThemes(level);
+            if (_candidateThemes.Count == 0)
+            {
+                return Array.Empty<BuildingGroup>();
+            }
+
+            _remainingThemes.Clear();
             var offers = new BuildingGroup[level.GroupCount];
             for (int g = 0; g < level.GroupCount; g++)
             {
-                int size = level.GroupSizeMin >= level.GroupSizeMax
-                    ? level.GroupSizeMin
-                    : _random.NextInt(level.GroupSizeMin, level.GroupSizeMax + 1);
-
-                var picks = new List<string>(size);
-                for (int i = 0; i < size; i++)
+                if (_remainingThemes.Count == 0)
                 {
-                    picks.Add(level.Pool[_random.NextInt(0, level.Pool.Count)]);
+                    // 本级可用主题比组数还少（只会出现在配表铺得不够的等级上）：
+                    // 允许重复出题，配方随机仍会让两组内容不同，好过少给玩家一组。
+                    _remainingThemes.AddRange(_candidateThemes);
                 }
-                offers[g] = new BuildingGroup(picks);
+
+                int index = PickWeightedTheme(_remainingThemes);
+                GroupThemeDef theme = _remainingThemes[index];
+                _remainingThemes.RemoveAt(index);
+                offers[g] = BuildGroup(theme, level);
             }
             return offers;
+        }
+
+        /// <summary>本级可用主题：Level 写死了就用写死的，否则按主题自己的等级区间筛。</summary>
+        private void CollectCandidateThemes(LevelDef level)
+        {
+            _candidateThemes.Clear();
+
+            if (level.ForcedThemeIds.Count > 0)
+            {
+                for (int i = 0; i < level.ForcedThemeIds.Count; i++)
+                {
+                    GroupThemeDef theme = ThemeById(level.ForcedThemeIds[i]);
+                    if (theme != null)
+                    {
+                        _candidateThemes.Add(theme);
+                    }
+                }
+                return;
+            }
+
+            for (int i = 0; i < _themes.Count; i++)
+            {
+                if (_themes[i].IsAvailableAt(level.Level))
+                {
+                    _candidateThemes.Add(_themes[i]);
+                }
+            }
+        }
+
+        /// <summary>按配方把一个主题展开成一组建筑。</summary>
+        private BuildingGroup BuildGroup(GroupThemeDef theme, LevelDef level)
+        {
+            IReadOnlyList<ThemeMember> members = theme.Members;
+            var counts = new int[members.Count];
+            int total = 0;
+            for (int i = 0; i < members.Count; i++)
+            {
+                counts[i] = members[i].MinCount;
+                total += counts[i];
+            }
+
+            int size = level.GroupSizeMin >= level.GroupSizeMax
+                ? level.GroupSizeMin
+                : _random.NextInt(level.GroupSizeMin, level.GroupSizeMax + 1);
+
+            // 保底数量优先于组大小下限：配方说了必出的建筑一定给足
+            // （配表校验保证保底和不超过 groupSizeMax，所以这里不会撑爆一组）。
+            if (size < total)
+            {
+                size = total;
+            }
+
+            while (total < size)
+            {
+                int pick = PickWeightedMember(members, counts);
+                if (pick < 0)
+                {
+                    break; // 所有成员都到上限了，这一组就比 size 小
+                }
+                counts[pick]++;
+                total++;
+            }
+
+            var picks = new List<string>(total);
+            for (int i = 0; i < members.Count; i++)
+            {
+                for (int n = 0; n < counts[i]; n++)
+                {
+                    picks.Add(members[i].VariantId);
+                }
+            }
+            return new BuildingGroup(theme.ThemeId, theme.NameCn, picks);
+        }
+
+        /// <summary>按权重抽一个主题的下标；权重全为 0 时退化成均匀抽。</summary>
+        private int PickWeightedTheme(List<GroupThemeDef> themes)
+        {
+            int totalWeight = 0;
+            for (int i = 0; i < themes.Count; i++)
+            {
+                totalWeight += Math.Max(0, themes[i].Weight);
+            }
+            if (totalWeight <= 0)
+            {
+                return _random.NextInt(0, themes.Count);
+            }
+
+            int roll = _random.NextInt(0, totalWeight);
+            for (int i = 0; i < themes.Count; i++)
+            {
+                roll -= Math.Max(0, themes[i].Weight);
+                if (roll < 0)
+                {
+                    return i;
+                }
+            }
+            return themes.Count - 1;
+        }
+
+        /// <summary>按权重抽一个还没到上限的成员下标；没有可抽的返回 -1。</summary>
+        private int PickWeightedMember(IReadOnlyList<ThemeMember> members, int[] counts)
+        {
+            int totalWeight = 0;
+            for (int i = 0; i < members.Count; i++)
+            {
+                if (CanTakeMore(members[i], counts[i]))
+                {
+                    totalWeight += members[i].Weight;
+                }
+            }
+            if (totalWeight <= 0)
+            {
+                return -1;
+            }
+
+            int roll = _random.NextInt(0, totalWeight);
+            for (int i = 0; i < members.Count; i++)
+            {
+                if (!CanTakeMore(members[i], counts[i]))
+                {
+                    continue;
+                }
+                roll -= members[i].Weight;
+                if (roll < 0)
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        private static bool CanTakeMore(ThemeMember member, int taken)
+        {
+            return member.Weight > 0 && (member.MaxCount <= 0 || taken < member.MaxCount);
+        }
+
+        private GroupThemeDef ThemeById(string themeId)
+        {
+            for (int i = 0; i < _themes.Count; i++)
+            {
+                if (string.Equals(_themes[i].ThemeId, themeId, StringComparison.Ordinal))
+                {
+                    return _themes[i];
+                }
+            }
+            return null;
         }
 
         private LevelDef LevelAt(int level)

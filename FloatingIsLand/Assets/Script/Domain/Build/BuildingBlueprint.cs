@@ -13,7 +13,7 @@ namespace FloatingIsLand.Domain.Build
         /// <summary>必须建在绿地（农田 §12.3）。</summary>
         GreenField = 1,
 
-        /// <summary>必须建在风带（风帆 §12.5）。风系统为 M3，见 <see cref="BuildRuleSet.WindEnabled"/>。</summary>
+        /// <summary>必须建在风带（风帆 §12.5）。<see cref="BuildBoard.WindField"/> 为 null 时整条规则跳过。</summary>
         WindPath = 2,
 
         /// <summary>只能建在浮空区域（船坞 §12.8）。</summary>
@@ -94,6 +94,12 @@ namespace FloatingIsLand.Domain.Build
         /// <summary>风力直接得分曲线，索引 = 风力 0~5 级；空 = 不吃风力分。</summary>
         public IReadOnlyList<int> WindScoreByLevel { get; }
 
+        /// <summary>强风穿过占地的惩罚曲线（负值，索引 = 风力 0~5 级；居民区 §12.13）；空 = 不受穿风惩罚。</summary>
+        public IReadOnlyList<int> WindPassPenaltyByLevel { get; }
+
+        /// <summary>居民区相关分的风力倍率曲线（索引 = 风力 0~5 级；风向标 §12.1）；空 = 无倍率。</summary>
+        public IReadOnlyList<float> ResidentWindMultByLevel { get; }
+
         public BuildingBlueprint(
             string variantId,
             string buildingId,
@@ -109,7 +115,9 @@ namespace FloatingIsLand.Domain.Build
             IReadOnlyList<ScoreSource> elementBonus,
             IReadOnlyList<ScoreSource> bonusFrom,
             IReadOnlyList<ScoreSource> penaltyFrom,
-            IReadOnlyList<int> windScoreByLevel)
+            IReadOnlyList<int> windScoreByLevel,
+            IReadOnlyList<int> windPassPenaltyByLevel = null,
+            IReadOnlyList<float> residentWindMultByLevel = null)
         {
             if (string.IsNullOrEmpty(variantId))
             {
@@ -131,6 +139,8 @@ namespace FloatingIsLand.Domain.Build
             BonusFrom = bonusFrom ?? Array.Empty<ScoreSource>();
             PenaltyFrom = penaltyFrom ?? Array.Empty<ScoreSource>();
             WindScoreByLevel = windScoreByLevel ?? Array.Empty<int>();
+            WindPassPenaltyByLevel = windPassPenaltyByLevel ?? Array.Empty<int>();
+            ResidentWindMultByLevel = residentWindMultByLevel ?? Array.Empty<float>();
         }
     }
 

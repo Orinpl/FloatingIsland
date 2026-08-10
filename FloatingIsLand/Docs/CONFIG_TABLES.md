@@ -111,7 +111,7 @@ int levels = Tables.GameConfig.totalLevels;        // 单例参数组：直接�
 依赖：`com.unity.nuget.newtonsoft-json`（已加进 `Packages/manifest.json`）；工具侧 ClosedXML 0.105 +
 Newtonsoft.Json 13，首次 `dotnet run` 自动还原。读表层锁 C# 9 是为兼容 Unity 2022。
 
-## 本项目的表（Tables\FloatingIsland.xlsx，10 个 Sheet）
+## 本项目的表（Tables\FloatingIsland.xlsx，11 个 Sheet）
 
 表结构由 [GAME_DESIGN.md](GAME_DESIGN.md) 推导（§13～§18 五张关系表全部数据化为有向条目），
 对应 [PROJECT_BUILD.md](PROJECT_BUILD.md) §5 的四类配置收敛方案。**当前只定了表头与结构行，
@@ -120,23 +120,37 @@ Newtonsoft.Json 13，首次 `dotnet run` 自动还原。读表层锁 C# 9 是为
 
 | Sheet | 类型 | 主键 | 内容 | 对应设计 |
 |---|---|---|---|---|
-| `Building` | 行表 | `buildingId` string | **模板表**，15 栋建筑：分类、建造限制、半径、基础分、`elementBonus` 地图元素加分（微格式 `元素Id:分值[:上限]`；判定用元素的 radius；写了 `giantWindmill` 条目=专属分替代通用分）、物流覆盖资格、风力曲线（船坞/风帆/居民区/风向标各自专列）、MVP 批次 | §6、§11、§12、§14、§19 |
-| `BuildingVariant` | 行表 | `variantId` string | **表现表**，一行一个变体：`buildingId` 归属模板、`nameCn` 变体显示名（空=沿用 `Building.nameCn`）、`footprint` 占地掩码（`#`=占用 `.`=空、\|分行，如 2×2=`##\|##`、L形=`##\|#.\|#.`）、`prefabPath` 表现 Prefab。一个模板可挂多套占地/外观（如居民区 3 种结构），抽哪个变体由 `Level` 表的抽取池直接配到变体粒度；摆放旋转不配表，默认全部允许 90° 旋转。**一个模板挂多个变体时 `nameCn` 必须逐个填**——手牌是按变体发的，都叫「居民区」玩家分不出方形和 L 形（UI 另有形状图标辅助） | 占地与表现 |
+| `Building` | 行表 | `buildingId` string | **模板表**，15 栋建筑：分类、建造限制、半径、基础分、`elementBonus` 地图元素加分（微格式 `元素Id:分值[:上限]`；判定用**结算建筑自身的 radius**，与邻接同口径，`MapElement.radius` 不参与计分；写了 `giantWindmill` 条目=专属分替代通用分）、物流覆盖资格、风力曲线（船坞/风帆/居民区/风向标各自专列）、MVP 批次 | §6、§11、§12、§14、§19 |
+| `BuildingVariant` | 行表 | `variantId` string | **表现表**，一行一个变体：`buildingId` 归属模板、`nameCn` 变体显示名（空=沿用 `Building.nameCn`）、`footprint` 占地掩码（`#`=占用 `.`=空、\|分行，如 2×2=`##\|##`、L形=`##\|#.\|#.`）、`prefabPath` 表现 Prefab。一个模板可挂多套占地/外观（如居民区 3 种结构），抽哪个变体由 `BuildingGroupTheme` 的成员配方直接配到变体粒度；摆放旋转不配表，默认全部允许 90° 旋转。**一个模板挂多个变体时 `nameCn` 必须逐个填**——手牌是按变体发的，都叫「居民区」玩家分不出方形和 L 形（UI 另有形状图标辅助） | 占地与表现 |
 | `BuildingRelation` | 行表 | `buildingId` string | 每建筑一行的有向邻接关系（真值表 A/B + 单向 + 双向 + 负面 + 同类）：`bonusFrom` 加分来源 / `penaltyFrom` 扣分来源两列，单元格微格式 `来源Id:分值[:上限]`、多条目用 `\|` 分隔；判定范围一律用结算建筑自身 `radius`；来源=自己即同类关系；方向不可反读，双向关系在两行各写一条。解析器 `RelationEntry.ParseAll`，ConfigVerify 会校验格式与建筑 Id 外键 | §13、§15～§18 |
-| `MapElement` | 行表 | `elementId` string | 7 种地图元素：占地掩码、有效范围、生成数量区间 | §5.2 |
+| `MapElement` | 行表 | `elementId` string | 7 种地图元素：占地掩码、`radius` 有效范围（**只用于摆放合法性**，如采矿站的 `oreRange`；计分一律用建筑自身 radius）、生成数量区间 | §5.2 |
 | `WindLevel` | 行表 | `level` int | 风力 0~5 级：名称、通用风力倍率 | §8.3 |
-| `Level` | 行表 | `level` int | 20 级：解锁费用、组数、组大小、抽取池 `pool`（微格式 `变体Id:数量`、\|分隔，如 `residence_01:2\|farm_01:3`；变体 Id → `BuildingVariant.variantId`，配到占地结构粒度） | §4 |
+| `Level` | 行表 | `level` int | 20 级：解锁费用、组数、组大小、`themes` 本级写死的主题列表（可空；空=按主题自己的等级区间自动筛，只有第 1 级填了 `mining\|farmland`） | §4 |
+| `BuildingGroupTheme` | 行表 | `themeId` string | **选组配方表**，10 个主题：`minLevel`/`maxLevel` 阶段区间、`weight` 同级抽中权重、`members` 成员配方（微格式 `变体Id:权重[:最少[:最多]]`、\|分隔）。一组 = 一个主题，同一级的两组必定是两个不同主题（不放回）。配比即「核心多、增幅少」：`miningStation_01:6:2:3\|workshop_01:2:1:1` = 采矿站 2~3 栋、工坊恰好 1 栋 | §4.2.1 |
 | `Stage` | 行表 | `stageId` int | 3 个关卡：每关一张独立浮空岛地图（尺寸 250×250、岛屿模型资源路径） | 关卡需求 |
 | `GameConfig` | 单例 | — | 格子边长 `cellSize`（世界单位，须与 EGB 网格预制体一致）、总等级、分转金币比例、刷新保护、巨型风车通用分、锚点递减曲线 | §3、§4.3、§6 |
 | `WindConfig` | 单例 | — | 风力上限、初始风强度/长度区间 | §8 |
 | `LogisticsConfig` | 单例 | — | 覆盖半径、覆盖分、延长风长与次数上限、终局网络奖励 | §10 |
 
 跨表引用约定：`BuildingRelation` 打包条目里的来源 Id、`BuildingVariant.buildingId` → `Building.buildingId`；
-`Level.pool` 条目里的变体 Id → `BuildingVariant.variantId`；`Building.elementBonus` 条目里的元素 Id
-→ `MapElement.elementId`。转表器只查主键唯一，不查外键；ConfigVerify（`验证读表.bat`）已校验：
-`BuildingRelation` 与 `Building.elementBonus` 微格式与外键、`BuildingVariant` 外键、
-footprint 掩码合法性（行长一致、只含 `#`/`.`、至少一个 `#`）、`Level.pool` 条目格式
-（`变体Id:数量`，数量为正整数）与外键。
+`BuildingGroupTheme.members` 条目里的变体 Id → `BuildingVariant.variantId`；`Level.themes` → `BuildingGroupTheme.themeId`；
+`Building.elementBonus` 条目里的元素 Id → `MapElement.elementId`。转表器只查主键唯一，不查外键；
+ConfigVerify（`验证读表.bat`）已校验：`BuildingRelation` 与 `Building.elementBonus` 微格式与外键、
+`BuildingVariant` 外键、footprint 掩码合法性（行长一致、只含 `#`/`.`、至少一个 `#`），
+以及下面这组**建筑组主题校验**。
+
+### 建筑组主题的硬校验（`ValidateGroupThemes`）
+
+除了格式与外键，ConfigVerify 把 GAME_DESIGN §4.2.1 的两条设计约束变成了硬校验——
+关系表有 40 条有向边，靠人肉记「谁和谁能凑一组」迟早会漏：
+
+- **协同**：组内每个建筑至少要和组内另一个建筑（或同类的自己）存在一条 `bonusFrom` 有向边，
+  否则它在这组里就是个无关的搭头。完全没有关系条目的建筑豁免（风帆全靠风力分吃饭）。
+- **互斥**：组内不许出现**异类** `penaltyFrom` 边。居民区被采矿站和工坊扣分，所以
+  `residence_01 + workshop_01` 放一组会直接报错——这正是改版前 Level 1 的配置。
+  同类自扣（采矿站扎堆互扣）是设计要的空间取舍，不算错。
+- 每级候选主题数 ≥ `groupCount`，否则同一级会出两组同主题；
+- 成员保底数量之和 ≤ `groupSizeMax` 的全表最小值（保底优先于组大小，否则会撑出超规格的一组）。
 
 三条不进表的全局规则（写死在代码/由字段组合表达）：巨型风车"专属替代通用"的结算逻辑、
 船坞"每座只归属一个锚点（最近优先/少者优先）"、物流覆盖"同建筑只计一次"。
@@ -212,11 +226,21 @@ dotnet run --project Tools\BalanceSim -- --runs 30 --free-unlock  # 免费解锁
 同理，判据不能拿**累计金币**比**单级费用**——金币只进不出，累计额必然远大于单级价，
 那样算出来永远是「偏易」。用「本级收入 / 本级解锁价」的覆盖率才能看出压力分布。
 
-当前标定结果（stage_1，30 局）：平均到达 **19.7 / 20** 级，通关率 **83%**，
-总支出占总收入 **85%**，单栋均分从 27 成长到 ~105；前期覆盖率 1.2~2.1（学习期宽松），
-后期 L14/15/17/18 覆盖率 0.7~0.96 需要吃老本（设计要的压力区）。
+当前标定结果（stage_1，30 局，主题化选组后重新定价）：平均到达 **19.6 / 20** 级，
+通关率 **83%**，总支出占总收入 **85.2%**，单栋均分从 48 成长到 ~83；
+前期覆盖率 1.2~2.9（学习期宽松），后期 L15~L19 覆盖率 0.87~0.98 需要吃老本（设计要的压力区）。
 贪心 AI 比真人强得多，所以 83% 对真人而言已经是有真实失败风险的强度；
 再往下调需要真实试玩数据，而不是继续跑仿真。
+
+> **改了 `BuildingGroupTheme` 就必须重跑一次定价。** 分组换了收入曲线就跟着换——
+> 主题化改版前后同一套 `unlockCost` 的支出占比从 85% 漂到 90%，通关率从 83% 掉到 57%。
+
+仿真报告还带两张验收表，专门用来看分组本身对不对：
+
+- **每级选中的主题分布**：验收阶段节奏（前期只该出生产线，L12 起才该出物流/港口）；
+- **建筑出现量**：验收组内配比与「放不下」的风险。当前 30 局合计每局落地
+  采矿站 14.5 / 工坊 7.0、农田 13.3 / 风车 5.7 / 粮仓 3.4、居民区 14.3 / 市民中心 0.7、
+  物流点 2.9 / 物流中心 0.6，**跳过 0 栋**（前期就发受地形限制的农田与采矿站，风险全在这一栏）。
 
 仿真还报出了一个**内容问题而非数值问题**：船坞占地 6×6，而地图生成器最初只刷 3 格宽的
 浮空区域环——船坞永远找不到合法落点，直接变成废牌。环宽改成 8 格后，

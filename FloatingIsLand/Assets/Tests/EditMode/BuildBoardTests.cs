@@ -74,8 +74,7 @@ namespace FloatingIsLand.Tests
                 anchorDockDecayPercents: new[] { 1f, 0.5f, 0.25f, 0f },
                 logisticsCoverRadius: logisticsCoverRadius,
                 logisticsBaseCoverScore: logisticsCoverScore,
-                scoreToGoldRatio: 1f,
-                windEnabled: false);
+                scoreToGoldRatio: 1f);
         }
 
         // ---------- 摆放校验 ----------
@@ -299,6 +298,37 @@ namespace FloatingIsLand.Tests
         }
 
         [Test]
+        public void 元素超出建筑自己的半径时不加分()
+        {
+            // 元素的 radius 再大也不管计分：判定的是「建筑的影响范围有没有覆盖到元素的地格」。
+            // 巨型风车 radius 12 而工坊 radius 5，隔了 9 格的风车不该给工坊加分。
+            MapElementDef giant = MakeElement("giantWindmill", new[] { "##", "##" }, radius: 12);
+            BuildingBlueprint workshop = MakeBlueprint("workshop_01", "workshop", new[] { "#" }, radius: 5, baseScore: 0);
+            var elements = new[] { new MapElementPlacement("giantWindmill", 5, 5, 0, Rotation.Deg0) };
+            var board = new BuildBoard(MakeMap(20, Island, elements), MakeRules(new[] { workshop }, new[] { giant }, giantWindmillGeneric: 10));
+            var engine = new ScoreEngine(board);
+
+            // 占地是 (5,5)~(6,6)，最近的格是 (6,5)：距离 9 > 5
+            Assert.AreEqual(0, engine.Evaluate(workshop, 15, 5, 0, Rotation.Deg0).Total, "范围外的巨型风车不该加分");
+            // 边界上（距离正好 5）仍然算，证明不是整条通道被关掉了
+            Assert.AreEqual(10, engine.Evaluate(workshop, 11, 5, 0, Rotation.Deg0).Total, "半径边界上的元素应该加分");
+        }
+
+        [Test]
+        public void 元素专属条目同样只看建筑自己的半径()
+        {
+            MapElementDef ore = MakeElement("ore", new[] { "##", "##" }, radius: 10);
+            var exclusive = new[] { new ScoreSource("ore", 25, 0) };
+            BuildingBlueprint mine = MakeBlueprint("mine_01", "miningStation", new[] { "#" }, radius: 3, baseScore: 0, elementBonus: exclusive);
+            var elements = new[] { new MapElementPlacement("ore", 5, 5, 0, Rotation.Deg0) };
+            var board = new BuildBoard(MakeMap(20, Island, elements), MakeRules(new[] { mine }, new[] { ore }));
+            var engine = new ScoreEngine(board);
+
+            Assert.AreEqual(0, engine.Evaluate(mine, 12, 5, 0, Rotation.Deg0).Total, "矿藏 radius 10 不该顶替采矿站自己的 3");
+            Assert.AreEqual(25, engine.Evaluate(mine, 9, 5, 0, Rotation.Deg0).Total);
+        }
+
+        [Test]
         public void 物流覆盖分每栋只计一次()
         {
             var logistics = MakeBlueprint("lp_01", "logisticsPoint", new[] { "#" }, baseScore: 0);
@@ -343,6 +373,304 @@ namespace FloatingIsLand.Tests
             var engine = new ScoreEngine(board);
 
             Assert.AreEqual(20, engine.Evaluate(dock, 5, 5, 0, Rotation.Deg0).Total);
+        }
+
+        // ---------- 已落地建筑的分数不回溯 ----------
+        //
+        // 设计要求：只有"正在建的那一栋"会按范围内的邻居算分，已经建好的不会因为旁边新建了什么而补分。
+        // 这条规则决定了玩家能不能提前规划，也是分数可预期的前提，所以要从多个角度钉死。
+
+        [Test]
+        public void 落地时算出的分被原样记住()
+        {
+            BuildingBlueprint house = MakeBlueprint("house_01", "house", new[] { "#" }, baseScore: 13);
+            var board = new BuildBoard(MakeMap(), MakeRules(new[] { house }));
+            var engine = new ScoreEngine(board);
+
+            ScoreBreakdown breakdown = engine.Evaluate(house, 5, 5, 0, Rotation.Deg0);
+            PlacedBuilding placed = board.Place(house, 5, 5, 0, Rotation.Deg0, breakdown.Total);
+
+            Assert.AreEqual(13, placed.InstantScore);
+        }
+
+        [Test]
+        public void 旁边再建新建筑_已落地建筑的即时分不变()
+        {
+            var bonus = new[] { new ScoreSource("house", 10, 0) };
+            BuildingBlueprint house = MakeBlueprint("house_01", "house", new[] { "#" }, baseScore: 5, bonusFrom: bonus);
+            var board = new BuildBoard(MakeMap(), MakeRules(new[] { house }));
+            var engine = new ScoreEngine(board);
+
+            // 第一栋孤零零落地：只有基础分
+            PlacedBuilding first = board.Place(house, 5, 5, 0, Rotation.Deg0,
+                engine.Evaluate(house, 5, 5, 0, Rotation.Deg0).Total);
+            Assert.AreEqual(5, first.InstantScore);
+
+            // 紧挨着再建三栋，每一栋都能看到第一栋
+            for (int i = 1; i <= 3; i++)
+            {
+                board.Place(house, 5 + i, 5, 0, Rotation.Deg0,
+                    engine.Evaluate(house, 5 + i, 5, 0, Rotation.Deg0).Total);
+            }
+
+            Assert.AreEqual(5, first.InstantScore, "已落地建筑被后来的邻居补了分——分数回溯了");
+        }
+
+        [Test]
+        public void 有向邻接不是双向_先建的拿不到后建者的分()
+        {
+            // A 因为身边有 B 而加分，B 对 A 没有任何条目。先建 A 再建 B，A 一分都不该多拿。
+            var aBonus = new[] { new ScoreSource("b", 40, 0) };
+            BuildingBlueprint a = MakeBlueprint("a_01", "a", new[] { "#" }, baseScore: 0, bonusFrom: aBonus);
+            BuildingBlueprint b = MakeBlueprint("b_01", "b", new[] { "#" }, baseScore: 0);
+            var board = new BuildBoard(MakeMap(), MakeRules(new[] { a, b }));
+            var engine = new ScoreEngine(board);
+
+            PlacedBuilding placedA = board.Place(a, 5, 5, 0, Rotation.Deg0,
+                engine.Evaluate(a, 5, 5, 0, Rotation.Deg0).Total);
+            board.Place(b, 6, 5, 0, Rotation.Deg0, engine.Evaluate(b, 6, 5, 0, Rotation.Deg0).Total);
+
+            Assert.AreEqual(0, placedA.InstantScore);
+            // 反过来现在再建一个 A，它就该吃到那 40 分——证明规则本身是生效的，上面不是因为条目没读到
+            Assert.AreEqual(40, engine.Evaluate(a, 7, 5, 0, Rotation.Deg0).Total);
+        }
+
+        [Test]
+        public void 孤立惩罚在落地那刻定死_后来有了邻居也不退还()
+        {
+            var bonus = new[] { new ScoreSource("house", 10, 0) };
+            BuildingBlueprint dock = MakeBlueprint("dock_01", "dock", new[] { "#" }, baseScore: 20, bonusFrom: bonus, isolationPenalty: -50);
+            BuildingBlueprint house = MakeBlueprint("house_01", "house", new[] { "#" }, baseScore: 0);
+            var board = new BuildBoard(MakeMap(), MakeRules(new[] { dock, house }));
+            var engine = new ScoreEngine(board);
+
+            PlacedBuilding placedDock = board.Place(dock, 5, 5, 0, Rotation.Deg0,
+                engine.Evaluate(dock, 5, 5, 0, Rotation.Deg0).Total);
+            Assert.AreEqual(-30, placedDock.InstantScore);
+
+            board.Place(house, 6, 5, 0, Rotation.Deg0, 0);
+            Assert.AreEqual(-30, placedDock.InstantScore, "后来有了邻居就把孤立惩罚退了——分数回溯了");
+        }
+
+        [Test]
+        public void 物流点后建_已落地建筑不会补发覆盖分()
+        {
+            var logistics = MakeBlueprint("lp_01", "logisticsPoint", new[] { "#" }, baseScore: 0);
+            var house = MakeBlueprint("house_01", "house", new[] { "#" }, baseScore: 0);
+            var board = new BuildBoard(MakeMap(), MakeRules(new[] { logistics, house }, logisticsCoverRadius: 5, logisticsCoverScore: 8));
+            var engine = new ScoreEngine(board);
+
+            PlacedBuilding placedHouse = board.Place(house, 6, 6, 0, Rotation.Deg0,
+                engine.Evaluate(house, 6, 6, 0, Rotation.Deg0).Total);
+            Assert.AreEqual(0, placedHouse.InstantScore);
+
+            board.Place(logistics, 5, 5, 0, Rotation.Deg0, 0);
+            Assert.AreEqual(0, placedHouse.InstantScore, "物流点后建就给已有建筑补发了覆盖分");
+        }
+
+        [Test]
+        public void 计分是纯查询_算完之后棋盘状态不变()
+        {
+            var bonus = new[] { new ScoreSource("house", 10, 0) };
+            BuildingBlueprint house = MakeBlueprint("house_01", "house", new[] { "#" }, baseScore: 5, bonusFrom: bonus);
+            var board = new BuildBoard(MakeMap(), MakeRules(new[] { house }));
+            var engine = new ScoreEngine(board);
+            board.Place(house, 5, 5, 0, Rotation.Deg0, 99);
+
+            int before = board.Buildings.Count;
+            engine.Evaluate(house, 7, 7, 0, Rotation.Deg0);
+            engine.Evaluate(house, 8, 8, 0, Rotation.Deg0);
+
+            Assert.AreEqual(before, board.Buildings.Count, "干跑算分把建筑加进棋盘了");
+            Assert.AreEqual(99, board.Buildings[0].InstantScore, "干跑算分改了已落地建筑的分");
+        }
+
+        [Test]
+        public void 同一位置连算两次结果一致()
+        {
+            var bonus = new[] { new ScoreSource("house", 7, 0) };
+            BuildingBlueprint house = MakeBlueprint("house_01", "house", new[] { "#" }, baseScore: 5, bonusFrom: bonus);
+            var board = new BuildBoard(MakeMap(), MakeRules(new[] { house }));
+            var engine = new ScoreEngine(board);
+            board.Place(house, 5, 5, 0, Rotation.Deg0, 0);
+            board.Place(house, 5, 6, 0, Rotation.Deg0, 0);
+
+            Assert.AreEqual(
+                engine.Evaluate(house, 7, 7, 0, Rotation.Deg0).Total,
+                engine.Evaluate(house, 7, 7, 0, Rotation.Deg0).Total);
+        }
+
+        // ---------- 逐实例归因 ----------
+        //
+        // 表现层靠归因决定「在谁头上飘 +3」。归因必须和实际算分同源、且可复现，
+        // 否则会出现"飘的数字和到手的分对不上"这种最难查的 bug。
+
+        [Test]
+        public void 归因合计等于总分()
+        {
+            var bonus = new[] { new ScoreSource("house", 7, 0) };
+            var penalty = new[] { new ScoreSource("tower", 4, 0) };
+            BuildingBlueprint house = MakeBlueprint("house_01", "house", new[] { "#" }, baseScore: 11, bonusFrom: bonus, penaltyFrom: penalty);
+            BuildingBlueprint tower = MakeBlueprint("tower_01", "tower", new[] { "#" }, baseScore: 0);
+            var board = new BuildBoard(MakeMap(), MakeRules(new[] { house, tower }));
+            var engine = new ScoreEngine(board);
+
+            board.Place(house, 5, 5, 0, Rotation.Deg0, 0);
+            board.Place(house, 5, 6, 0, Rotation.Deg0, 0);
+            board.Place(tower, 6, 5, 0, Rotation.Deg0, 0);
+
+            ScoreBreakdown breakdown = engine.Evaluate(house, 6, 6, 0, Rotation.Deg0);
+
+            int sum = 0;
+            for (int i = 0; i < breakdown.Attributions.Count; i++)
+            {
+                sum += breakdown.Attributions[i].Score;
+            }
+            Assert.AreEqual(breakdown.Total, sum, "归因加起来对不上总分——表现层飘的数字会和实际得分分叉");
+        }
+
+        [Test]
+        public void 同一棋盘两次算分的归因序列逐项相等()
+        {
+            var bonus = new[] { new ScoreSource("house", 7, 2) };
+            BuildingBlueprint house = MakeBlueprint("house_01", "house", new[] { "#" }, baseScore: 0, bonusFrom: bonus);
+            var board = new BuildBoard(MakeMap(), MakeRules(new[] { house }));
+            var engine = new ScoreEngine(board);
+            for (int i = 0; i < 5; i++)
+            {
+                board.Place(house, 5 + i, 5, 0, Rotation.Deg0, 0);
+            }
+
+            IReadOnlyList<ScoreAttribution> first = engine.Evaluate(house, 6, 6, 0, Rotation.Deg0).Attributions;
+            IReadOnlyList<ScoreAttribution> second = engine.Evaluate(house, 6, 6, 0, Rotation.Deg0).Attributions;
+
+            Assert.AreEqual(first.Count, second.Count);
+            for (int i = 0; i < first.Count; i++)
+            {
+                Assert.AreEqual(first[i].InstanceId, second[i].InstanceId, $"第 {i} 条归因的实例变了");
+                Assert.AreEqual(first[i].Score, second[i].Score, $"第 {i} 条归因的分变了");
+                Assert.AreEqual(first[i].State, second[i].State, $"第 {i} 条归因的计入状态变了");
+            }
+        }
+
+        [Test]
+        public void 超出计数上限的实例仍会出现在归因里且标为未计入()
+        {
+            var bonus = new[] { new ScoreSource("house", 10, 2) };
+            BuildingBlueprint house = MakeBlueprint("house_01", "house", new[] { "#" }, baseScore: 0, bonusFrom: bonus);
+            var board = new BuildBoard(MakeMap(), MakeRules(new[] { house }));
+            var engine = new ScoreEngine(board);
+            board.Place(house, 5, 5, 0, Rotation.Deg0, 0);
+            board.Place(house, 5, 6, 0, Rotation.Deg0, 0);
+            board.Place(house, 5, 7, 0, Rotation.Deg0, 0);
+
+            ScoreBreakdown breakdown = engine.Evaluate(house, 6, 6, 0, Rotation.Deg0);
+            var buildings = new List<ScoreAttribution>();
+            breakdown.CollectAttributions(ScoreSourceKind.Building, false, buildings);
+
+            Assert.AreEqual(3, buildings.Count, "三个邻居都该出现在归因里——被上限挡住的也要能高亮");
+            int counted = 0;
+            for (int i = 0; i < buildings.Count; i++)
+            {
+                if (buildings[i].Counted)
+                {
+                    counted++;
+                }
+                else
+                {
+                    Assert.AreEqual(ScoreCountState.OverMaxCount, buildings[i].State);
+                    Assert.AreEqual(0, buildings[i].Score, "未计入的实例不该带分，否则归因合计会超过总分");
+                }
+            }
+            Assert.AreEqual(2, counted);
+            Assert.AreEqual(20, breakdown.Total);
+        }
+
+        [Test]
+        public void 上限截断按距离由近到远_近的先算上()
+        {
+            var bonus = new[] { new ScoreSource("house", 10, 1) };
+            BuildingBlueprint house = MakeBlueprint("house_01", "house", new[] { "#" }, baseScore: 0, bonusFrom: bonus);
+            var board = new BuildBoard(MakeMap(), MakeRules(new[] { house }));
+            var engine = new ScoreEngine(board);
+
+            // 先建远的、后建近的：如果按落地顺序取就会算错那一个
+            PlacedBuilding far = board.Place(house, 9, 6, 0, Rotation.Deg0, 0);
+            PlacedBuilding near = board.Place(house, 7, 6, 0, Rotation.Deg0, 0);
+
+            ScoreBreakdown breakdown = engine.Evaluate(house, 6, 6, 0, Rotation.Deg0);
+            var buildings = new List<ScoreAttribution>();
+            breakdown.CollectAttributions(ScoreSourceKind.Building, true, buildings);
+
+            Assert.AreEqual(1, buildings.Count);
+            Assert.AreEqual(near.Id, buildings[0].InstanceId, "上限截断该留下最近的那个");
+            Assert.AreNotEqual(far.Id, buildings[0].InstanceId);
+        }
+
+        [Test]
+        public void 多个物流点覆盖时只有一个被记为计入()
+        {
+            var logistics = MakeBlueprint("lp_01", "logisticsPoint", new[] { "#" }, baseScore: 0);
+            var house = MakeBlueprint("house_01", "house", new[] { "#" }, baseScore: 0);
+            var board = new BuildBoard(MakeMap(), MakeRules(new[] { logistics, house }, logisticsCoverRadius: 5, logisticsCoverScore: 8));
+            var engine = new ScoreEngine(board);
+            board.Place(logistics, 5, 5, 0, Rotation.Deg0, 0);
+            board.Place(logistics, 5, 6, 0, Rotation.Deg0, 0);
+            board.Place(logistics, 5, 7, 0, Rotation.Deg0, 0);
+
+            ScoreBreakdown breakdown = engine.Evaluate(house, 6, 6, 0, Rotation.Deg0);
+            var all = new List<ScoreAttribution>();
+            breakdown.CollectAttributions(ScoreSourceKind.Building, false, all);
+
+            Assert.AreEqual(3, all.Count, "三个物流点都覆盖到了，都该能高亮");
+            int counted = 0;
+            for (int i = 0; i < all.Count; i++)
+            {
+                if (all[i].Counted)
+                {
+                    counted++;
+                }
+                else
+                {
+                    Assert.AreEqual(ScoreCountState.Duplicated, all[i].State);
+                }
+            }
+            Assert.AreEqual(1, counted, "覆盖分只计一次，归因也只能有一条算数");
+            Assert.AreEqual(8, breakdown.Total);
+        }
+
+        [Test]
+        public void 巨型风车专属替代通用时只产出一条元素归因()
+        {
+            MapElementDef giant = MakeElement("giantWindmill", new[] { "##", "##" }, radius: 6);
+            var exclusive = new[] { new ScoreSource("giantWindmill", 30, 0) };
+            BuildingBlueprint tower = MakeBlueprint("tower_01", "tower", new[] { "#" }, baseScore: 0, elementBonus: exclusive);
+            var elements = new[] { new MapElementPlacement("giantWindmill", 5, 5, 0, Rotation.Deg0) };
+            var board = new BuildBoard(MakeMap(20, Island, elements), MakeRules(new[] { tower }, new[] { giant }, giantWindmillGeneric: 10));
+            var engine = new ScoreEngine(board);
+
+            ScoreBreakdown breakdown = engine.Evaluate(tower, 8, 5, 0, Rotation.Deg0);
+            var elementHits = new List<ScoreAttribution>();
+            breakdown.CollectAttributions(ScoreSourceKind.Element, false, elementHits);
+
+            Assert.AreEqual(1, elementHits.Count, "专属与通用同时归因会让风车头上飘两个数字");
+            Assert.AreEqual(30, elementHits[0].Score);
+        }
+
+        [Test]
+        public void 基础分与孤立惩罚归到自身_不指向任何对象()
+        {
+            BuildingBlueprint dock = MakeBlueprint("dock_01", "dock", new[] { "#" }, baseScore: 20, isolationPenalty: -50);
+            var board = new BuildBoard(MakeMap(), MakeRules(new[] { dock }));
+            var engine = new ScoreEngine(board);
+
+            ScoreBreakdown breakdown = engine.Evaluate(dock, 5, 5, 0, Rotation.Deg0);
+            var self = new List<ScoreAttribution>();
+            breakdown.CollectAttributions(ScoreSourceKind.Self, true, self);
+
+            Assert.AreEqual(2, self.Count, "基础分与孤立惩罚都该归到自身");
+            Assert.AreEqual(0, breakdown.CollectAttributions(ScoreSourceKind.Building, false, new List<ScoreAttribution>()));
+            Assert.AreEqual(0, breakdown.CollectAttributions(ScoreSourceKind.Element, false, new List<ScoreAttribution>()));
         }
     }
 }

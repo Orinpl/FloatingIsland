@@ -5,168 +5,6 @@
   "layerCount": 1,
   "cells": [
     {
-      "x": 113,
-      "z": 97,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 114,
-      "z": 97,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 115,
-      "z": 97,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 116,
-      "z": 97,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 117,
-      "z": 97,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 118,
-      "z": 97,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 119,
-      "z": 97,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 120,
-      "z": 97,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 121,
-      "z": 97,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 122,
-      "z": 97,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 123,
-      "z": 97,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 124,
-      "z": 97,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 125,
-      "z": 97,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 126,
-      "z": 97,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 127,
-      "z": 97,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 128,
-      "z": 97,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 129,
-      "z": 97,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 130,
-      "z": 97,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 131,
-      "z": 97,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 132,
-      "z": 97,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 133,
-      "z": 97,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 134,
-      "z": 97,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 135,
-      "z": 97,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 110,
-      "z": 98,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 111,
-      "z": 98,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 112,
-      "z": 98,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 113,
-      "z": 98,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
       "x": 114,
       "z": 98,
       "layer": 0,
@@ -301,42 +139,6 @@
     {
       "x": 136,
       "z": 98,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 137,
-      "z": 98,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 138,
-      "z": 98,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 139,
-      "z": 98,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 108,
-      "z": 99,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 109,
-      "z": 99,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 110,
-      "z": 99,
       "layer": 0,
       "e": "floatingZone"
     },
@@ -499,48 +301,6 @@
     {
       "x": 137,
       "z": 99,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 138,
-      "z": 99,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 139,
-      "z": 99,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 140,
-      "z": 99,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 141,
-      "z": 99,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 142,
-      "z": 99,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 106,
-      "z": 100,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 107,
-      "z": 100,
       "layer": 0,
       "e": "floatingZone"
     },
@@ -739,30 +499,6 @@
     {
       "x": 140,
       "z": 100,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 141,
-      "z": 100,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 142,
-      "z": 100,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 143,
-      "z": 100,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 105,
-      "z": 101,
       "layer": 0,
       "e": "floatingZone"
     },
@@ -991,18 +727,6 @@
     {
       "x": 143,
       "z": 101,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 144,
-      "z": 101,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 104,
-      "z": 102,
       "layer": 0,
       "e": "floatingZone"
     },
@@ -1243,24 +967,6 @@
     {
       "x": 144,
       "z": 102,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 145,
-      "z": 102,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 146,
-      "z": 102,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 103,
-      "z": 103,
       "layer": 0,
       "e": "floatingZone"
     },
@@ -1513,24 +1219,6 @@
     {
       "x": 145,
       "z": 103,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 146,
-      "z": 103,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 147,
-      "z": 103,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 102,
-      "z": 104,
       "layer": 0,
       "e": "floatingZone"
     },
@@ -1795,24 +1483,6 @@
     {
       "x": 146,
       "z": 104,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 147,
-      "z": 104,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 148,
-      "z": 104,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 101,
-      "z": 105,
       "layer": 0,
       "e": "floatingZone"
     },
@@ -1934,43 +1604,43 @@
       "x": 121,
       "z": 105,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 122,
       "z": 105,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 123,
       "z": 105,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 124,
       "z": 105,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 125,
       "z": 105,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 126,
       "z": 105,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 127,
       "z": 105,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 128,
@@ -2083,30 +1753,6 @@
     {
       "x": 146,
       "z": 105,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 147,
-      "z": 105,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 148,
-      "z": 105,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 100,
-      "z": 106,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 101,
-      "z": 106,
       "layer": 0,
       "e": "floatingZone"
     },
@@ -2210,25 +1856,25 @@
       "x": 118,
       "z": 106,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 119,
       "z": 106,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 120,
       "z": 106,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 121,
       "z": 106,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 122,
@@ -2240,7 +1886,7 @@
       "x": 123,
       "z": 106,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 124,
@@ -2276,19 +1922,19 @@
       "x": 129,
       "z": 106,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 130,
       "z": 106,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 131,
       "z": 106,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 132,
@@ -2383,30 +2029,6 @@
     {
       "x": 147,
       "z": 106,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 148,
-      "z": 106,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 149,
-      "z": 106,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 99,
-      "z": 107,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 100,
-      "z": 107,
       "layer": 0,
       "e": "floatingZone"
     },
@@ -2504,19 +2126,19 @@
       "x": 116,
       "z": 107,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 117,
       "z": 107,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 118,
       "z": 107,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 119,
@@ -2588,31 +2210,31 @@
       "x": 130,
       "z": 107,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 131,
       "z": 107,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 132,
       "z": 107,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 133,
       "z": 107,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 134,
       "z": 107,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 135,
@@ -2689,24 +2311,6 @@
     {
       "x": 147,
       "z": 107,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 148,
-      "z": 107,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 149,
-      "z": 107,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 99,
-      "z": 108,
       "layer": 0,
       "e": "floatingZone"
     },
@@ -2798,13 +2402,13 @@
       "x": 114,
       "z": 108,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 115,
       "z": 108,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 116,
@@ -2822,7 +2426,7 @@
       "x": 118,
       "z": 108,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 119,
@@ -2846,7 +2450,7 @@
       "x": 122,
       "z": 108,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 123,
@@ -2912,19 +2516,19 @@
       "x": 133,
       "z": 108,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 134,
       "z": 108,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 135,
       "z": 108,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 136,
@@ -3001,24 +2605,6 @@
     {
       "x": 148,
       "z": 108,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 149,
-      "z": 108,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 150,
-      "z": 108,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 99,
-      "z": 109,
       "layer": 0,
       "e": "floatingZone"
     },
@@ -3104,7 +2690,7 @@
       "x": 113,
       "z": 109,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 114,
@@ -3116,49 +2702,49 @@
       "x": 115,
       "z": 109,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 116,
       "z": 109,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 117,
       "z": 109,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 118,
       "z": 109,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 119,
       "z": 109,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 120,
       "z": 109,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 121,
       "z": 109,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 122,
       "z": 109,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 123,
@@ -3170,7 +2756,7 @@
       "x": 124,
       "z": 109,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 125,
@@ -3242,7 +2828,7 @@
       "x": 136,
       "z": 109,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 137,
@@ -3313,24 +2899,6 @@
     {
       "x": 148,
       "z": 109,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 149,
-      "z": 109,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 150,
-      "z": 109,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 98,
-      "z": 110,
       "layer": 0,
       "e": "floatingZone"
     },
@@ -3416,7 +2984,7 @@
       "x": 112,
       "z": 110,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 113,
@@ -3428,43 +2996,43 @@
       "x": 114,
       "z": 110,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 115,
       "z": 110,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 116,
       "z": 110,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 117,
       "z": 110,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 118,
       "z": 110,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 119,
       "z": 110,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 120,
       "z": 110,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 121,
@@ -3476,13 +3044,13 @@
       "x": 122,
       "z": 110,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 123,
       "z": 110,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 124,
@@ -3500,7 +3068,7 @@
       "x": 126,
       "z": 110,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 127,
@@ -3566,13 +3134,13 @@
       "x": 137,
       "z": 110,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 138,
       "z": 110,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 139,
@@ -3637,24 +3205,6 @@
     {
       "x": 149,
       "z": 110,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 150,
-      "z": 110,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 151,
-      "z": 110,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 98,
-      "z": 111,
       "layer": 0,
       "e": "floatingZone"
     },
@@ -3734,7 +3284,7 @@
       "x": 111,
       "z": 111,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 112,
@@ -3746,85 +3296,85 @@
       "x": 113,
       "z": 111,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 114,
       "z": 111,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 115,
       "z": 111,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 116,
       "z": 111,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 117,
       "z": 111,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 118,
       "z": 111,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 119,
       "z": 111,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 120,
       "z": 111,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 121,
       "z": 111,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 122,
       "z": 111,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 123,
       "z": 111,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 124,
       "z": 111,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 125,
       "z": 111,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 126,
       "z": 111,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 127,
@@ -3896,13 +3446,13 @@
       "x": 138,
       "z": 111,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 139,
       "z": 111,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 140,
@@ -3971,24 +3521,6 @@
       "e": "floatingZone"
     },
     {
-      "x": 151,
-      "z": 111,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 97,
-      "z": 112,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 98,
-      "z": 112,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
       "x": 99,
       "z": 112,
       "layer": 0,
@@ -4058,7 +3590,7 @@
       "x": 110,
       "z": 112,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 111,
@@ -4070,79 +3602,79 @@
       "x": 112,
       "z": 112,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 113,
       "z": 112,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 114,
       "z": 112,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 115,
       "z": 112,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 116,
       "z": 112,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 117,
       "z": 112,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 118,
       "z": 112,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 119,
       "z": 112,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 120,
       "z": 112,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 121,
       "z": 112,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 122,
       "z": 112,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 123,
       "z": 112,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 124,
       "z": 112,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 125,
@@ -4232,13 +3764,13 @@
       "x": 139,
       "z": 112,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 140,
       "z": 112,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 141,
@@ -4301,24 +3833,6 @@
       "e": "floatingZone"
     },
     {
-      "x": 151,
-      "z": 112,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 97,
-      "z": 113,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 98,
-      "z": 113,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
       "x": 99,
       "z": 113,
       "layer": 0,
@@ -4382,7 +3896,7 @@
       "x": 109,
       "z": 113,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 110,
@@ -4394,85 +3908,85 @@
       "x": 111,
       "z": 113,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 112,
       "z": 113,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 113,
       "z": 113,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 114,
       "z": 113,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 115,
       "z": 113,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 116,
       "z": 113,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 117,
       "z": 113,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 118,
       "z": 113,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 119,
       "z": 113,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 120,
       "z": 113,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 121,
       "z": 113,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 122,
       "z": 113,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 123,
       "z": 113,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 124,
       "z": 113,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 125,
@@ -4496,7 +4010,7 @@
       "x": 128,
       "z": 113,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 129,
@@ -4562,13 +4076,13 @@
       "x": 139,
       "z": 113,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 140,
       "z": 113,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 141,
@@ -4631,24 +4145,6 @@
       "e": "floatingZone"
     },
     {
-      "x": 151,
-      "z": 113,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 97,
-      "z": 114,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 98,
-      "z": 114,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
       "x": 99,
       "z": 114,
       "layer": 0,
@@ -4706,13 +4202,13 @@
       "x": 108,
       "z": 114,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 109,
       "z": 114,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 110,
@@ -4736,73 +4232,73 @@
       "x": 113,
       "z": 114,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 114,
       "z": 114,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 115,
       "z": 114,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 116,
       "z": 114,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 117,
       "z": 114,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 118,
       "z": 114,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 119,
       "z": 114,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 120,
       "z": 114,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 121,
       "z": 114,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 122,
       "z": 114,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 123,
       "z": 114,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 124,
       "z": 114,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 125,
@@ -4874,7 +4370,7 @@
       "x": 136,
       "z": 114,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 137,
@@ -4898,13 +4394,13 @@
       "x": 140,
       "z": 114,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 141,
       "z": 114,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 142,
@@ -4961,30 +4457,6 @@
       "e": "floatingZone"
     },
     {
-      "x": 151,
-      "z": 114,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 152,
-      "z": 114,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 97,
-      "z": 115,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 98,
-      "z": 115,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
       "x": 99,
       "z": 115,
       "layer": 0,
@@ -5036,13 +4508,13 @@
       "x": 107,
       "z": 115,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 108,
       "z": 115,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 109,
@@ -5066,91 +4538,91 @@
       "x": 112,
       "z": 115,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 113,
       "z": 115,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 114,
       "z": 115,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 115,
       "z": 115,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 116,
       "z": 115,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 117,
       "z": 115,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 118,
       "z": 115,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 119,
       "z": 115,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 120,
       "z": 115,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 121,
       "z": 115,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 122,
       "z": 115,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 123,
       "z": 115,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 124,
       "z": 115,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 125,
       "z": 115,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 126,
       "z": 115,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 127,
@@ -5234,13 +4706,13 @@
       "x": 140,
       "z": 115,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 141,
       "z": 115,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 142,
@@ -5303,18 +4775,6 @@
       "e": "floatingZone"
     },
     {
-      "x": 152,
-      "z": 115,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 97,
-      "z": 116,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
       "x": 98,
       "z": 116,
       "layer": 0,
@@ -5372,7 +4832,7 @@
       "x": 107,
       "z": 116,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 108,
@@ -5408,91 +4868,91 @@
       "x": 113,
       "z": 116,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 114,
       "z": 116,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 115,
       "z": 116,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 116,
       "z": 116,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 117,
       "z": 116,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 118,
       "z": 116,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 119,
       "z": 116,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 120,
       "z": 116,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 121,
       "z": 116,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 122,
       "z": 116,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 123,
       "z": 116,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 124,
       "z": 116,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 125,
       "z": 116,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 126,
       "z": 116,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 127,
       "z": 116,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 128,
@@ -5576,13 +5036,13 @@
       "x": 141,
       "z": 116,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 142,
       "z": 116,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 143,
@@ -5635,18 +5095,6 @@
     {
       "x": 151,
       "z": 116,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 152,
-      "z": 116,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 97,
-      "z": 117,
       "layer": 0,
       "e": "floatingZone"
     },
@@ -5708,7 +5156,7 @@
       "x": 107,
       "z": 117,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 108,
@@ -5738,97 +5186,97 @@
       "x": 112,
       "z": 117,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 113,
       "z": 117,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 114,
       "z": 117,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 115,
       "z": 117,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 116,
       "z": 117,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 117,
       "z": 117,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 118,
       "z": 117,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 119,
       "z": 117,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 120,
       "z": 117,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 121,
       "z": 117,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 122,
       "z": 117,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 123,
       "z": 117,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 124,
       "z": 117,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 125,
       "z": 117,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 126,
       "z": 117,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 127,
       "z": 117,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 128,
@@ -5882,7 +5330,7 @@
       "x": 136,
       "z": 117,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 137,
@@ -5906,19 +5354,19 @@
       "x": 140,
       "z": 117,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 141,
       "z": 117,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 142,
       "z": 117,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 143,
@@ -5975,18 +5423,6 @@
       "e": "floatingZone"
     },
     {
-      "x": 152,
-      "z": 117,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 97,
-      "z": 118,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
       "x": 98,
       "z": 118,
       "layer": 0,
@@ -6038,7 +5474,7 @@
       "x": 106,
       "z": 118,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 107,
@@ -6074,103 +5510,103 @@
       "x": 112,
       "z": 118,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 113,
       "z": 118,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 114,
       "z": 118,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 115,
       "z": 118,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 116,
       "z": 118,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 117,
       "z": 118,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 118,
       "z": 118,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 119,
       "z": 118,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 120,
       "z": 118,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 121,
       "z": 118,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 122,
       "z": 118,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 123,
       "z": 118,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 124,
       "z": 118,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 125,
       "z": 118,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 126,
       "z": 118,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 127,
       "z": 118,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 128,
       "z": 118,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 129,
@@ -6248,19 +5684,19 @@
       "x": 141,
       "z": 118,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 142,
       "z": 118,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 143,
       "z": 118,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 144,
@@ -6307,18 +5743,6 @@
     {
       "x": 151,
       "z": 118,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 152,
-      "z": 118,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 97,
-      "z": 119,
       "layer": 0,
       "e": "floatingZone"
     },
@@ -6374,7 +5798,7 @@
       "x": 106,
       "z": 119,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 107,
@@ -6428,85 +5852,85 @@
       "x": 115,
       "z": 119,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 116,
       "z": 119,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 117,
       "z": 119,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 118,
       "z": 119,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 119,
       "z": 119,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 120,
       "z": 119,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 121,
       "z": 119,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 122,
       "z": 119,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 123,
       "z": 119,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 124,
       "z": 119,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 125,
       "z": 119,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 126,
       "z": 119,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 127,
       "z": 119,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 128,
       "z": 119,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 129,
@@ -6590,13 +6014,13 @@
       "x": 142,
       "z": 119,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 143,
       "z": 119,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 144,
@@ -6647,18 +6071,6 @@
       "e": "floatingZone"
     },
     {
-      "x": 152,
-      "z": 119,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 97,
-      "z": 120,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
       "x": 98,
       "z": 120,
       "layer": 0,
@@ -6704,13 +6116,13 @@
       "x": 105,
       "z": 120,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 106,
       "z": 120,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 107,
@@ -6740,7 +6152,7 @@
       "x": 111,
       "z": 120,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 112,
@@ -6770,67 +6182,67 @@
       "x": 116,
       "z": 120,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 117,
       "z": 120,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 118,
       "z": 120,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 119,
       "z": 120,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 120,
       "z": 120,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 121,
       "z": 120,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 122,
       "z": 120,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 123,
       "z": 120,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 124,
       "z": 120,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 125,
       "z": 120,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 126,
       "z": 120,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 127,
@@ -6842,13 +6254,13 @@
       "x": 128,
       "z": 120,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 129,
       "z": 120,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 130,
@@ -6932,7 +6344,7 @@
       "x": 143,
       "z": 120,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 144,
@@ -6983,18 +6395,6 @@
       "e": "floatingZone"
     },
     {
-      "x": 152,
-      "z": 120,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 97,
-      "z": 121,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
       "x": 98,
       "z": 121,
       "layer": 0,
@@ -7040,13 +6440,13 @@
       "x": 105,
       "z": 121,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 106,
       "z": 121,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 107,
@@ -7058,7 +6458,7 @@
       "x": 108,
       "z": 121,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 109,
@@ -7070,19 +6470,19 @@
       "x": 110,
       "z": 121,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 111,
       "z": 121,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 112,
       "z": 121,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 113,
@@ -7142,25 +6542,25 @@
       "x": 122,
       "z": 121,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 123,
       "z": 121,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 124,
       "z": 121,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 125,
       "z": 121,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 126,
@@ -7172,25 +6572,25 @@
       "x": 127,
       "z": 121,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 128,
       "z": 121,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 129,
       "z": 121,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 130,
       "z": 121,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 131,
@@ -7268,7 +6668,7 @@
       "x": 143,
       "z": 121,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 144,
@@ -7319,18 +6719,6 @@
       "e": "floatingZone"
     },
     {
-      "x": 152,
-      "z": 121,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 97,
-      "z": 122,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
       "x": 98,
       "z": 122,
       "layer": 0,
@@ -7376,13 +6764,13 @@
       "x": 105,
       "z": 122,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 106,
       "z": 122,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 107,
@@ -7400,31 +6788,31 @@
       "x": 109,
       "z": 122,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 110,
       "z": 122,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 111,
       "z": 122,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 112,
       "z": 122,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 113,
       "z": 122,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 114,
@@ -7436,7 +6824,7 @@
       "x": 115,
       "z": 122,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 116,
@@ -7490,7 +6878,7 @@
       "x": 124,
       "z": 122,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 125,
@@ -7508,19 +6896,19 @@
       "x": 127,
       "z": 122,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 128,
       "z": 122,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 129,
       "z": 122,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 130,
@@ -7604,13 +6992,13 @@
       "x": 143,
       "z": 122,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 144,
       "z": 122,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 145,
@@ -7651,18 +7039,6 @@
     {
       "x": 151,
       "z": 122,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 152,
-      "z": 122,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 97,
-      "z": 123,
       "layer": 0,
       "e": "floatingZone"
     },
@@ -7712,13 +7088,13 @@
       "x": 105,
       "z": 123,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 106,
       "z": 123,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 107,
@@ -7742,19 +7118,19 @@
       "x": 110,
       "z": 123,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 111,
       "z": 123,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 112,
       "z": 123,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 113,
@@ -7850,7 +7226,7 @@
       "x": 128,
       "z": 123,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 129,
@@ -7946,7 +7322,7 @@
       "x": 144,
       "z": 123,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 145,
@@ -7987,18 +7363,6 @@
     {
       "x": 151,
       "z": 123,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 152,
-      "z": 123,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 97,
-      "z": 124,
       "layer": 0,
       "e": "floatingZone"
     },
@@ -8048,19 +7412,19 @@
       "x": 105,
       "z": 124,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 106,
       "z": 124,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 107,
       "z": 124,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 108,
@@ -8084,7 +7448,7 @@
       "x": 111,
       "z": 124,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 112,
@@ -8282,7 +7646,7 @@
       "x": 144,
       "z": 124,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 145,
@@ -8327,18 +7691,6 @@
       "e": "floatingZone"
     },
     {
-      "x": 152,
-      "z": 124,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 97,
-      "z": 125,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
       "x": 98,
       "z": 125,
       "layer": 0,
@@ -8384,31 +7736,31 @@
       "x": 105,
       "z": 125,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 106,
       "z": 125,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 107,
       "z": 125,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 108,
       "z": 125,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 109,
       "z": 125,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 110,
@@ -8456,7 +7808,7 @@
       "x": 117,
       "z": 125,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 118,
@@ -8618,7 +7970,7 @@
       "x": 144,
       "z": 125,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 145,
@@ -8663,18 +8015,6 @@
       "e": "floatingZone"
     },
     {
-      "x": 152,
-      "z": 125,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 97,
-      "z": 126,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
       "x": 98,
       "z": 126,
       "layer": 0,
@@ -8720,25 +8060,25 @@
       "x": 105,
       "z": 126,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 106,
       "z": 126,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 107,
       "z": 126,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 108,
       "z": 126,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 109,
@@ -8786,19 +8126,19 @@
       "x": 116,
       "z": 126,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 117,
       "z": 126,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 118,
       "z": 126,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 119,
@@ -8948,13 +8288,13 @@
       "x": 143,
       "z": 126,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 144,
       "z": 126,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 145,
@@ -8995,18 +8335,6 @@
     {
       "x": 151,
       "z": 126,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 152,
-      "z": 126,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 97,
-      "z": 127,
       "layer": 0,
       "e": "floatingZone"
     },
@@ -9056,7 +8384,7 @@
       "x": 105,
       "z": 127,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 106,
@@ -9068,7 +8396,7 @@
       "x": 107,
       "z": 127,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 108,
@@ -9116,31 +8444,31 @@
       "x": 115,
       "z": 127,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 116,
       "z": 127,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 117,
       "z": 127,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 118,
       "z": 127,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 119,
       "z": 127,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 120,
@@ -9152,7 +8480,7 @@
       "x": 121,
       "z": 127,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 122,
@@ -9266,7 +8594,7 @@
       "x": 140,
       "z": 127,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 141,
@@ -9290,7 +8618,7 @@
       "x": 144,
       "z": 127,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 145,
@@ -9331,18 +8659,6 @@
     {
       "x": 151,
       "z": 127,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 152,
-      "z": 127,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 97,
-      "z": 128,
       "layer": 0,
       "e": "floatingZone"
     },
@@ -9398,7 +8714,7 @@
       "x": 106,
       "z": 128,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 107,
@@ -9452,55 +8768,55 @@
       "x": 115,
       "z": 128,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 116,
       "z": 128,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 117,
       "z": 128,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 118,
       "z": 128,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 119,
       "z": 128,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 120,
       "z": 128,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 121,
       "z": 128,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 122,
       "z": 128,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 123,
       "z": 128,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 124,
@@ -9590,37 +8906,37 @@
       "x": 138,
       "z": 128,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 139,
       "z": 128,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 140,
       "z": 128,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 141,
       "z": 128,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 142,
       "z": 128,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 143,
       "z": 128,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 144,
@@ -9667,18 +8983,6 @@
     {
       "x": 151,
       "z": 128,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 152,
-      "z": 128,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 97,
-      "z": 129,
       "layer": 0,
       "e": "floatingZone"
     },
@@ -9734,7 +9038,7 @@
       "x": 106,
       "z": 129,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 107,
@@ -9782,67 +9086,67 @@
       "x": 114,
       "z": 129,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 115,
       "z": 129,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 116,
       "z": 129,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 117,
       "z": 129,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 118,
       "z": 129,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 119,
       "z": 129,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 120,
       "z": 129,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 121,
       "z": 129,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 122,
       "z": 129,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 123,
       "z": 129,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 124,
       "z": 129,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 125,
@@ -9926,37 +9230,37 @@
       "x": 138,
       "z": 129,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 139,
       "z": 129,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 140,
       "z": 129,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 141,
       "z": 129,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 142,
       "z": 129,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 143,
       "z": 129,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 144,
@@ -10003,18 +9307,6 @@
     {
       "x": 151,
       "z": 129,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 152,
-      "z": 129,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 97,
-      "z": 130,
       "layer": 0,
       "e": "floatingZone"
     },
@@ -10070,7 +9362,7 @@
       "x": 106,
       "z": 130,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 107,
@@ -10112,73 +9404,73 @@
       "x": 113,
       "z": 130,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 114,
       "z": 130,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 115,
       "z": 130,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 116,
       "z": 130,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 117,
       "z": 130,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 118,
       "z": 130,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 119,
       "z": 130,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 120,
       "z": 130,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 121,
       "z": 130,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 122,
       "z": 130,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 123,
       "z": 130,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 124,
       "z": 130,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 125,
@@ -10256,13 +9548,13 @@
       "x": 137,
       "z": 130,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 138,
       "z": 130,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 139,
@@ -10274,25 +9566,25 @@
       "x": 140,
       "z": 130,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 141,
       "z": 130,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 142,
       "z": 130,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 143,
       "z": 130,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 144,
@@ -10339,18 +9631,6 @@
     {
       "x": 151,
       "z": 130,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 152,
-      "z": 130,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 97,
-      "z": 131,
       "layer": 0,
       "e": "floatingZone"
     },
@@ -10406,7 +9686,7 @@
       "x": 106,
       "z": 131,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 107,
@@ -10424,7 +9704,7 @@
       "x": 109,
       "z": 131,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 110,
@@ -10454,73 +9734,73 @@
       "x": 114,
       "z": 131,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 115,
       "z": 131,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 116,
       "z": 131,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 117,
       "z": 131,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 118,
       "z": 131,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 119,
       "z": 131,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 120,
       "z": 131,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 121,
       "z": 131,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 122,
       "z": 131,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 123,
       "z": 131,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 124,
       "z": 131,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 125,
       "z": 131,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 126,
@@ -10616,13 +9896,13 @@
       "x": 141,
       "z": 131,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 142,
       "z": 131,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 143,
@@ -10675,18 +9955,6 @@
     {
       "x": 151,
       "z": 131,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 152,
-      "z": 131,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 97,
-      "z": 132,
       "layer": 0,
       "e": "floatingZone"
     },
@@ -10748,7 +10016,7 @@
       "x": 107,
       "z": 132,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 108,
@@ -10790,13 +10058,13 @@
       "x": 114,
       "z": 132,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 115,
       "z": 132,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 116,
@@ -10814,43 +10082,43 @@
       "x": 118,
       "z": 132,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 119,
       "z": 132,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 120,
       "z": 132,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 121,
       "z": 132,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 122,
       "z": 132,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 123,
       "z": 132,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 124,
       "z": 132,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 125,
@@ -10922,13 +10190,13 @@
       "x": 136,
       "z": 132,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 137,
       "z": 132,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 138,
@@ -10958,7 +10226,7 @@
       "x": 142,
       "z": 132,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 143,
@@ -11011,18 +10279,6 @@
     {
       "x": 151,
       "z": 132,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 152,
-      "z": 132,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 97,
-      "z": 133,
       "layer": 0,
       "e": "floatingZone"
     },
@@ -11084,7 +10340,7 @@
       "x": 107,
       "z": 133,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 108,
@@ -11150,43 +10406,43 @@
       "x": 118,
       "z": 133,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 119,
       "z": 133,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 120,
       "z": 133,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 121,
       "z": 133,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 122,
       "z": 133,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 123,
       "z": 133,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 124,
       "z": 133,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 125,
@@ -11252,7 +10508,7 @@
       "x": 135,
       "z": 133,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 136,
@@ -11276,7 +10532,7 @@
       "x": 139,
       "z": 133,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 140,
@@ -11288,7 +10544,7 @@
       "x": 141,
       "z": 133,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 142,
@@ -11351,18 +10607,6 @@
       "e": "floatingZone"
     },
     {
-      "x": 152,
-      "z": 133,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 97,
-      "z": 134,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
       "x": 98,
       "z": 134,
       "layer": 0,
@@ -11426,7 +10670,7 @@
       "x": 108,
       "z": 134,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 109,
@@ -11438,7 +10682,7 @@
       "x": 110,
       "z": 134,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 111,
@@ -11492,31 +10736,31 @@
       "x": 119,
       "z": 134,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 120,
       "z": 134,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 121,
       "z": 134,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 122,
       "z": 134,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 123,
       "z": 134,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 124,
@@ -11612,19 +10856,19 @@
       "x": 139,
       "z": 134,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 140,
       "z": 134,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 141,
       "z": 134,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 142,
@@ -11687,18 +10931,6 @@
       "e": "floatingZone"
     },
     {
-      "x": 152,
-      "z": 134,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 97,
-      "z": 135,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
       "x": 98,
       "z": 135,
       "layer": 0,
@@ -11762,25 +10994,25 @@
       "x": 108,
       "z": 135,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 109,
       "z": 135,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 110,
       "z": 135,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 111,
       "z": 135,
       "layer": 0,
-      "e": "greenField"
+      "e": "island"
     },
     {
       "x": 112,
@@ -11840,7 +11072,7 @@
       "x": 121,
       "z": 135,
       "layer": 0,
-      "e": "island"
+      "e": "greenField"
     },
     {
       "x": 122,
@@ -11954,7 +11186,7 @@
       "x": 140,
       "z": 135,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 141,
@@ -12023,18 +11255,6 @@
       "e": "floatingZone"
     },
     {
-      "x": 152,
-      "z": 135,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 98,
-      "z": 136,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
       "x": 99,
       "z": 136,
       "layer": 0,
@@ -12098,19 +11318,19 @@
       "x": 109,
       "z": 136,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 110,
       "z": 136,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 111,
       "z": 136,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 112,
@@ -12278,7 +11498,7 @@
       "x": 139,
       "z": 136,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 140,
@@ -12343,18 +11563,6 @@
     {
       "x": 150,
       "z": 136,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 151,
-      "z": 136,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 98,
-      "z": 137,
       "layer": 0,
       "e": "floatingZone"
     },
@@ -12428,19 +11636,19 @@
       "x": 110,
       "z": 137,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 111,
       "z": 137,
       "layer": 0,
-      "e": "greenField"
+      "e": "floatingZone"
     },
     {
       "x": 112,
       "z": 137,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 113,
@@ -12452,7 +11660,7 @@
       "x": 114,
       "z": 137,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 115,
@@ -12671,18 +11879,6 @@
       "e": "floatingZone"
     },
     {
-      "x": 151,
-      "z": 137,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 98,
-      "z": 138,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
       "x": 99,
       "z": 138,
       "layer": 0,
@@ -12758,7 +11954,7 @@
       "x": 111,
       "z": 138,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 112,
@@ -12914,13 +12110,13 @@
       "x": 137,
       "z": 138,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 138,
       "z": 138,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 139,
@@ -12995,18 +12191,6 @@
       "e": "floatingZone"
     },
     {
-      "x": 151,
-      "z": 138,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 98,
-      "z": 139,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
       "x": 99,
       "z": 139,
       "layer": 0,
@@ -13088,13 +12272,13 @@
       "x": 112,
       "z": 139,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 113,
       "z": 139,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 114,
@@ -13232,7 +12416,7 @@
       "x": 136,
       "z": 139,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 137,
@@ -13309,18 +12493,6 @@
     {
       "x": 149,
       "z": 139,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 150,
-      "z": 139,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 99,
-      "z": 140,
       "layer": 0,
       "e": "floatingZone"
     },
@@ -13406,13 +12578,13 @@
       "x": 113,
       "z": 140,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 114,
       "z": 140,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 115,
@@ -13538,7 +12710,7 @@
       "x": 135,
       "z": 140,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 136,
@@ -13621,18 +12793,6 @@
     {
       "x": 149,
       "z": 140,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 150,
-      "z": 140,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 99,
-      "z": 141,
       "layer": 0,
       "e": "floatingZone"
     },
@@ -13724,13 +12884,13 @@
       "x": 114,
       "z": 141,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 115,
       "z": 141,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 116,
@@ -13838,7 +12998,7 @@
       "x": 133,
       "z": 141,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 134,
@@ -13931,18 +13091,6 @@
       "e": "floatingZone"
     },
     {
-      "x": 149,
-      "z": 141,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 100,
-      "z": 142,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
       "x": 101,
       "z": 142,
       "layer": 0,
@@ -14030,31 +13178,31 @@
       "x": 115,
       "z": 142,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 116,
       "z": 142,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 117,
       "z": 142,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 118,
       "z": 142,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 119,
       "z": 142,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 120,
@@ -14114,19 +13262,19 @@
       "x": 129,
       "z": 142,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 130,
       "z": 142,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 131,
       "z": 142,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 132,
@@ -14225,30 +13373,6 @@
       "e": "floatingZone"
     },
     {
-      "x": 148,
-      "z": 142,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 149,
-      "z": 142,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 100,
-      "z": 143,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 101,
-      "z": 143,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
       "x": 102,
       "z": 143,
       "layer": 0,
@@ -14348,31 +13472,31 @@
       "x": 118,
       "z": 143,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 119,
       "z": 143,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 120,
       "z": 143,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 121,
       "z": 143,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 122,
       "z": 143,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 123,
@@ -14390,31 +13514,31 @@
       "x": 125,
       "z": 143,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 126,
       "z": 143,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 127,
       "z": 143,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 128,
       "z": 143,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 129,
       "z": 143,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 130,
@@ -14525,30 +13649,6 @@
       "e": "floatingZone"
     },
     {
-      "x": 148,
-      "z": 143,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 101,
-      "z": 144,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 102,
-      "z": 144,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 103,
-      "z": 144,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
       "x": 104,
       "z": 144,
       "layer": 0,
@@ -14654,25 +13754,25 @@
       "x": 121,
       "z": 144,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 122,
       "z": 144,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 123,
       "z": 144,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 124,
       "z": 144,
       "layer": 0,
-      "e": "island"
+      "e": "floatingZone"
     },
     {
       "x": 125,
@@ -14803,24 +13903,6 @@
     {
       "x": 146,
       "z": 144,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 147,
-      "z": 144,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 102,
-      "z": 145,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 103,
-      "z": 145,
       "layer": 0,
       "e": "floatingZone"
     },
@@ -15083,12 +14165,6 @@
       "e": "floatingZone"
     },
     {
-      "x": 103,
-      "z": 146,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
       "x": 104,
       "z": 146,
       "layer": 0,
@@ -15335,30 +14411,6 @@
       "e": "floatingZone"
     },
     {
-      "x": 145,
-      "z": 146,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 146,
-      "z": 146,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 104,
-      "z": 147,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 105,
-      "z": 147,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
       "x": 106,
       "z": 147,
       "layer": 0,
@@ -15587,24 +14639,6 @@
       "e": "floatingZone"
     },
     {
-      "x": 144,
-      "z": 147,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 105,
-      "z": 148,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 106,
-      "z": 148,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
       "x": 107,
       "z": 148,
       "layer": 0,
@@ -15821,24 +14855,6 @@
       "e": "floatingZone"
     },
     {
-      "x": 143,
-      "z": 148,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 106,
-      "z": 149,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 107,
-      "z": 149,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
       "x": 108,
       "z": 149,
       "layer": 0,
@@ -16037,42 +15053,6 @@
       "e": "floatingZone"
     },
     {
-      "x": 141,
-      "z": 149,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 107,
-      "z": 150,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 108,
-      "z": 150,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 109,
-      "z": 150,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 110,
-      "z": 150,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 111,
-      "z": 150,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
       "x": 112,
       "z": 150,
       "layer": 0,
@@ -16219,54 +15199,6 @@
     {
       "x": 136,
       "z": 150,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 137,
-      "z": 150,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 138,
-      "z": 150,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 139,
-      "z": 150,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 110,
-      "z": 151,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 111,
-      "z": 151,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 112,
-      "z": 151,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 113,
-      "z": 151,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 114,
-      "z": 151,
       "layer": 0,
       "e": "floatingZone"
     },
@@ -16375,236 +15307,79 @@
     {
       "x": 132,
       "z": 151,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 133,
-      "z": 151,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 134,
-      "z": 151,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 135,
-      "z": 151,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 136,
-      "z": 151,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 137,
-      "z": 151,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 113,
-      "z": 152,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 114,
-      "z": 152,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 115,
-      "z": 152,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 116,
-      "z": 152,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 117,
-      "z": 152,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 118,
-      "z": 152,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 119,
-      "z": 152,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 120,
-      "z": 152,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 121,
-      "z": 152,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 122,
-      "z": 152,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 123,
-      "z": 152,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 124,
-      "z": 152,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 125,
-      "z": 152,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 126,
-      "z": 152,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 127,
-      "z": 152,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 128,
-      "z": 152,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 129,
-      "z": 152,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 130,
-      "z": 152,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 131,
-      "z": 152,
-      "layer": 0,
-      "e": "floatingZone"
-    },
-    {
-      "x": 132,
-      "z": 152,
       "layer": 0,
       "e": "floatingZone"
     }
   ],
   "elements": [
     {
-      "x": 122,
-      "z": 107,
-      "layer": 0,
-      "e": "windSource",
-      "r": 0
-    },
-    {
-      "x": 129,
-      "z": 107,
-      "layer": 0,
-      "e": "anchor",
-      "r": 0
-    },
-    {
-      "x": 115,
-      "z": 112,
-      "layer": 0,
-      "e": "windSource",
-      "r": 0
-    },
-    {
-      "x": 136,
-      "z": 112,
-      "layer": 0,
-      "e": "windSource",
-      "r": 0
-    },
-    {
-      "x": 126,
-      "z": 113,
+      "x": 132,
+      "z": 109,
       "layer": 0,
       "e": "ore",
       "r": 0
     },
     {
-      "x": 111,
-      "z": 117,
+      "x": 110,
+      "z": 118,
       "layer": 0,
       "e": "ore",
       "r": 0
     },
     {
       "x": 124,
-      "z": 124,
+      "z": 119,
+      "layer": 0,
+      "e": "windSource",
+      "r": 0
+    },
+    {
+      "x": 136,
+      "z": 119,
+      "layer": 0,
+      "e": "anchor",
+      "r": 0
+    },
+    {
+      "x": 125,
+      "z": 125,
       "layer": 0,
       "e": "giantWindmill",
       "r": 0
     },
     {
-      "x": 116,
+      "x": 113,
       "z": 127,
       "layer": 0,
       "e": "anchor",
       "r": 0
     },
     {
-      "x": 135,
-      "z": 129,
+      "x": 131,
+      "z": 127,
+      "layer": 0,
+      "e": "windSource",
+      "r": 0
+    },
+    {
+      "x": 132,
+      "z": 134,
       "layer": 0,
       "e": "anchor",
       "r": 0
     },
     {
-      "x": 121,
-      "z": 133,
+      "x": 120,
+      "z": 136,
       "layer": 0,
-      "e": "ore",
+      "e": "windSource",
       "r": 0
     },
     {
-      "x": 133,
-      "z": 138,
+      "x": 126,
+      "z": 141,
       "layer": 0,
-      "e": "windSource",
+      "e": "ore",
       "r": 0
     }
   ]

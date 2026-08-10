@@ -37,6 +37,7 @@ namespace FloatingIsLand.View
         private const int SessionWaitFrames = 30;
 
         private IGridPresenter _presenter;
+        private WindFieldView _windFieldView;
 
         /// <summary>当前局内地图；未装载完成时为 null。领域层规则校验后续从这里取地形。</summary>
         public MapSnapshot Snapshot { get; private set; }
@@ -128,12 +129,26 @@ namespace FloatingIsLand.View
             {
                 worldRenderer.Bind(session);
             }
+
+            // 风路流线：运行时现建（同 BuildPlacementController 的表现节点——场景是编辑器菜单
+            // 生成的，往里加节点得重跑那条有模态弹窗的流程，而它没有需要美术调的序列化引用）
+            if (_windFieldView == null)
+            {
+                var windGo = new GameObject("WindFieldView");
+                windGo.transform.SetParent(transform, false);
+                _windFieldView = windGo.AddComponent<WindFieldView>();
+            }
+            _windFieldView.Bind(session, _presenter.Geometry);
+
             if (placementController != null)
             {
                 placementController.Bind(session);
+                placementController.BindWindView(_windFieldView);
                 // 网格交给摆放交互全权控制：不进建造模式就不显示（用户要求 3）。
                 // 没有 placementController 的纯看图 / 刷图模式走不到这里，overlay 保持常显。
                 placementController.BindTerrainOverlay(terrainOverlay);
+                // 必须排在 worldRenderer.Bind 之后：实例索引是在那一步填起来的
+                placementController.BindWorld(worldRenderer);
             }
         }
 

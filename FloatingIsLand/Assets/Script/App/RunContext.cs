@@ -6,7 +6,7 @@ namespace FloatingIsLand.App
     /// 一局的局外参数：第几关（局数序号）+ 地图种子。
     /// "下一关" = 换新地图（新种子）再开一局；关数目前无上限、也无每关差异化配表——
     /// 若后续需要不同关卡有不同地图尺寸/目标分，加 Stage 表后在本类扩展字段（见 Docs/BOOT_FRAMEWORK.md）。
-    /// 注意与 Level 表区分：Level 表是"局内 20 级进度"（解锁费用/抽取池），不是这里的"关"。
+    /// 注意与 Level 表区分：Level 表是"局内 20 级进度"（解锁费用/可用建筑组主题），不是这里的"关"。
     /// </summary>
     public sealed class RunContext
     {

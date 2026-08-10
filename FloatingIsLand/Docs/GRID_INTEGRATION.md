@@ -136,6 +136,47 @@ Main.unity
 同一时刻只能有一套地格反馈：`ViewEGB/GridCellHighlighter` 的单格白框在摆放模式下自动让位
 （它不体现占地也不跟旋转，跟落点格标记叠在一起只会互相矛盾）。
 
+### 6.2 作用范围环与「分是谁给的」
+
+摆放预览再往上加两层，回答的是**计分**而不是合法性（§7.4 里"高亮加分对象 / 扣分对象 / 建筑作用范围"那三条）：
+
+| 层 | 组件 | 回答 |
+|---|---|---|
+| 范围环 | [RangeRingRenderer](../Assets/Script/View/RangeRingRenderer.cs) + `Resources/Shaders/RangeRing.shader` | **能罩到多大**，半径来自配表 `Building.radius` |
+| 辉光 + 飘分 | [ScoreHighlightPresenter](../Assets/Script/View/ScoreHighlightPresenter.cs) | **这一下的分是谁给的、各给了多少** |
+
+四条关键决定：
+
+1. **范围环不是圆。** 领域层的范围是 `RangeMath`——**自占地边缘起算**的最小距离，
+   所以 6×6 船坞的真实范围是"占地矩形外扩 R"的圆角矩形。
+   [RangeRingGeometry](../Assets/Script/View/RangeRingGeometry.cs) 把占地合并成几个矩形喂给 shader，
+   fragment 里用圆角矩形 SDF 出形状。这**不是近似**：占地格中心与矩形边界都在整数坐标上，
+   把整数点钳进整数矩形仍得整数，所以在每个格中心处与 `RangeMath` 恰好相等——
+   [RangeRingGeometryTests](../Assets/Tests/EditMode/RangeRingGeometryTests.cs) 对 7 种占地 × 4 朝向 × 5 档半径逐格比对过。
+2. **归因在领域层算，不在表现层重算。** `ScoreEngine` 出 `ScoreBreakdown.Attributions`——
+   逐实例的 (对象种类, 实例 Id, 分值, 计入状态)。表现层只负责把它画出来。
+   这保证"预览飘的 +3"和"落地进账的 +3"永远是同一个数，不会分叉。
+   计数上限截断按**距离近的优先**（同距离按实例 Id），被挡掉的实例仍进归因、标 `OverMaxCount`——
+   "在范围内但没算上"同样是玩家要看到的信息，只是不飘数字、只给一层很淡的光。
+3. **辉光用 `Graphics.DrawMesh` 每帧重画对方的网格**，不写对方任何组件（不改材质、不加子物体）。
+   追加材质槽只能盖到最后一个 submesh，复制 Renderer 又要自己管销毁。
+   `DrawMesh` 必须**显式传相机**：传 null 会提交给本帧所有相机，包括略缩图那台隐藏相机。
+4. **数字用 `TextMesh`** 而不是世界空间 Canvas——`Game.View` 没引用 `UnityEngine.UI`，
+   TextMesh 在核心模块里，加它不用动 asmdef。字体图集重建时要跟着换材质贴图引用（订阅 `Font.textureRebuilt`），
+   否则字符变多之后数字会变空白。
+
+分层高度与队列（**队列决定遮挡关系，不是 Y**）：
+地形 overlay 0.02/Transparent → **范围环 0.05/Transparent-1/LEqual** → 落点格 0.08/Transparent/Always
+→ 虚影 Transparent+1 → 辉光 Transparent+2 → 飘分数字 Transparent+3/Always。
+范围环 Y 比地形高但队列更早，所以落点格与虚影永远盖在它上面；数字 ZTest Always，被山体挡住也看得见。
+
+范围环贴着地面画，**地形起伏大的地方会被岩体埋掉**——这是 `ZTest LEqual` 的必然结果，
+要改成"永远可见"就得跟数字一样上 `ZTest Always`，代价是环会浮在山体表面之上。当前选前者。
+
+> 只有"正在摆的那一栋"会算分。被高亮的邻居不会因此涨分——它们的分在自己落地那刻就定死了
+> （`PlacedBuilding.InstantScore` 只读）。数字标在邻居头上表达的是"它给你贡献了多少"，不是"它得了多少"。
+> 这条规则由 [BuildBoardTests](../Assets/Tests/EditMode/BuildBoardTests.cs) 的「已落地建筑的分数不回溯」一组钉住。
+
 ## 7. 开放问题
 
 | # | 问题 | 状态 |

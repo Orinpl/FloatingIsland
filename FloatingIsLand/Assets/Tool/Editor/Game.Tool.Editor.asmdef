@@ -4,6 +4,7 @@
     "references": [
         "Game.App",
         "Game.UI",
+        "Game.View",
         "Game.Config",
         "Game.Domain",
         "Game.Input",

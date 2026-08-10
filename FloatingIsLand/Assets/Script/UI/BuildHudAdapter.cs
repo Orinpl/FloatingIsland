@@ -202,6 +202,11 @@ namespace FloatingIsLand.UI
             {
                 return "点下方建筑进入摆放模式。";
             }
+            if (string.Equals(_session.SelectedBlueprint.BuildingId, BuildRuleSet.SailBuildingId, System.StringComparison.Ordinal))
+            {
+                // 风帆的滚轮不是旋转模型，而是切换风的左/右转向——预览流线会跟着变
+                return "风帆须建在风带上；滚轮切换左/右转向（看流线预览），左键放置，Esc 取消。";
+            }
             return "滚轮旋转，左键放置（放完退出摆放模式），Esc 取消。";
         }
 
@@ -227,7 +232,10 @@ namespace FloatingIsLand.UI
                 string name = order[i];
                 parts.Add(counts[name] > 1 ? $"{name}×{counts[name]}" : name);
             }
-            return string.Join("  ", parts);
+
+            string detail = string.Join("  ", parts);
+            // 主题名放最前：二选一的意义是「选一条路线」，光看建筑清单玩家得自己去脑补这组想干什么
+            return string.IsNullOrEmpty(group.NameCn) ? detail : $"【{group.NameCn}】{detail}";
         }
     }
 }

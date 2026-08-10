@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using System.Text;
 using FloatingIsLand.App;
 using FloatingIsLand.Domain.Build;
 using FloatingIsLand.Domain.Map;
+using FloatingIsLand.View;
 using UnityEditor;
 using UnityEngine;
 
@@ -138,6 +140,85 @@ namespace FloatingIsLand.EditorTools
             }
 
             Debug.LogWarning($"[调试] 整张图都找不到 {blueprint.NameCn} 的合法落点。");
+        }
+
+        /// <summary>
+        /// 把预览钉在「当前选中建筑的第一个合法落点」上，好让范围环 / 辉光 / 飘分三层表现显出来。
+        ///
+        /// 这三层只有光标悬在格子上才会出现，而鼠标位置没法脚本化——没有这个入口就只能靠人眼在
+        /// Play 里凑。钉住之后 Game 视图截图里能直接看到效果。
+        /// </summary>
+        [MenuItem(Root + "钉住预览到第一个合法落点（看范围环与计分高亮）", false, 7)]
+        public static void PinPreviewAtFirstValidCell()
+        {
+            GameSession session = RequireSession();
+            if (session == null || !session.IsBuildReady)
+            {
+                return;
+            }
+
+            BuildingBlueprint blueprint = session.SelectedBlueprint;
+            if (blueprint == null)
+            {
+                Debug.LogWarning("[调试] 没有选中建筑，先跑「选中第一张手牌」。");
+                return;
+            }
+
+            var controller = Object.FindObjectOfType<BuildPlacementController>();
+            if (controller == null)
+            {
+                Debug.LogWarning("[调试] 场景里没有 BuildPlacementController。");
+                return;
+            }
+
+            // 从地图中心往外找，而不是按存储顺序取第一个：稀疏快照的头几格在岛缘的岩石堆里，
+            // 环贴在地面上会被岩体整个埋掉，看着像"没生效"
+            MapSnapshot map = session.Board.Map;
+            var ordered = new List<MapCell>(map.Cells);
+            int mapCenterX = map.Width / 2;
+            int mapCenterZ = map.Length / 2;
+            ordered.Sort((a, b) =>
+            {
+                int da = (a.X - mapCenterX) * (a.X - mapCenterX) + (a.Z - mapCenterZ) * (a.Z - mapCenterZ);
+                int db = (b.X - mapCenterX) * (b.X - mapCenterX) + (b.Z - mapCenterZ) * (b.Z - mapCenterZ);
+                return da != db ? da.CompareTo(db) : a.X != b.X ? a.X.CompareTo(b.X) : a.Z.CompareTo(b.Z);
+            });
+
+            for (int i = 0; i < ordered.Count; i++)
+            {
+                MapCell cell = ordered[i];
+                if (!session.CheckSelectedPlacement(cell.X, cell.Z, cell.Layer, Rotation.Deg0).IsValid)
+                {
+                    continue;
+                }
+
+                // 钉的是**光标格**，控制器内部会自己换算回锚点格——跟真实鼠标走同一条路径，
+                // 才能验到真实效果而不是另一条只在调试时成立的路。
+                // 这里是 AnchorFromCenter 的逆运算（锚点 → 中心）。
+                int centerX = cell.X + (blueprint.Footprint.SpanX(Rotation.Deg0) - 1) / 2;
+                int centerZ = cell.Z + (blueprint.Footprint.SpanZ(Rotation.Deg0) - 1) / 2;
+                controller.DebugPinPreview(centerX, centerZ, cell.Layer);
+
+                ScoreBreakdown preview = session.PreviewSelectedScore(cell.X, cell.Z, cell.Layer, Rotation.Deg0);
+                Debug.Log($"[调试] 预览已钉在 ({cell.X}, {cell.Z}) 层 {cell.Layer}：" +
+                          $"{blueprint.NameCn} 半径 {blueprint.Radius} 格，预计得分 {(preview != null ? preview.Total : 0)}，" +
+                          $"归因 {(preview != null ? preview.Attributions.Count : 0)} 条。" +
+                          "看完跑「解除预览钉住」。");
+                return;
+            }
+
+            Debug.LogWarning($"[调试] 整张图都找不到 {blueprint.NameCn} 的合法落点。");
+        }
+
+        [MenuItem(Root + "解除预览钉住", false, 8)]
+        public static void UnpinPreview()
+        {
+            var controller = Object.FindObjectOfType<BuildPlacementController>();
+            if (controller != null)
+            {
+                controller.DebugUnpinPreview();
+                Debug.Log("[调试] 预览已交还给鼠标。");
+            }
         }
 
         /// <summary>把当前手牌全部摆掉，再解锁下一组——一键推进一整级。</summary>

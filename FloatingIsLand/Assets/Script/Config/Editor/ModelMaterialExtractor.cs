@@ -171,6 +171,16 @@ namespace FloatingIsLand.Config.EditorTools
                 matCount++;
             }
 
+            // 新资产的时序陷阱：上面把 materialLocation 设成 External 后重新导入，Unity 会**直接**把材质
+            // 写进 FBX 旁的 Materials/，于是 LoadAllAssetsAtPath 里已经没有内嵌 Material 子资产，
+            // 那个循环一次都不会进、matCount 停在 0。老资产上一轮已经提取过、externalObjects 指着 mat/，
+            // 所以看不出问题；**新加的资产必然漏**，症状是 mat/ 里只有贴图没有 .mat，
+            // 贴图也没人回挂（AssignTextures 找不到材质），模型进游戏就是白模。
+            if (matCount == 0)
+            {
+                matCount = AdoptGeneratedMaterials(importer, fbxDir, matDir, assetId, log);
+            }
+
             AssetDatabase.WriteImportSettingsIfDirty(fbxPath);
 
             // 提取会在 FBX 旁边留下两份没人引用的副本，清掉（实测删掉后重新导入不会再生成）：
@@ -181,6 +191,62 @@ namespace FloatingIsLand.Config.EditorTools
 
             log.AppendLine($"  - {assetId}: 贴图提取{(extracted ? "成功" : "无内嵌贴图")}，材质 {matCount} 个 → {matDir}");
             return true;
+        }
+
+        /// <summary>
+        /// 收编 Unity 自动生成的 Materials/ 下的材质：移进 mat/ 并写进 externalObjects，返回收编数量。
+        ///
+        /// 那批材质是 materialLocation=External 的产物，**没有**被 externalObjects 指向，
+        /// 所以直接删掉的话 Unity 下次导入还会原样再建一份。只有移进 mat/ 再 AddRemap 过去，
+        /// FBX 才真正指向本工程约定位置上的材质，Materials/ 也才不会重新长出来。
+        /// </summary>
+        private static int AdoptGeneratedMaterials(
+            ModelImporter importer, string fbxDir, string matDir, string assetId, StringBuilder log)
+        {
+            string generatedDir = $"{fbxDir}/Materials";
+            if (!AssetDatabase.IsValidFolder(generatedDir))
+            {
+                return 0;
+            }
+
+            string[] guids = AssetDatabase.FindAssets("t:Material", new[] { generatedDir });
+            int adopted = 0;
+
+            foreach (string guid in guids)
+            {
+                string src = AssetDatabase.GUIDToAssetPath(guid);
+                // 文件名就是 FBX 内部的材质名，remap 要靠它对上号
+                string sourceName = Path.GetFileNameWithoutExtension(src);
+                string dest = adopted == 0 ? $"{matDir}/{assetId}.mat" : $"{matDir}/{assetId}_{adopted}.mat";
+
+                if (AssetDatabase.LoadAssetAtPath<Material>(dest) != null)
+                {
+                    AssetDatabase.DeleteAsset(dest);
+                }
+
+                string error = AssetDatabase.MoveAsset(src, dest);
+                if (!string.IsNullOrEmpty(error))
+                {
+                    log.AppendLine($"  - {assetId}: 收编材质 {sourceName} 失败 {error}");
+                    continue;
+                }
+
+                var material = AssetDatabase.LoadAssetAtPath<Material>(dest);
+                if (material == null)
+                {
+                    log.AppendLine($"  - {assetId}: 收编后读不到 {dest}");
+                    continue;
+                }
+
+                importer.AddRemap(new AssetImporter.SourceAssetIdentifier(typeof(Material), sourceName), material);
+                adopted++;
+            }
+
+            if (adopted > 0)
+            {
+                log.AppendLine($"  - {assetId}: 收编 Unity 自动生成的材质 {adopted} 个 → {matDir}");
+            }
+            return adopted;
         }
 
         private static void DeleteFolder(string folder)

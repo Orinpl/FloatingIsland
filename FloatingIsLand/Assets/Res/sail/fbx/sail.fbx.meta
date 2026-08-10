@@ -9,6 +9,11 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: model
     second: {fileID: 2100000, guid: 10eea10a32406af47a2759fa5fe3ee14, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: texture_diffuse
+    second: {fileID: 2100000, guid: 65940d3b9b038bb43be056630901de4c, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

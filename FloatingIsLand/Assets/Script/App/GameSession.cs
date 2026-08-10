@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using FloatingIsLand.Config;
 using FloatingIsLand.Domain.Build;
 using FloatingIsLand.Domain.Map;
+using FloatingIsLand.Domain.Wind;
 
 namespace FloatingIsLand.App
 {
@@ -21,6 +22,8 @@ namespace FloatingIsLand.App
         private BuildBoard _board;
         private ScoreEngine _scoring;
         private BuildRunState _run;
+        private WindSystem _wind;
+        private WindScoreKeeper _windKeeper;
         private int _selectedHandIndex = -1;
 
         /// <summary>本局局外参数（关数 + 种子）。</summary>
@@ -48,6 +51,12 @@ namespace FloatingIsLand.App
         public BuildRuleSet Rules
         {
             get { return _rules; }
+        }
+
+        /// <summary>风系统（流线渲染 / 调试读它的 <see cref="WindSystem.Field"/>）；地图尚未注入时为 null。</summary>
+        public WindSystem Wind
+        {
+            get { return _wind; }
         }
 
         /// <summary>地图与建造链路是否已就绪。</summary>
@@ -93,6 +102,15 @@ namespace FloatingIsLand.App
         /// <summary>本局结束（终局结算完成）。GameplayState 订阅后驱动流程进入 Settlement。</summary>
         public event Action<RunResult> Ended;
 
+        /// <summary>
+        /// 全局风变更事件：放风帆/物流点导致风场重算后广播（新场从 <see cref="Wind"/> 读）。
+        /// 表现层据此重建流线。
+        /// </summary>
+        public event Action WindFieldChanged;
+
+        /// <summary>风变更结算出的一次性得分（物流风覆盖 / 物流点互联）。表现层据此打辉光、飘字、画互联特效。</summary>
+        public event Action<IReadOnlyList<WindAward>> WindAwardsGranted;
+
         public GameSession(RunContext context)
         {
             Context = context;
@@ -117,8 +135,15 @@ namespace FloatingIsLand.App
             _board = new BuildBoard(map, _rules);
             _scoring = new ScoreEngine(_board);
 
+            // 风系统：从地图的 windSource 元素按局种子展开风源，初始场算好后挂到建造盘。
+            // WindSystem 自身实现 IWindField 并转发到当前场，重算不会留下过期引用。
+            _wind = new WindSystem(_board, Context != null ? Context.Seed : 0);
+            _board.WindField = _wind;
+            _windKeeper = new WindScoreKeeper();
+
             List<LevelDef> levels = BuildRuleSetFactory.CreateLevels();
-            _run = new BuildRunState(levels, _rules, Context != null ? Context.Seed : 0);
+            List<GroupThemeDef> themes = BuildRuleSetFactory.CreateGroupThemes();
+            _run = new BuildRunState(levels, themes, _rules, Context != null ? Context.Seed : 0);
             _run.Changed += OnRunChanged;
             _run.Start();
 
@@ -208,11 +233,13 @@ namespace FloatingIsLand.App
 
             // 先算分再落地：计分要看的是「落地前的邻居」，把自己算进去会自己给自己加同类分
             breakdown = _scoring.Evaluate(blueprint, x, z, layer, rotation);
-            _board.Place(blueprint, x, z, layer, rotation, breakdown.Total);
+            PlacedBuilding placed = _board.Place(blueprint, x, z, layer, rotation, breakdown.Total);
 
             int consumed = _selectedHandIndex;
             _run.AddBuildScore(breakdown.Total);
             _run.ConsumeFromHand(consumed);
+
+            SettleWindAfterPlacement(blueprint, placed, breakdown);
 
             // 一次点击只造一栋：落地后退出摆放模式，不自动顺延到下一张手牌。
             // 自动顺延会让玩家在没察觉的情况下把下一栋也甩出去——尤其是手牌前移后
@@ -220,6 +247,59 @@ namespace FloatingIsLand.App
             _selectedHandIndex = -1;
             SelectionChanged?.Invoke();
             return true;
+        }
+
+        /// <summary>
+        /// 落地后的风结算（用户定稿的一次性语义）：
+        /// ① 这栋建筑建造分里若已吃到「接入物流」覆盖分，登记进账本，风变更时不再重复发；
+        /// ② 若这栋会改变风（风帆转向 / 物流点延长+物流风），全量重算并广播全局风变更事件，
+        ///    再结算风变更新吹出的一次性收益（物流风覆盖 / 物流点互联）计入总分。
+        /// 已得的分从不回收——风路之后再变，只发新分。
+        /// </summary>
+        private void SettleWindAfterPlacement(BuildingBlueprint blueprint, PlacedBuilding placed, ScoreBreakdown breakdown)
+        {
+            if (_wind == null)
+            {
+                return;
+            }
+
+            if (breakdown.LogisticsCovered)
+            {
+                _windKeeper.MarkCoveredAtBuild(placed.Id);
+            }
+
+            if (!WindSystem.AffectsWind(blueprint))
+            {
+                return;
+            }
+
+            _wind.Recompute();
+            List<WindAward> awards = _windKeeper.SettleAfterWindChange(_board, _wind.Field);
+            int total = WindScoreKeeper.TotalOf(awards);
+            if (total != 0)
+            {
+                _run.AddBuildScore(total);
+            }
+
+            WindFieldChanged?.Invoke();
+            if (awards.Count > 0)
+            {
+                WindAwardsGranted?.Invoke(awards);
+            }
+        }
+
+        /// <summary>
+        /// 干跑：当前选中的建筑摆在这里，风场会变成什么样（风帆/物流点的摆放预览用）。
+        /// 选中的不是会改变风的建筑时返回 null。
+        /// </summary>
+        public WindField PreviewSelectedWind(int x, int z, int layer, Rotation rotation)
+        {
+            BuildingBlueprint blueprint = SelectedBlueprint;
+            if (blueprint == null || _wind == null)
+            {
+                return null;
+            }
+            return _wind.Preview(blueprint, x, z, layer, rotation);
         }
 
         /// <summary>当前是否处在「二选一」阶段。</summary>

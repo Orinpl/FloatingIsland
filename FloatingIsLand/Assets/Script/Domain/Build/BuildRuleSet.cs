@@ -51,6 +51,15 @@ namespace FloatingIsLand.Domain.Build
         /// <summary>物流点建筑 Id，基础覆盖分靠它识别。</summary>
         public const string LogisticsPointBuildingId = "logisticsPoint";
 
+        /// <summary>风帆建筑 Id，风股转向靠它识别（§9.2）。</summary>
+        public const string SailBuildingId = "sail";
+
+        /// <summary>居民区建筑 Id，风向标倍率只作用于居民区相关分（§12.1）。</summary>
+        public const string ResidenceBuildingId = "residence";
+
+        /// <summary>初始风源元素 Id，风股从它展开（§5.2）。</summary>
+        public const string WindSourceElementId = "windSource";
+
         /// <summary>同一锚点下第 N 座船坞的锚点收益倍率（§12.8：1|0.5|0.25|0）。</summary>
         public IReadOnlyList<float> AnchorDockDecayPercents { get; }
 
@@ -63,12 +72,29 @@ namespace FloatingIsLand.Domain.Build
         /// <summary>正分转金币比例。</summary>
         public float ScoreToGoldRatio { get; }
 
-        /// <summary>
-        /// 风系统是否已接入。M3 之前恒为 false：风场未实现时若按「0 级风」结算，
-        /// 船坞会永远吃到 -150 的无风惩罚（§12.8 的曲线首项），那不是设计意图而是缺数据，
-        /// 因此未接入时整块风力项直接不参与结算，并在明细里注明。
-        /// </summary>
-        public bool WindEnabled { get; }
+        /// <summary>合成风力封顶（WindConfig.maxWindLevel，§8.5=5）。</summary>
+        public int MaxWindLevel { get; }
+
+        /// <summary>初始风强度随机下限（含）。</summary>
+        public int InitialWindLevelMin { get; }
+
+        /// <summary>初始风强度随机上限（含）。</summary>
+        public int InitialWindLevelMax { get; }
+
+        /// <summary>初始风长度随机下限（含，格）。</summary>
+        public int InitialWindLengthMin { get; }
+
+        /// <summary>初始风长度随机上限（含，格）。</summary>
+        public int InitialWindLengthMax { get; }
+
+        /// <summary>物流点单次延长的风长（格，§10.5）。</summary>
+        public int WindExtendLength { get; }
+
+        /// <summary>每股风最多获得的物流点延长次数（§10.5=2）。</summary>
+        public int WindExtendMaxPerWind { get; }
+
+        /// <summary>物流点经物流风互联的一次性加分（每对仅计一次）。</summary>
+        public int LogisticsWindLinkScore { get; }
 
         public BuildRuleSet(
             IReadOnlyList<BuildingBlueprint> blueprints,
@@ -79,7 +105,14 @@ namespace FloatingIsLand.Domain.Build
             int logisticsCoverRadius,
             int logisticsBaseCoverScore,
             float scoreToGoldRatio,
-            bool windEnabled)
+            int maxWindLevel = 5,
+            int initialWindLevelMin = 0,
+            int initialWindLevelMax = 0,
+            int initialWindLengthMin = 0,
+            int initialWindLengthMax = 0,
+            int windExtendLength = 0,
+            int windExtendMaxPerWind = 0,
+            int logisticsWindLinkScore = 0)
         {
             IReadOnlyList<BuildingBlueprint> blueprintSource = blueprints ?? Array.Empty<BuildingBlueprint>();
             _blueprints = new BuildingBlueprint[blueprintSource.Count];
@@ -115,7 +148,14 @@ namespace FloatingIsLand.Domain.Build
             LogisticsCoverRadius = logisticsCoverRadius;
             LogisticsBaseCoverScore = logisticsBaseCoverScore;
             ScoreToGoldRatio = scoreToGoldRatio;
-            WindEnabled = windEnabled;
+            MaxWindLevel = maxWindLevel > 0 ? maxWindLevel : 5;
+            InitialWindLevelMin = initialWindLevelMin;
+            InitialWindLevelMax = initialWindLevelMax;
+            InitialWindLengthMin = initialWindLengthMin;
+            InitialWindLengthMax = initialWindLengthMax;
+            WindExtendLength = windExtendLength;
+            WindExtendMaxPerWind = windExtendMaxPerWind;
+            LogisticsWindLinkScore = logisticsWindLinkScore;
         }
 
         /// <summary>按变体 Id 取蓝图；不存在返回 null。</summary>
