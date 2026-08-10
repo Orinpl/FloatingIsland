@@ -133,6 +133,7 @@ namespace FloatingIsLand.Config
                     row.minLevel,
                     row.maxLevel,
                     row.weight,
+                    row.maxPerRun,
                     ParseThemeMembers(row)));
             }
             return themes;

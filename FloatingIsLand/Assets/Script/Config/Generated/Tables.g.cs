@@ -124,6 +124,8 @@ namespace FloatingIsLand.Config
         public int maxLevel;
         /// <summary>同一等级内被抽中的权重（正整数）。同一级的两组必定是两个不同主题，抽中后不放回</summary>
         public int weight;
+        /// <summary>本主题一局最多被玩家选中几次，选满后不再进候选池；0 = 不限。用来给地标建筑封顶——市民中心配 1:1:1 且本列填 3，一局就最多 3 个市民中心</summary>
+        public int maxPerRun;
         /// <summary>成员配方：变体Id:权重[:最少[:最多]]，多条用|分隔。权重=剩余名额里的抽取权重（核心建筑权重高=出得多），最少=本组保底几栋（默认 0），最多=本组上限（默认 0 = 不限）。例 miningStation_01:6:2:3|workshop_01:2:1:1 = 采矿站 2~3 栋、工坊恰好 1 栋</summary>
         public string[] members;
     }

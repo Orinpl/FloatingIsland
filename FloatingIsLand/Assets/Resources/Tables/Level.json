@@ -16,11 +16,14 @@
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
-    "themes": []
+    "themes": [
+      "civicCenter",
+      "mining"
+    ]
   },
   {
     "level": 3,
-    "unlockCost": 85,
+    "unlockCost": 80,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
@@ -28,7 +31,7 @@
   },
   {
     "level": 4,
-    "unlockCost": 110,
+    "unlockCost": 100,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
@@ -36,7 +39,7 @@
   },
   {
     "level": 5,
-    "unlockCost": 130,
+    "unlockCost": 115,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
@@ -44,7 +47,7 @@
   },
   {
     "level": 6,
-    "unlockCost": 150,
+    "unlockCost": 130,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
@@ -68,7 +71,7 @@
   },
   {
     "level": 9,
-    "unlockCost": 210,
+    "unlockCost": 200,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
@@ -76,7 +79,7 @@
   },
   {
     "level": 10,
-    "unlockCost": 225,
+    "unlockCost": 230,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
@@ -84,7 +87,7 @@
   },
   {
     "level": 11,
-    "unlockCost": 245,
+    "unlockCost": 240,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
@@ -92,7 +95,7 @@
   },
   {
     "level": 12,
-    "unlockCost": 260,
+    "unlockCost": 250,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
@@ -100,7 +103,7 @@
   },
   {
     "level": 13,
-    "unlockCost": 275,
+    "unlockCost": 265,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
@@ -108,7 +111,7 @@
   },
   {
     "level": 14,
-    "unlockCost": 290,
+    "unlockCost": 270,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
@@ -116,7 +119,7 @@
   },
   {
     "level": 15,
-    "unlockCost": 305,
+    "unlockCost": 280,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,
@@ -148,7 +151,7 @@
   },
   {
     "level": 19,
-    "unlockCost": 360,
+    "unlockCost": 355,
     "groupCount": 2,
     "groupSizeMin": 3,
     "groupSizeMax": 5,

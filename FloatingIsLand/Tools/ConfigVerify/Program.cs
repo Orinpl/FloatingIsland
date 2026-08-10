@@ -343,6 +343,24 @@ namespace ConfigVerify
                         $"Level[{level}]: 本级可用主题只有 {candidates.Count} 个，凑不满 groupCount={groupCount} 组"
                         + "（会退化成同一级出两组同主题，检查各主题的 minLevel/maxLevel 是否铺满 20 级）");
                 }
+
+                // 带 maxPerRun 的主题是「地标额度」，用完就退出候选池。一级里若全是带额度的主题，
+                // 玩家用完额度后这一级就只能靠运行时兜底（忽略额度）撑着——那等于额度形同虚设。
+                bool anyUncapped = false;
+                foreach (string themeId in candidates)
+                {
+                    if (themesById[themeId].MaxPerRun <= 0)
+                    {
+                        anyUncapped = true;
+                        break;
+                    }
+                }
+                if (candidates.Count > 0 && !anyUncapped)
+                {
+                    errors.Add(
+                        $"Level[{level}]: 本级候选主题全部带 maxPerRun 额度，额度用完这一级就没有常规主题可发"
+                        + "（至少留一个 maxPerRun=0 的主题托底）");
+                }
             }
 
             if (errors.Count > 0)
@@ -374,6 +392,7 @@ namespace ConfigVerify
             public string ThemeId = "";
             public int MinLevel;
             public int MaxLevel;
+            public int MaxPerRun;
             public readonly List<ParsedMember> Members = new List<ParsedMember>();
 
             public bool IsAvailableAt(int level)
@@ -397,12 +416,17 @@ namespace ConfigVerify
                 ThemeId = Str(row, "themeId"),
                 MinLevel = Int(row, "minLevel"),
                 MaxLevel = Int(row, "maxLevel"),
+                MaxPerRun = Int(row, "maxPerRun"),
             };
             string context = $"BuildingGroupTheme[{theme.ThemeId}]";
 
             if (Int(row, "weight") <= 0)
             {
                 errors.Add($"{context}: weight 须为正整数（0 权重的主题永远抽不到）");
+            }
+            if (theme.MaxPerRun < 0)
+            {
+                errors.Add($"{context}: maxPerRun 不能为负（0 = 不限）");
             }
             if (theme.MaxLevel > 0 && theme.MinLevel > theme.MaxLevel)
             {

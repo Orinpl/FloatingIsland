@@ -35,7 +35,7 @@ namespace FloatingIsLand.Tests
         /// <summary>核心建筑权重高、上限松；稀有建筑保底 1 上限 1 —— 「采矿站多、工坊少」的最小复现。</summary>
         private static GroupThemeDef CoreTheme()
         {
-            return new GroupThemeDef("core", "核心主题", 1, 0, 10, new List<ThemeMember>
+            return new GroupThemeDef("core", "核心主题", 1, 0, 10, 0, new List<ThemeMember>
             {
                 new ThemeMember("core_01", 8, 2, 4),
                 new ThemeMember("rare_01", 1, 1, 1),
@@ -44,7 +44,7 @@ namespace FloatingIsLand.Tests
 
         private static GroupThemeDef OtherTheme()
         {
-            return new GroupThemeDef("other", "另一个主题", 1, 0, 10, new List<ThemeMember>
+            return new GroupThemeDef("other", "另一个主题", 1, 0, 10, 0, new List<ThemeMember>
             {
                 new ThemeMember("other_01", 5, 1, 0),
             });
@@ -144,8 +144,8 @@ namespace FloatingIsLand.Tests
         {
             var themes = new List<GroupThemeDef>
             {
-                new GroupThemeDef("early", "前期", 1, 2, 10, new List<ThemeMember> { new ThemeMember("core_01", 5, 1, 0) }),
-                new GroupThemeDef("late", "后期", 3, 0, 10, new List<ThemeMember> { new ThemeMember("other_01", 5, 1, 0) }),
+                new GroupThemeDef("early", "前期", 1, 2, 10, 0, new List<ThemeMember> { new ThemeMember("core_01", 5, 1, 0) }),
+                new GroupThemeDef("late", "后期", 3, 0, 10, 0, new List<ThemeMember> { new ThemeMember("other_01", 5, 1, 0) }),
             };
             var levels = new List<LevelDef> { Level(1, 1, 3, 3), Level(2, 1, 3, 3), Level(3, 1, 3, 3) };
 
@@ -167,12 +167,89 @@ namespace FloatingIsLand.Tests
             var themes = new List<GroupThemeDef>
             {
                 CoreTheme(),
-                new GroupThemeDef("locked", "本来还没解锁", 9, 0, 10,
+                new GroupThemeDef("locked", "本来还没解锁", 9, 0, 10, 0,
                     new List<ThemeMember> { new ThemeMember("other_01", 5, 1, 0) }),
             };
 
             BuildRunState run = Run(new List<LevelDef> { Level(1, 1, 3, 3, "locked") }, themes, 7);
             Assert.AreEqual("locked", run.Offers[0].ThemeId);
+        }
+
+        /// <summary>
+        /// 地标建筑的总量封顶：主题 maxPerRun=3 + 配方恰好 1 栋 ⇒ 一局最多 3 个市民中心。
+        /// 玩家每次都优先选地标组，选满 3 次后它必须彻底退出候选池。
+        /// </summary>
+        [Test]
+        public void 达到本局配额的主题不再出现()
+        {
+            var themes = new List<GroupThemeDef>
+            {
+                new GroupThemeDef("landmark", "地标", 1, 0, 10, 3, new List<ThemeMember>
+                {
+                    new ThemeMember("rare_01", 1, 1, 1),
+                    new ThemeMember("core_01", 5, 1, 0),
+                }),
+                OtherTheme(),
+            };
+
+            var levels = new List<LevelDef>();
+            for (int i = 1; i <= 10; i++)
+            {
+                levels.Add(Level(i, 2, 3, 4));
+            }
+
+            BuildRunState run = Run(levels, themes, 4321);
+            int landmarks = 0;
+            int offeredAfterQuota = 0;
+
+            for (int level = 1; level <= 10; level++)
+            {
+                int landmarkIndex = -1;
+                for (int g = 0; g < run.Offers.Count; g++)
+                {
+                    if (run.Offers[g].ThemeId == "landmark")
+                    {
+                        landmarkIndex = g;
+                        if (landmarks >= 3)
+                        {
+                            offeredAfterQuota++;
+                        }
+                    }
+                }
+
+                // 有地标就选地标：把配额用到极限才能看出上限有没有兜住
+                int pick = landmarkIndex >= 0 ? landmarkIndex : 0;
+                if (run.Offers[pick].ThemeId == "landmark")
+                {
+                    landmarks++;
+                }
+                run.ChooseOffer(pick);
+                run.AdvanceToNextLevel();
+            }
+
+            Assert.AreEqual(3, landmarks, "地标主题最多只能被选中 3 次");
+            Assert.AreEqual(0, offeredAfterQuota, "配额用完后地标主题不该再进候选池");
+        }
+
+        /// <summary>配额把候选滤空时必须退回到不限配额，否则这一级玩家无组可选。</summary>
+        [Test]
+        public void 配额滤空候选时仍然发得出组()
+        {
+            var themes = new List<GroupThemeDef>
+            {
+                new GroupThemeDef("onlyOne", "唯一主题", 1, 0, 10, 1, new List<ThemeMember>
+                {
+                    new ThemeMember("core_01", 5, 1, 0),
+                }),
+            };
+            var levels = new List<LevelDef> { Level(1, 1, 3, 3), Level(2, 1, 3, 3) };
+
+            BuildRunState run = Run(levels, themes, 55);
+            run.ChooseOffer(0);
+            run.AdvanceToNextLevel();
+
+            Assert.AreEqual(1, run.Offers.Count, "配额用完也不能让这一级空手");
+            Assert.AreEqual("onlyOne", run.Offers[0].ThemeId);
         }
 
         [Test]

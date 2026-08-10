@@ -58,11 +58,18 @@ namespace FloatingIsLand.Domain.Build
         /// <summary>同一等级内被抽中的权重。</summary>
         public int Weight { get; }
 
+        /// <summary>
+        /// 本主题一局最多被玩家选中几次，选满后不再进候选池；0 = 不限。
+        /// 地标建筑的总量封顶靠它：市民中心配方是「恰好 1 栋」，本值填 3 即一局最多 3 个市民中心。
+        /// </summary>
+        public int MaxPerRun { get; }
+
         /// <summary>成员配方，顺序即发牌顺序。</summary>
         public IReadOnlyList<ThemeMember> Members { get; }
 
         public GroupThemeDef(
-            string themeId, string nameCn, int minLevel, int maxLevel, int weight, IReadOnlyList<ThemeMember> members)
+            string themeId, string nameCn, int minLevel, int maxLevel, int weight, int maxPerRun,
+            IReadOnlyList<ThemeMember> members)
         {
             if (string.IsNullOrEmpty(themeId))
             {
@@ -74,7 +81,14 @@ namespace FloatingIsLand.Domain.Build
             MinLevel = minLevel;
             MaxLevel = maxLevel;
             Weight = weight;
+            MaxPerRun = maxPerRun;
             Members = members ?? Array.Empty<ThemeMember>();
+        }
+
+        /// <summary>本局已选中 <paramref name="takenThisRun"/> 次后，本主题是否还能再被提供。</summary>
+        public bool HasRunQuotaLeft(int takenThisRun)
+        {
+            return MaxPerRun <= 0 || takenThisRun < MaxPerRun;
         }
 
         /// <summary>本主题在给定等级是否可用。</summary>

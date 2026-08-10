@@ -6,6 +6,7 @@ using System.Linq;
 using FloatingIsLand.Config;
 using FloatingIsLand.Domain.Build;
 using FloatingIsLand.Domain.Map;
+using FloatingIsLand.Domain.Wind;
 
 // 积分曲线仿真：用贪心 AI 玩家把一局跑完，看金币产出能不能跟上 Level.unlockCost 的解锁曲线。
 //
@@ -76,6 +77,10 @@ static RunOutcome Simulate(
     MapSnapshot map, BuildRuleSet rules, List<LevelDef> levels, List<GroupThemeDef> themes, int seed, bool freeUnlock)
 {
     var board = new BuildBoard(map, rules);
+    // 风场必须接：风帆的 windPath 建造限制、风力即时分、风车风力曲线全靠它。
+    // 不接的话仿真会谎报「风帆一定放得下」且把它的风力分算成 0。
+    var wind = new WindSystem(board, seed);
+    board.WindField = wind;
     var scoring = new ScoreEngine(board);
     var run = new BuildRunState(levels, themes, rules, seed);
     var random = new DeterministicRandom(seed * 31 + 7);
@@ -130,6 +135,11 @@ static RunOutcome Simulate(
             }
 
             board.Place(blueprint, spot.X, spot.Z, 0, spot.Rotation, spot.Score);
+            if (WindSystem.AffectsWind(blueprint))
+            {
+                // 风帆转向 / 物流点延长风长会改写整张风场，后续落点的分数依赖新场
+                wind.Recompute();
+            }
             run.AddBuildScore(spot.Score);
             run.ConsumeFromHand(0);
             outcome.PlacedBuildings++;

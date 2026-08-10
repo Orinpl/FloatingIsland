@@ -74,6 +74,8 @@ namespace FloatingIsLand.Domain.Build
         private readonly List<string> _hand = new List<string>();
         private readonly List<GroupThemeDef> _candidateThemes = new List<GroupThemeDef>();
         private readonly List<GroupThemeDef> _remainingThemes = new List<GroupThemeDef>();
+        /// <summary>本局各主题已被选中的次数，用来兑现 <see cref="GroupThemeDef.MaxPerRun"/>。</summary>
+        private readonly Dictionary<string, int> _themePicks = new Dictionary<string, int>(StringComparer.Ordinal);
         private BuildingGroup[] _offers = Array.Empty<BuildingGroup>();
 
         /// <summary>当前等级（1 起）。</summary>
@@ -136,6 +138,7 @@ namespace FloatingIsLand.Domain.Build
             TotalScore = 0;
             Gold = 0;
             _hand.Clear();
+            _themePicks.Clear();
             AdvanceToNextLevel();
         }
 
@@ -192,6 +195,16 @@ namespace FloatingIsLand.Domain.Build
             {
                 _hand.Add(chosen.VariantIds[i]);
             }
+
+            // 记一次「选中」而不是「出现」：MaxPerRun 限的是玩家最终拿到多少，
+            // 只被提供却没选的不该占额度。
+            if (!string.IsNullOrEmpty(chosen.ThemeId))
+            {
+                int taken;
+                _themePicks.TryGetValue(chosen.ThemeId, out taken);
+                _themePicks[chosen.ThemeId] = taken + 1;
+            }
+
             _offers = Array.Empty<BuildingGroup>();
             RaiseChanged();
             return true;
@@ -261,7 +274,11 @@ namespace FloatingIsLand.Domain.Build
             return offers;
         }
 
-        /// <summary>本级可用主题：Level 写死了就用写死的，否则按主题自己的等级区间筛。</summary>
+        /// <summary>
+        /// 本级可用主题：Level 写死了就用写死的，否则按主题自己的等级区间筛；
+        /// 再滤掉本局配额已用完的（<see cref="GroupThemeDef.MaxPerRun"/>）。
+        /// 配额把候选滤空时忽略配额——宁可多给一次地标，也不能让玩家这一级无组可选。
+        /// </summary>
         private void CollectCandidateThemes(LevelDef level)
         {
             _candidateThemes.Clear();
@@ -276,15 +293,32 @@ namespace FloatingIsLand.Domain.Build
                         _candidateThemes.Add(theme);
                     }
                 }
-                return;
+            }
+            else
+            {
+                for (int i = 0; i < _themes.Count; i++)
+                {
+                    if (_themes[i].IsAvailableAt(level.Level))
+                    {
+                        _candidateThemes.Add(_themes[i]);
+                    }
+                }
             }
 
-            for (int i = 0; i < _themes.Count; i++)
+            int kept = 0;
+            for (int i = 0; i < _candidateThemes.Count; i++)
             {
-                if (_themes[i].IsAvailableAt(level.Level))
+                GroupThemeDef theme = _candidateThemes[i];
+                int taken;
+                _themePicks.TryGetValue(theme.ThemeId, out taken);
+                if (theme.HasRunQuotaLeft(taken))
                 {
-                    _candidateThemes.Add(_themes[i]);
+                    _candidateThemes[kept++] = theme;
                 }
+            }
+            if (kept > 0)
+            {
+                _candidateThemes.RemoveRange(kept, _candidateThemes.Count - kept);
             }
         }
 
