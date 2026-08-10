@@ -52,18 +52,24 @@ namespace FloatingIsLand.View
             ClearNow();
         }
 
-        /// <summary>刷新摆放预览的高亮。传 null 等同于清空。</summary>
-        public void ShowPreview(ScoreBreakdown breakdown)
+        /// <summary>
+        /// 刷新摆放预览的高亮。传 null 等同于清空。
+        /// <paramref name="selfAnchor"/> = 被摆建筑自己的飘字锚点（占地中心上方）——
+        /// 建筑自己身上要显示「范围内所有加减分的总和」，建在风带上时再逐条显示风的加减分（§7.4）。
+        /// <paramref name="windAwards"/> = 摆下去会触发的风变更一次性分（干跑结果，可空）——
+        /// 预览阶段就把「会给谁发分」飘到受益建筑头上，落地后看到的数字与预览完全一致。
+        /// </summary>
+        public void ShowPreview(ScoreBreakdown breakdown, Vector3 selfAnchor, IReadOnlyList<WindAward> windAwards)
         {
             // 预览优先于落地余晖：玩家已经拿起下一栋了，还挂着上一次的光只会干扰
             _holdUntil = 0f;
-            Apply(breakdown);
+            Apply(breakdown, selfAnchor, windAwards);
         }
 
         /// <summary>落地成功后放一次余晖：同一批高亮多留一会儿再自己消失。</summary>
-        public void PlayPlaced(ScoreBreakdown breakdown)
+        public void PlayPlaced(ScoreBreakdown breakdown, Vector3 selfAnchor)
         {
-            Apply(breakdown);
+            Apply(breakdown, selfAnchor, null);
             _holdUntil = Time.time + PlacedHoldSeconds;
         }
 
@@ -74,7 +80,23 @@ namespace FloatingIsLand.View
         /// </summary>
         public void PlayWindAwards(IReadOnlyList<WindAward> awards)
         {
-            if (_glow == null || _labels == null || _instances == null || awards == null || awards.Count == 0)
+            if (_glow == null || _labels == null || awards == null || awards.Count == 0)
+            {
+                return;
+            }
+
+            EmitWindAwards(awards);
+            _holdUntil = Time.time + PlacedHoldSeconds + 0.8f;
+        }
+
+        /// <summary>
+        /// 把一批风变更收益画到受益建筑身上（预览批次与落地余晖共用）。
+        /// 互联的数字优先标在下游那端；下游是还没落地的假设点（Id=-1，索引里找不到）时
+        /// 退回标在上游——预览「新点连老点」时数字不能凭空消失。
+        /// </summary>
+        private void EmitWindAwards(IReadOnlyList<WindAward> awards)
+        {
+            if (_instances == null)
             {
                 return;
             }
@@ -93,9 +115,10 @@ namespace FloatingIsLand.View
                     continue;
                 }
 
-                // 互联：两端都发光，数字标在下游（新连上的那个）
+                WorldInstanceIndex.Entry upstream = null;
                 if (_instances.TryGetBuilding(award.BuildingInstanceId, out entry))
                 {
+                    upstream = entry;
                     _glow.Add(entry, HighlightGlowRenderer.GlowStyle.Bonus);
                 }
                 if (_instances.TryGetBuilding(award.OtherInstanceId, out entry))
@@ -103,9 +126,11 @@ namespace FloatingIsLand.View
                     _glow.Add(entry, HighlightGlowRenderer.GlowStyle.Bonus);
                     _labels.Add(entry.LabelAnchor, $"+{award.Score} 物流互联", WindAwardLabelColor);
                 }
+                else if (upstream != null)
+                {
+                    _labels.Add(upstream.LabelAnchor, $"+{award.Score} 物流互联", WindAwardLabelColor);
+                }
             }
-
-            _holdUntil = Time.time + PlacedHoldSeconds + 0.8f;
         }
 
         /// <summary>清预览。落地余晖还没放完时不打断它。</summary>
@@ -139,7 +164,7 @@ namespace FloatingIsLand.View
             }
         }
 
-        private void Apply(ScoreBreakdown breakdown)
+        private void Apply(ScoreBreakdown breakdown, Vector3 selfAnchor, IReadOnlyList<WindAward> windAwards)
         {
             if (_glow == null || _labels == null)
             {
@@ -160,7 +185,7 @@ namespace FloatingIsLand.View
                     ScoreAttribution attribution = attributions[i];
                     if (attribution.Kind != ScoreSourceKind.Building && attribution.Kind != ScoreSourceKind.Element)
                     {
-                        // 基础分与风力没有第二个对象可指，只出现在明细里
+                        // 基础分挂在被摆建筑自己身上，风力分在 EmitSelfLabels 里逐条飘，这里只处理有实例的对象
                         continue;
                     }
 
@@ -180,7 +205,67 @@ namespace FloatingIsLand.View
                 }
             }
 
+            if (breakdown != null)
+            {
+                EmitSelfLabels(breakdown, selfAnchor);
+            }
+            if (windAwards != null && windAwards.Count > 0)
+            {
+                EmitWindAwards(windAwards);
+            }
+
             _labels.End();
+        }
+
+        /// <summary>标签竖排步距（世界单位）。</summary>
+        private const float SelfLabelStep = 0.7f;
+
+        /// <summary>
+        /// 被摆建筑自己身上的飘字（§7.4 + 用户定稿）：
+        /// 顶行是「范围内所有加减分的总和」——即除基础分/孤立惩罚（Self 条目）外、
+        /// 所有已计入归因的净和，邻居给的分与风给的分都算「范围内」；
+        /// 建在风带上时，下面逐条列出风的加减分（风力即时分 / 强风穿过惩罚 / 物流风覆盖），
+        /// 用与风流线同色系的字，玩家能把「这几分」与头顶那条风对上号。
+        /// </summary>
+        private void EmitSelfLabels(ScoreBreakdown breakdown, Vector3 selfAnchor)
+        {
+            IReadOnlyList<ScoreAttribution> attributions = breakdown.Attributions;
+
+            int surroundTotal = 0;
+            for (int i = 0; i < attributions.Count; i++)
+            {
+                ScoreAttribution attribution = attributions[i];
+                if (attribution.Kind != ScoreSourceKind.Self && attribution.Counted)
+                {
+                    surroundTotal += attribution.Score;
+                }
+            }
+
+            int stacked = 0;
+            if (surroundTotal != 0)
+            {
+                bool bonus = surroundTotal > 0;
+                _labels.Add(
+                    selfAnchor,
+                    $"周边合计 {(bonus ? "+" : "")}{surroundTotal}",
+                    bonus ? BonusLabelColor : PenaltyLabelColor);
+                stacked++;
+            }
+
+            for (int i = 0; i < attributions.Count; i++)
+            {
+                ScoreAttribution attribution = attributions[i];
+                if (attribution.Kind != ScoreSourceKind.Wind || attribution.Score == 0)
+                {
+                    continue;
+                }
+                bool bonus = attribution.Score > 0;
+                _labels.Add(
+                    selfAnchor + Vector3.down * (SelfLabelStep * stacked),
+                    $"{(bonus ? "+" : "")}{attribution.Score} {attribution.Label}",
+                    bonus ? WindAwardLabelColor : PenaltyLabelColor);
+                stacked++;
+            }
         }
 
         private void Emit(long key, int score)

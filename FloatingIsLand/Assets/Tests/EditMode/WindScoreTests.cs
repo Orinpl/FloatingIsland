@@ -290,6 +290,39 @@ namespace FloatingIsLand.Tests
             Assert.AreEqual(0, after.Count);
         }
 
+        [Test]
+        public void 预览干跑_不消耗一生一次账本_且假设物流点参与互联()
+        {
+            BuildingBlueprint point = MakeBlueprint(BuildRuleSet.LogisticsPointBuildingId);
+            BuildingBlueprint farm = MakeBlueprint("farm", canCover: true);
+            var board = new BuildBoard(MakeMap(), MakeRules(
+                new[] { point, farm }, coverRadius: 3, coverScore: 8, linkScore: 30));
+            board.Place(farm, 11, 12, 0, Rotation.Deg0, 0);
+            PlacedBuilding pointA = board.Place(point, 4, 10, 0, Rotation.Deg0, 0);
+
+            WindField field = Simulate(board, new WindSeed(new CellCoord(2, 10), 0, Dir8.E, 2, 10));
+            var keeper = new WindScoreKeeper();
+
+            // 假设在 (8,10)（风路上、A 下游）摆一个新物流点
+            var virtualPoint = new PlacedBuilding(
+                -1, point, 8, 10, 0, Rotation.Deg0, new List<CellCoord> { new CellCoord(8, 10) }, 0);
+
+            List<WindAward> preview = keeper.PreviewWindChange(board, field, virtualPoint);
+            Assert.AreEqual(2, preview.Count, "覆盖 1 笔 + 与假设点互联 1 笔");
+            Assert.AreEqual(WindAwardKind.LogisticsCoverage, preview[0].Kind);
+            Assert.AreEqual(WindAwardKind.LogisticsLink, preview[1].Kind);
+            Assert.AreEqual(pointA.Id, preview[1].BuildingInstanceId);
+            Assert.AreEqual(-1, preview[1].OtherInstanceId, "下游是还没落地的假设点");
+
+            // 重复预览结果一致——账本没被写
+            Assert.AreEqual(2, keeper.PreviewWindChange(board, field, virtualPoint).Count);
+
+            // 正式结算照常发覆盖分：预览没有偷走一生一次的额度
+            List<WindAward> settled = keeper.SettleAfterWindChange(board, field);
+            Assert.AreEqual(1, settled.Count);
+            Assert.AreEqual(WindAwardKind.LogisticsCoverage, settled[0].Kind);
+        }
+
         // ---------- 风源展开（WindSystem） ----------
 
         [Test]

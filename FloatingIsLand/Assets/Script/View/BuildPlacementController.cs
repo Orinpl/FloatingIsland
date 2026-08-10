@@ -91,6 +91,9 @@ namespace FloatingIsLand.View
         private int _anchorX;
         private int _anchorZ;
 
+        /// <summary>被摆建筑自己的飘字锚点（占地中心上方），随悬停更新，落地时沿用。</summary>
+        private Vector3 _selfLabelAnchor;
+
         /// <summary>当前 ghost 的朝向。</summary>
         public Rotation CurrentRotation
         {
@@ -402,6 +405,8 @@ namespace FloatingIsLand.View
             blueprint.Footprint.GetCells(_anchorX, _anchorZ, _rotation, _previewCells);
             EnsureRangeRing().Show(_previewCells, _hoverLayer, blueprint.Radius, _presenter.Geometry);
 
+            _selfLabelAnchor = ComputeSelfLabelAnchor(_previewCells, _hoverLayer);
+
             UpdateScorePreview(blueprint, check);
 
             if (_ghost != null)
@@ -453,15 +458,30 @@ namespace FloatingIsLand.View
             }
 
             ScoreBreakdown preview = _session.PreviewSelectedScore(_anchorX, _anchorZ, _hoverLayer, _rotation);
-            HoverMessage = preview != null ? $"预计得分 {preview.Total}" : string.Empty;
-            EnsureScoreHighlight().ShowPreview(preview);
 
-            // 风路预览：摆的是风帆/物流点时干跑新风场（其余建筑返回 null，等价于清预览）。
+            // 风路预览：摆的是风帆/物流点时干跑新风场（其余建筑返回 null，等价于清预览），
+            // 并预演落地会触发的一次性分（物流风覆盖/互联）——预览看到的数字与落地入账完全一致。
             // 与得分预览共用同一个「落点变了才重算」缓存键，滚轮切换风帆左/右转向会改 rotation，
-            // 自然触发重算——玩家立刻看到风往哪边拐。
+            // 自然触发重算——玩家立刻看到风往哪边拐、会给谁发分。
+            WindField windPreview = _session.PreviewSelectedWind(_anchorX, _anchorZ, _hoverLayer, _rotation);
+            IReadOnlyList<WindAward> windAwards = windPreview != null
+                ? _session.PreviewSelectedWindAwards(windPreview, _anchorX, _anchorZ, _hoverLayer, _rotation)
+                : null;
+
+            int awardTotal = 0;
+            if (windAwards != null)
+            {
+                for (int i = 0; i < windAwards.Count; i++)
+                {
+                    awardTotal += windAwards[i].Score;
+                }
+            }
+            HoverMessage = preview != null ? $"预计得分 {preview.Total + awardTotal}" : string.Empty;
+
+            EnsureScoreHighlight().ShowPreview(preview, _selfLabelAnchor, windAwards);
+
             if (_windView != null)
             {
-                WindField windPreview = _session.PreviewSelectedWind(_anchorX, _anchorZ, _hoverLayer, _rotation);
                 if (windPreview != null)
                 {
                     _windView.ShowPreview(windPreview);
@@ -504,7 +524,7 @@ namespace FloatingIsLand.View
             {
                 // 落地余晖：同一批高亮再留一会儿。落地这一刻正是「按范围内的邻居算分」的时刻，
                 // 高亮多停一拍，玩家才看得清这一下的分是靠谁拿的
-                EnsureScoreHighlight().PlayPlaced(breakdown);
+                EnsureScoreHighlight().PlayPlaced(breakdown, _selfLabelAnchor);
                 if (_pendingWindAwards != null)
                 {
                     // 风变更吹出的一次性收益（物流风覆盖/互联）叠加在同一批余晖上
@@ -515,6 +535,22 @@ namespace FloatingIsLand.View
             }
 
             Debug.Log($"[建造] 无法摆放：{check.Reason}");
+        }
+
+        /// <summary>
+        /// 被摆建筑自己的飘字锚点：占地各格中心的均值再抬高约一栋楼。
+        /// 不取 ghost 包围盒——那要每帧扫 Renderer；几何锚点便宜且预览/落地口径天然一致。
+        /// </summary>
+        private Vector3 ComputeSelfLabelAnchor(List<CellCoord> cells, int layer)
+        {
+            GridGeometry geometry = _presenter.Geometry;
+            Vector3 sum = Vector3.zero;
+            for (int i = 0; i < cells.Count; i++)
+            {
+                sum += geometry.CellCenter(cells[i].X, cells[i].Z, layer);
+            }
+            Vector3 center = cells.Count > 0 ? sum / cells.Count : Vector3.zero;
+            return center + Vector3.up * (geometry.CellSize * 1.6f);
         }
 
         private void EnsureGhost(BuildingBlueprint blueprint)

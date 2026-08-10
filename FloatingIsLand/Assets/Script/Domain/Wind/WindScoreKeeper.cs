@@ -85,6 +85,22 @@ namespace FloatingIsLand.Domain.Wind
         /// </summary>
         public List<WindAward> SettleAfterWindChange(BuildBoard board, WindField field)
         {
+            return Compute(board, field, commit: true, virtualPoint: null);
+        }
+
+        /// <summary>
+        /// 摆放预览的干跑（§7.4「预估得分」）：算出「假设摆了这栋、风变成 <paramref name="field"/>」
+        /// 会发出哪些一次性分，**不写入任何账本**——预览一万次也不会把一生一次的额度用掉。
+        /// <paramref name="virtualPoint"/>：正在摆的假设物流点（Id 用 -1），它要参与互联配对，
+        /// 否则「新点连上老点」这最常见的一笔在预览里看不见；摆的不是物流点时传 null。
+        /// </summary>
+        public List<WindAward> PreviewWindChange(BuildBoard board, WindField field, PlacedBuilding virtualPoint)
+        {
+            return Compute(board, field, commit: false, virtualPoint: virtualPoint);
+        }
+
+        private List<WindAward> Compute(BuildBoard board, WindField field, bool commit, PlacedBuilding virtualPoint)
+        {
             if (board == null)
             {
                 throw new ArgumentNullException(nameof(board));
@@ -95,8 +111,8 @@ namespace FloatingIsLand.Domain.Wind
             }
 
             var awards = new List<WindAward>();
-            SettleCoverage(board, field, awards);
-            SettleLinks(board, field, awards);
+            SettleCoverage(board, field, commit, awards);
+            SettleLinks(board, field, commit, virtualPoint, awards);
             return awards;
         }
 
@@ -113,7 +129,7 @@ namespace FloatingIsLand.Domain.Wind
 
         // ---------- 物流风覆盖 ----------
 
-        private void SettleCoverage(BuildBoard board, WindField field, List<WindAward> awards)
+        private void SettleCoverage(BuildBoard board, WindField field, bool commit, List<WindAward> awards)
         {
             BuildRuleSet rules = board.Rules;
             if (rules.LogisticsBaseCoverScore == 0 || rules.LogisticsCoverRadius <= 0)
@@ -134,7 +150,10 @@ namespace FloatingIsLand.Domain.Wind
                     continue;
                 }
 
-                _coverageScored.Add(building.Id);
+                if (commit)
+                {
+                    _coverageScored.Add(building.Id);
+                }
                 awards.Add(new WindAward(
                     WindAwardKind.LogisticsCoverage, rules.LogisticsBaseCoverScore,
                     $"{building.Blueprint.NameCn} 接入物流网络（物流风）",
@@ -144,13 +163,17 @@ namespace FloatingIsLand.Domain.Wind
 
         // ---------- 物流点互联 ----------
 
-        private void SettleLinks(BuildBoard board, WindField field, List<WindAward> awards)
+        private void SettleLinks(
+            BuildBoard board, WindField field, bool commit, PlacedBuilding virtualPoint, List<WindAward> awards)
         {
             BuildRuleSet rules = board.Rules;
             if (rules.LogisticsWindLinkScore == 0)
             {
                 return;
             }
+
+            // 干跑不写 _linkScored，用本次局部集合防同一对在多股风里被重复报出来
+            var seenThisRun = new HashSet<long>();
 
             for (int s = 0; s < field.Streams.Count; s++)
             {
@@ -165,19 +188,26 @@ namespace FloatingIsLand.Domain.Wind
                 for (int i = 0; i < stream.Path.Count; i++)
                 {
                     CellCoord cell = stream.Path[i].Cell;
-                    PlacedBuilding building = board.GetBuildingAt(cell.X, cell.Z, stream.Layer);
-                    if (building == null
-                        || !string.Equals(building.Blueprint.BuildingId, BuildRuleSet.LogisticsPointBuildingId, StringComparison.Ordinal))
+                    PlacedBuilding building = FindLogisticsPointAt(board, virtualPoint, cell, stream.Layer);
+                    if (building == null)
                     {
                         continue;
                     }
-                    if (previous != null && building.Id != previous.Id && _linkScored.Add(PairKey(previous.Id, building.Id)))
+                    if (previous != null && building.Id != previous.Id)
                     {
-                        awards.Add(new WindAward(
-                            WindAwardKind.LogisticsLink, rules.LogisticsWindLinkScore,
-                            "物流点经风互联",
-                            previous.Id, building.Id,
-                            SlicePath(stream, previousIndex, i), stream.Layer));
+                        long key = PairKey(previous.Id, building.Id);
+                        if (!_linkScored.Contains(key) && seenThisRun.Add(key))
+                        {
+                            if (commit)
+                            {
+                                _linkScored.Add(key);
+                            }
+                            awards.Add(new WindAward(
+                                WindAwardKind.LogisticsLink, rules.LogisticsWindLinkScore,
+                                "物流点经风互联",
+                                previous.Id, building.Id,
+                                SlicePath(stream, previousIndex, i), stream.Layer));
+                        }
                     }
                     // 无条件更新到本次出现的下标：同一点被绕圈风非相邻地再次经过时，
                     // 配对特效截的才是「相邻两次出现之间」的直接段，而不是把绕圈全程截进去
@@ -185,6 +215,30 @@ namespace FloatingIsLand.Domain.Wind
                     previousIndex = i;
                 }
             }
+        }
+
+        /// <summary>该格上的物流点：先看正在预览的假设点（Id=-1），再看盘面上的真点。</summary>
+        private static PlacedBuilding FindLogisticsPointAt(
+            BuildBoard board, PlacedBuilding virtualPoint, CellCoord cell, int layer)
+        {
+            if (virtualPoint != null && virtualPoint.Layer == layer)
+            {
+                for (int i = 0; i < virtualPoint.Cells.Count; i++)
+                {
+                    if (virtualPoint.Cells[i].X == cell.X && virtualPoint.Cells[i].Z == cell.Z)
+                    {
+                        return virtualPoint;
+                    }
+                }
+            }
+
+            PlacedBuilding building = board.GetBuildingAt(cell.X, cell.Z, layer);
+            if (building != null
+                && string.Equals(building.Blueprint.BuildingId, BuildRuleSet.LogisticsPointBuildingId, StringComparison.Ordinal))
+            {
+                return building;
+            }
+            return null;
         }
 
         /// <summary>截取两点之间的路径格（含两端），互联特效沿它画线。</summary>

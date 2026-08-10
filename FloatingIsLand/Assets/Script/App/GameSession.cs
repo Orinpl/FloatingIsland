@@ -302,6 +302,33 @@ namespace FloatingIsLand.App
             return _wind.Preview(blueprint, x, z, layer, rotation);
         }
 
+        /// <summary>
+        /// 干跑：摆在这里会触发哪些风变更一次性分（物流风覆盖 / 物流点互联），
+        /// 表现层据此在预览阶段就把「摆下去会给谁发分」飘到受益建筑头上（§7.4 预估得分）。
+        /// 不写账本——预览多少次都不消耗一生一次的额度。<paramref name="previewField"/>
+        /// 传 <see cref="PreviewSelectedWind"/> 的结果；null（不改风的建筑）时返回 null。
+        /// </summary>
+        public IReadOnlyList<WindAward> PreviewSelectedWindAwards(
+            WindField previewField, int x, int z, int layer, Rotation rotation)
+        {
+            BuildingBlueprint blueprint = SelectedBlueprint;
+            if (blueprint == null || previewField == null || _windKeeper == null)
+            {
+                return null;
+            }
+
+            // 正在摆的假设物流点也要参与互联配对（Id=-1），否则「新点连老点」在预览里看不见
+            PlacedBuilding virtualPoint = null;
+            if (string.Equals(blueprint.BuildingId, BuildRuleSet.LogisticsPointBuildingId, StringComparison.Ordinal))
+            {
+                var cells = new List<CellCoord>(blueprint.Footprint.CellCount);
+                blueprint.Footprint.GetCells(x, z, rotation, cells);
+                virtualPoint = new PlacedBuilding(-1, blueprint, x, z, layer, rotation, cells, 0);
+            }
+
+            return _windKeeper.PreviewWindChange(_board, previewField, virtualPoint);
+        }
+
         /// <summary>当前是否处在「二选一」阶段。</summary>
         public bool HasPendingOffers
         {

@@ -120,7 +120,7 @@ Newtonsoft.Json 13，首次 `dotnet run` 自动还原。读表层锁 C# 9 是为
 
 | Sheet | 类型 | 主键 | 内容 | 对应设计 |
 |---|---|---|---|---|
-| `Building` | 行表 | `buildingId` string | **模板表**，15 栋建筑：分类、建造限制、半径、基础分、`elementBonus` 地图元素加分（微格式 `元素Id:分值[:上限]`；判定用**结算建筑自身的 radius**，与邻接同口径，`MapElement.radius` 不参与计分；写了 `giantWindmill` 条目=专属分替代通用分）、物流覆盖资格、风力曲线（船坞/风帆/居民区/风向标各自专列）、MVP 批次 | §6、§11、§12、§14、§19 |
+| `Building` | 行表 | `buildingId` string | **模板表**，15 栋建筑：分类、建造限制、半径、基础分、`elementBonus` 地图元素加分（微格式 `元素Id:分值[:上限]`；判定用**结算建筑自身的 radius**，与邻接同口径，`MapElement.radius` 不参与计分；写了 `giantWindmill` 条目=专属分替代通用分）、物流覆盖资格、风力曲线（船坞/风帆/风车/居民区/风向标各自专列）、MVP 批次 | §6、§11、§12、§14、§19 |
 | `BuildingVariant` | 行表 | `variantId` string | **表现表**，一行一个变体：`buildingId` 归属模板、`nameCn` 变体显示名（空=沿用 `Building.nameCn`）、`footprint` 占地掩码（`#`=占用 `.`=空、\|分行，如 2×2=`##\|##`、L形=`##\|#.\|#.`）、`prefabPath` 表现 Prefab。一个模板可挂多套占地/外观（如居民区 3 种结构），抽哪个变体由 `BuildingGroupTheme` 的成员配方直接配到变体粒度；摆放旋转不配表，默认全部允许 90° 旋转。**一个模板挂多个变体时 `nameCn` 必须逐个填**——手牌是按变体发的，都叫「居民区」玩家分不出方形和 L 形（UI 另有形状图标辅助） | 占地与表现 |
 | `BuildingRelation` | 行表 | `buildingId` string | 每建筑一行的有向邻接关系（真值表 A/B + 单向 + 双向 + 负面 + 同类）：`bonusFrom` 加分来源 / `penaltyFrom` 扣分来源两列，单元格微格式 `来源Id:分值[:上限]`、多条目用 `\|` 分隔；判定范围一律用结算建筑自身 `radius`；来源=自己即同类关系；方向不可反读，双向关系在两行各写一条。解析器 `RelationEntry.ParseAll`，ConfigVerify 会校验格式与建筑 Id 外键 | §13、§15～§18 |
 | `MapElement` | 行表 | `elementId` string | 7 种地图元素：占地掩码、`radius` 有效范围（**只用于摆放合法性**，如采矿站的 `oreRange`；计分一律用建筑自身 radius）、生成数量区间 | §5.2 |
