@@ -69,9 +69,6 @@ namespace FloatingIsLand.Domain.Build
         /// <summary>基础物流覆盖分（每建筑仅计一次）。</summary>
         public int LogisticsBaseCoverScore { get; }
 
-        /// <summary>正分转金币比例。</summary>
-        public float ScoreToGoldRatio { get; }
-
         /// <summary>合成风力封顶（WindConfig.maxWindLevel，§8.5=5）。</summary>
         public int MaxWindLevel { get; }
 
@@ -104,7 +101,6 @@ namespace FloatingIsLand.Domain.Build
             IReadOnlyList<float> anchorDockDecayPercents,
             int logisticsCoverRadius,
             int logisticsBaseCoverScore,
-            float scoreToGoldRatio,
             int maxWindLevel = 5,
             int initialWindLevelMin = 0,
             int initialWindLevelMax = 0,
@@ -147,7 +143,6 @@ namespace FloatingIsLand.Domain.Build
             AnchorDockDecayPercents = anchorDockDecayPercents ?? Array.Empty<float>();
             LogisticsCoverRadius = logisticsCoverRadius;
             LogisticsBaseCoverScore = logisticsBaseCoverScore;
-            ScoreToGoldRatio = scoreToGoldRatio;
             MaxWindLevel = maxWindLevel > 0 ? maxWindLevel : 5;
             InitialWindLevelMin = initialWindLevelMin;
             InitialWindLevelMax = initialWindLevelMax;

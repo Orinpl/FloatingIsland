@@ -6,11 +6,14 @@ namespace FloatingIsLand.Domain.Build
     /// <summary>一个等级的建筑组配置（配表 Level 的领域表示）。</summary>
     public sealed class LevelDef
     {
-        /// <summary>等级（1 起）。</summary>
+        /// <summary>本关内的第几组（1 起）。</summary>
         public int Level { get; }
 
-        /// <summary>解锁本级消耗的金币。</summary>
-        public int UnlockCost { get; }
+        /// <summary>
+        /// 解锁本组所需的累计分门槛，**相对本关基线的增量**（第 1 组 = 0 免费）。
+        /// 实际门槛还要乘 <see cref="StageDef.UnlockScoreMult"/>，且达标即解锁、不扣分。
+        /// </summary>
+        public int UnlockScore { get; }
 
         /// <summary>本级提供几组供二选一。</summary>
         public int GroupCount { get; }
@@ -28,11 +31,11 @@ namespace FloatingIsLand.Domain.Build
         public IReadOnlyList<string> ForcedThemeIds { get; }
 
         public LevelDef(
-            int level, int unlockCost, int groupCount, int groupSizeMin, int groupSizeMax,
+            int level, int unlockScore, int groupCount, int groupSizeMin, int groupSizeMax,
             IReadOnlyList<string> forcedThemeIds)
         {
             Level = level;
-            UnlockCost = unlockCost;
+            UnlockScore = unlockScore;
             GroupCount = groupCount;
             GroupSizeMin = groupSizeMin;
             GroupSizeMax = groupSizeMax;
@@ -61,7 +64,11 @@ namespace FloatingIsLand.Domain.Build
     }
 
     /// <summary>
-    /// 局内进度状态：等级 / 建筑组二选一 / 手牌 / 总分 / 金币（GAME_DESIGN §3、§4）。
+    /// 一关内的进度状态：第几组 / 建筑组二选一 / 手牌 / 分数（GAME_DESIGN §3、§4）。
+    ///
+    /// 解锁下一组看的是**累计总分够不够门槛**，不是花钱买：达标即解锁，分数不扣。
+    /// 分数跨关保留，所以本关的门槛都以 <see cref="StageBaseScore"/>（进入本关时的累计分）
+    /// 为基线做增量——上一关拿了多少分不会让下一关的第 2 组变免费，但那些分也不会被清掉。
     ///
     /// 纯领域对象，不知道 UI 也不知道场景。表现层通过事件同步，通过方法驱动。
     /// </summary>
@@ -69,7 +76,7 @@ namespace FloatingIsLand.Domain.Build
     {
         private readonly IReadOnlyList<LevelDef> _levels;
         private readonly IReadOnlyList<GroupThemeDef> _themes;
-        private readonly BuildRuleSet _rules;
+        private readonly StageDef _stage;
         private readonly DeterministicRandom _random;
         private readonly List<string> _hand = new List<string>();
         private readonly List<GroupThemeDef> _candidateThemes = new List<GroupThemeDef>();
@@ -78,14 +85,26 @@ namespace FloatingIsLand.Domain.Build
         private readonly Dictionary<string, int> _themePicks = new Dictionary<string, int>(StringComparer.Ordinal);
         private BuildingGroup[] _offers = Array.Empty<BuildingGroup>();
 
-        /// <summary>当前等级（1 起）。</summary>
+        /// <summary>本关当前进行到第几组（1 起）。</summary>
         public int Level { get; private set; }
 
-        /// <summary>总分。</summary>
+        /// <summary>累计总分（跨关保留，含进入本关前已有的分）。</summary>
         public int TotalScore { get; private set; }
 
-        /// <summary>金币。</summary>
-        public int Gold { get; private set; }
+        /// <summary>进入本关时的累计总分，本关一切门槛的基线。</summary>
+        public int StageBaseScore { get; }
+
+        /// <summary>本关内已得的分（= <see cref="TotalScore"/> − <see cref="StageBaseScore"/>，可为负）。</summary>
+        public int StageScore
+        {
+            get { return TotalScore - StageBaseScore; }
+        }
+
+        /// <summary>本关配置。</summary>
+        public StageDef Stage
+        {
+            get { return _stage; }
+        }
 
         /// <summary>手牌：当前可摆放的建筑变体 Id，按获得顺序。</summary>
         public IReadOnlyList<string> Hand
@@ -99,62 +118,82 @@ namespace FloatingIsLand.Domain.Build
             get { return _offers; }
         }
 
-        /// <summary>总等级数。</summary>
+        /// <summary>本关总组数（Level 表行数与 <see cref="StageDef.GroupCount"/> 取小）。</summary>
         public int TotalLevels
         {
-            get { return _levels.Count; }
+            get { return Math.Min(_levels.Count, _stage.GroupCount); }
         }
 
-        /// <summary>解锁下一级需要的金币；已是最后一级返回 0。</summary>
-        public int NextUnlockCost
+        /// <summary>解锁下一组所需的**累计总分**（已含本关基线）；已是最后一组返回 0。</summary>
+        public int NextUnlockScore
         {
             get
             {
                 LevelDef next = LevelAt(Level + 1);
-                return next == null ? 0 : next.UnlockCost;
+                return next == null ? 0 : StageBaseScore + _stage.ScaleUnlockScore(next.UnlockScore);
             }
         }
 
-        /// <summary>状态变更事件（分数 / 金币 / 手牌 / 待选组 任一变化都会触发）。</summary>
+        /// <summary>通关本关所需的**累计总分**（已含本关基线）。</summary>
+        public int ClearScore
+        {
+            get { return StageBaseScore + _stage.ClearScore; }
+        }
+
+        /// <summary>本关是否已达通关分。达标后「进下一关」解锁，但不强制——玩家可以继续摆。</summary>
+        public bool IsStageCleared
+        {
+            get { return TotalScore >= ClearScore; }
+        }
+
+        /// <summary>本关的组是否已经发完（最后一组也选过了）。</summary>
+        public bool IsLastGroup
+        {
+            get { return Level >= TotalLevels; }
+        }
+
+        /// <summary>状态变更事件（分数 / 手牌 / 待选组 任一变化都会触发）。</summary>
         public event Action Changed;
 
         public BuildRunState(
             IReadOnlyList<LevelDef> levels,
             IReadOnlyList<GroupThemeDef> themes,
-            BuildRuleSet rules,
-            int seed)
+            StageDef stage,
+            int seed,
+            int stageBaseScore)
         {
             _levels = levels ?? throw new ArgumentNullException(nameof(levels));
             _themes = themes ?? throw new ArgumentNullException(nameof(themes));
-            _rules = rules ?? throw new ArgumentNullException(nameof(rules));
+            _stage = stage ?? throw new ArgumentNullException(nameof(stage));
             _random = new DeterministicRandom(seed);
+            StageBaseScore = stageBaseScore;
+            TotalScore = stageBaseScore;
             Level = 0;
         }
 
-        /// <summary>开局：进入第 1 级并抽出待选组。</summary>
+        /// <summary>开关：进入第 1 组（免费）并抽出待选组。分数从本关基线起算，不清零。</summary>
         public void Start()
         {
             Level = 0;
-            TotalScore = 0;
-            Gold = 0;
+            TotalScore = StageBaseScore;
             _hand.Clear();
             _themePicks.Clear();
             AdvanceToNextLevel();
         }
 
-        /// <summary>金币是否够解锁下一级。</summary>
+        /// <summary>累计分是否够解锁下一组。</summary>
         public bool CanAffordNextLevel()
         {
             LevelDef next = LevelAt(Level + 1);
-            return next != null && Gold >= next.UnlockCost;
+            return next != null && TotalScore >= StageBaseScore + _stage.ScaleUnlockScore(next.UnlockScore);
         }
 
         /// <summary>
-        /// 进入下一级并抽出该级的待选建筑组。**不扣金币也不校验金币**——
-        /// 费用是否收取由调用方决定（正式流程扣 <see cref="LevelDef.UnlockCost"/>；
-        /// demo 的「点得分按钮直接拿下一组」走同一个入口但不收费）。
+        /// 进入下一组并抽出待选建筑组。**不校验分数门槛**——
+        /// 是否收门槛由调用方决定（正式流程走 <see cref="TryUnlockNextLevel"/>；
+        /// demo / 调试直接走本入口）。
         /// </summary>
-        /// <returns>false 表示已经是最后一级，没有下一级可进。</returns>
+        /// <returns>false 表示本关的组已经发完。</returns>
         public bool AdvanceToNextLevel()
         {
             LevelDef next = LevelAt(Level + 1);
@@ -169,16 +208,17 @@ namespace FloatingIsLand.Domain.Build
             return true;
         }
 
-        /// <summary>扣金币解锁下一级；金币不足返回 false 且不改变任何状态。</summary>
+        /// <summary>
+        /// 按分数门槛解锁下一组；分数不够返回 false 且不改变任何状态。
+        /// 门槛是**准入条件不是消耗**，达标解锁后总分一分不少——否则玩家越往后越穷，
+        /// 「分数保留」也就无从谈起。
+        /// </summary>
         public bool TryUnlockNextLevel()
         {
-            LevelDef next = LevelAt(Level + 1);
-            if (next == null || Gold < next.UnlockCost)
+            if (!CanAffordNextLevel())
             {
                 return false;
             }
-
-            Gold -= next.UnlockCost;
             return AdvanceToNextLevel();
         }
 
@@ -222,17 +262,17 @@ namespace FloatingIsLand.Domain.Build
             return true;
         }
 
-        /// <summary>
-        /// 记一次建造得分：加总分，正分按比例转金币（负分只降总分不倒扣金币，§3.3）。
-        /// </summary>
+        /// <summary>记一次建造得分：直接加到累计总分上（负分同样计入，§3.3）。</summary>
         public void AddBuildScore(int score)
         {
             TotalScore += score;
-            if (score > 0)
-            {
-                Gold += (int)Math.Round(score * _rules.ScoreToGoldRatio, MidpointRounding.AwayFromZero);
-            }
             RaiseChanged();
+        }
+
+        /// <summary>本关是否已经走不下去：组发完了，或分数不够解锁下一组（GAME_DESIGN §2.2 结束条件之三）。</summary>
+        public bool IsStuck()
+        {
+            return _hand.Count == 0 && _offers.Length == 0 && !CanAffordNextLevel();
         }
 
         /// <summary>
@@ -441,8 +481,20 @@ namespace FloatingIsLand.Domain.Build
             return null;
         }
 
+        /// <summary>
+        /// 取本关第 <paramref name="level"/> 组的配置；超出本关组数返回 null。
+        ///
+        /// 这里必须卡 <see cref="TotalLevels"/> 而不是直接查 Level 表——Level 表是全局的
+        /// 组序列，各关按 <see cref="StageDef.GroupCount"/> 只取前 N 组。不卡的话
+        /// 「本关组数用完」只在 UI 上成立，解锁按钮照样能把玩家推到第 N+1 组。
+        /// </summary>
         private LevelDef LevelAt(int level)
         {
+            if (level < 1 || level > TotalLevels)
+            {
+                return null;
+            }
+
             for (int i = 0; i < _levels.Count; i++)
             {
                 if (_levels[i].Level == level)

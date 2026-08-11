@@ -4,11 +4,36 @@
   "table": "LogisticsConfig",
   "kind": "singleton",
   "fields": [
-    { "name": "coverRadius", "type": "int", "desc": "物流点本地覆盖半径（格，§10.3；范围内常规建筑获得已接入物流状态；0=待定）" },
-    { "name": "baseCoverScore", "type": "int", "desc": "基础物流覆盖分（每建筑仅计一次，本地覆盖与物流风覆盖同状态不叠加 §10.3/10.4；0=待定）" },
-    { "name": "windExtendLength", "type": "int", "desc": "风经过物流点时延长的剩余长度（格，§10.5；0=待定）" },
-    { "name": "windExtendMaxPerWind", "type": "int", "desc": "同一股风最多获得的物流点延长次数（§10.5 已定=2；同点不重复延长为固定规则）" },
-    { "name": "endgameScorePerCoveredBuilding", "type": "int", "desc": "终局物流网络奖励：每个已接入物流的建筑在终局额外加分（只加分不给金币 §7.2；具体语义可再调整；0=待定）" }
+    {
+      "name": "coverRadius",
+      "type": "int",
+      "desc": "物流点本地覆盖半径（格，§10.3；范围内常规建筑获得已接入物流状态；0=待定）"
+    },
+    {
+      "name": "baseCoverScore",
+      "type": "int",
+      "desc": "基础物流覆盖分（每建筑仅计一次，本地覆盖与物流风覆盖同状态不叠加 §10.3/10.4；0=待定）"
+    },
+    {
+      "name": "windExtendLength",
+      "type": "int",
+      "desc": "风经过物流点时延长的剩余长度（格，§10.5；0=待定）"
+    },
+    {
+      "name": "windExtendMaxPerWind",
+      "type": "int",
+      "desc": "同一股风最多获得的物流点延长次数（§10.5 已定=2；同点不重复延长为固定规则）"
+    },
+    {
+      "name": "endgameScorePerCoveredBuilding",
+      "type": "int",
+      "desc": "终局物流网络奖励：每个已接入物流的建筑在终局额外加分（只加分不给金币 §7.2；具体语义可再调整；0=待定）"
+    },
+    {
+      "name": "windLinkScore",
+      "type": "int",
+      "desc": "物流点互联一次性得分（两点首次连通时各发一次，§10.5）"
+    }
   ],
   "rows": [
     {
@@ -16,7 +41,8 @@
       "baseCoverScore": 8,
       "windExtendLength": 3,
       "windExtendMaxPerWind": 2,
-      "endgameScorePerCoveredBuilding": 5
+      "endgameScorePerCoveredBuilding": 5,
+      "windLinkScore": 30
     }
   ]
 }

@@ -51,7 +51,8 @@ EGB（表现外设，Assembly-CSharp）             领域层（Game.Domain，�
 
 - 领域 `(x, z, layer)` ↔ EGB `(new Vector2Int(x, z), verticalGridIndex = layer)`；
 - 世界高度 = `layer × verticalGridHeight`；`verticalGridHeight = 层高折算系数 k × cellSize`（k 进 GameConfig，待数值化——**领域层球形范围判定与表现层高必须用同一个 k**）；
-- 悬停格子不依赖 EGB 的 `Camera.main` + collider 检测链（脆弱），适配层自己做「鼠标射线 × 各层平面，从高层向低层取第一个含地形的格子」。
+- 悬停格子不依赖 EGB 的 `Camera.main` + collider 检测链（脆弱），适配层自己做「指针射线 × 各层平面，从高层向低层取第一个含地形的格子」。
+- 射线的起点**不是鼠标**，而是 `PointerInput.TryGetHoverPosition`（`Game.Input`）。PC 上它就是光标；手机上触屏没有悬停这回事，它返回的是**最近一次点击的位置**（黏性，见 [PROJECT_BUILD.md](PROJECT_BUILD.md) §11.1）。`TryGetHoveredCell` 因此在两端语义一致，摆放与格子高亮都不必分平台写。
 
 ## 4. 代码布局（绕开 asmdef 限制）
 
@@ -96,7 +97,7 @@ Main.unity
 
 1. 领域层 `Domain/Map` + `Domain/Build`：`(x,z,layer)` 网格 + 地形 + 异形 footprint 占用 + 球形范围工具（含 §21 决策 26 公式，单测锁定）—— **已完成**：
    `Footprint`（异形掩码 + 4 方向旋转）、`RangeMath`（球形欧氏， k = GameConfig.layerHeightFactor）、
-   `BuildBoard`（占用 + 地形/矿藏/浮空区域校验）、`ScoreEngine`（即时建造分）、`BuildRunState`（等级/手牌/金币）；
+   `BuildBoard`（占用 + 地形/矿藏/浮空区域校验）、`ScoreEngine`（即时建造分）、`BuildRunState`（组序/手牌/分数门槛）；
 2. **不走 EGB 的 BuildableObjectSO。** ghost 与落地模型由 `View/ModelSpawner` 按配表 `prefabPath` 从 Resources 实例化，
    EGB 只提供网格与格子坐标——保持「EGB 永远不裁决」，也免掉维护一套插件 SO 资产；
 3. 摆放输入：`View/BuildPlacementController` 直接轮询 Input System 设备（与相机控制器同口径）——

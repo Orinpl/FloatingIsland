@@ -48,6 +48,74 @@ namespace FloatingIsLand.EditorTools
             Debug.Log("[框架] Boot/Main 场景生成完毕，Boot 已设为 Build 首场景。直接 Play 即可跑通：初始化 → 主界面 → 加载 → 局内 → 结算 → 下一关/回主界面。");
         }
 
+        /// <summary>
+        /// 只重建 Boot 场景的 UI 面板，**不碰 Main.unity**。
+        ///
+        /// 加了新面板 / 改了面板字段就跑这个。整份「生成启动场景」会连 Main 一起覆盖，
+        /// 而 Main 里有 EGB 接线这类手工内容（见 EGBSceneSetup 的提醒）——为了加一个排行榜面板
+        /// 去重置整个 Main 是不划算的。Boot 下的 UI 全是生成物，整体重建没有信息损失。
+        /// </summary>
+        [MenuItem("Tools/框架/重建 Boot 场景 UI 面板（不动 Main）", false, 2)]
+        public static void RebuildBootUI()
+        {
+            if (!File.Exists(BootScenePath))
+            {
+                EditorUtility.DisplayDialog("重建 UI 面板",
+                    "找不到 Assets/Scenes/Boot.unity，请先跑 Tools → 框架 → 生成启动场景（Boot + Main）。", "知道了");
+                return;
+            }
+            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+            {
+                return;
+            }
+
+            Scene scene = EditorSceneManager.OpenScene(BootScenePath, OpenSceneMode.Single);
+            GameObject uiRoot = null;
+            foreach (GameObject root in scene.GetRootGameObjects())
+            {
+                if (root.name == "UIRoot")
+                {
+                    uiRoot = root;
+                    break;
+                }
+            }
+            if (uiRoot == null)
+            {
+                EditorUtility.DisplayDialog("重建 UI 面板",
+                    "Boot 场景里找不到 UIRoot，请跑 Tools → 框架 → 生成启动场景（Boot + Main）重建。", "知道了");
+                return;
+            }
+
+            for (int i = uiRoot.transform.childCount - 1; i >= 0; i--)
+            {
+                Object.DestroyImmediate(uiRoot.transform.GetChild(i).gameObject);
+            }
+
+            // UIManager 靠 GetComponentsInChildren 收面板，桥接器靠 Get<T>() 取——
+            // 组件本身不用动，只要子节点重建出来就行
+            EnsureComponent<UIManager>(uiRoot);
+            EnsureComponent<FlowUIAdapter>(uiRoot);
+            EnsureComponent<BuildHudAdapter>(uiRoot);
+
+            BuildMainMenuPanel(uiRoot.transform);
+            BuildLeaderboardPanel(uiRoot.transform);
+            BuildLoadingPanel(uiRoot.transform);
+            BuildHudPanel(uiRoot.transform);
+            BuildSettlementPanel(uiRoot.transform);
+
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene, BootScenePath);
+            Debug.Log("[框架] Boot 场景 UI 面板已重建（主界面 / 排行榜 / 加载 / HUD / 结算）。Main 场景未改动。");
+        }
+
+        private static void EnsureComponent<T>(GameObject go) where T : Component
+        {
+            if (go.GetComponent<T>() == null)
+            {
+                go.AddComponent<T>();
+            }
+        }
+
         /// <summary>给现有 Main 场景的相机补挂自由相机控制（不重生成场景，不影响 EGB 接线等手工内容）。</summary>
         [MenuItem("Tools/框架/给 Main 场景挂相机控制", false, 3)]
         public static void AttachCameraController()
@@ -151,6 +219,7 @@ namespace FloatingIsLand.EditorTools
             uiRootGo.AddComponent<BuildHudAdapter>(); // 局内建造 HUD 的桥接（计分区 / 手牌 / 二选一）
 
             BuildMainMenuPanel(uiRootGo.transform);
+            BuildLeaderboardPanel(uiRootGo.transform);
             BuildLoadingPanel(uiRootGo.transform);
             BuildHudPanel(uiRootGo.transform);
             BuildSettlementPanel(uiRootGo.transform);
@@ -166,8 +235,25 @@ namespace FloatingIsLand.EditorTools
         {
             MainMenuPanel panel = CreatePanel<MainMenuPanel>(uiRoot, "MainMenuPanel", PanelDark);
             CreateText(panel.transform, "Title", "浮空风岛", 64, new Vector2(0f, 200f), new Vector2(800f, 100f));
-            panel.startButton = CreateButton(panel.transform, "StartButton", "开始游戏", new Vector2(0f, -20f), new Vector2(320f, 72f));
-            panel.quitButton = CreateButton(panel.transform, "QuitButton", "退出游戏", new Vector2(0f, -130f), new Vector2(320f, 72f));
+            panel.startButton = CreateButton(panel.transform, "StartButton", "开始游戏", new Vector2(0f, 20f), new Vector2(320f, 72f));
+            panel.leaderboardButton = CreateButton(panel.transform, "LeaderboardButton", "排行榜", new Vector2(0f, -70f), new Vector2(320f, 72f));
+            panel.quitButton = CreateButton(panel.transform, "QuitButton", "退出游戏", new Vector2(0f, -160f), new Vector2(320f, 72f));
+        }
+
+        /// <summary>排行榜面板：本地榜单只读展示（左对齐、不换行，名次/昵称/分数三列才对得齐）。</summary>
+        private static void BuildLeaderboardPanel(Transform uiRoot)
+        {
+            LeaderboardPanel panel = CreatePanel<LeaderboardPanel>(uiRoot, "LeaderboardPanel", PanelDark);
+            panel.titleText = CreateText(panel.transform, "Title", "排行榜", 52, new Vector2(0f, 400f), new Vector2(800f, 80f));
+
+            Text list = CreateText(panel.transform, "List", "", 26, new Vector2(0f, 20f), new Vector2(1000f, 700f));
+            list.alignment = TextAnchor.UpperLeft;
+            list.horizontalOverflow = HorizontalWrapMode.Overflow;
+            list.verticalOverflow = VerticalWrapMode.Truncate;
+            panel.listText = list;
+
+            panel.backButton = CreateButton(panel.transform, "BackButton", "返回", new Vector2(0f, -420f), new Vector2(300f, 70f));
+            panel.gameObject.SetActive(false);
         }
 
         private static void BuildLoadingPanel(Transform uiRoot)
@@ -186,9 +272,10 @@ namespace FloatingIsLand.EditorTools
             SetAnchor(info.rectTransform, new Vector2(0.5f, 1f));
             panel.runInfoText = info;
 
-            Button endButton = CreateButton(panel.transform, "EndRunButton", "结束本局（占位）", new Vector2(-30f, -34f), new Vector2(240f, 52f));
+            Button endButton = CreateButton(panel.transform, "EndRunButton", "提前结束", new Vector2(-30f, -34f), new Vector2(300f, 52f));
             SetAnchor((RectTransform)endButton.transform, new Vector2(1f, 1f));
             panel.endRunButton = endButton;
+            panel.endRunButtonLabel = endButton.GetComponentInChildren<Text>(true);
 
             BuildScoreboard(panel);
             BuildHandBar(panel);
@@ -201,7 +288,7 @@ namespace FloatingIsLand.EditorTools
             panel.gameObject.SetActive(false);
         }
 
-        /// <summary>左下角计分区：总分 / 金币 / 等级 + 解锁下一组建筑按钮（GAME_DESIGN §7.4）。</summary>
+        /// <summary>左下角计分区：总分 / 通关进度 / 组序 + 解锁下一组建筑按钮（GAME_DESIGN §7.4）。</summary>
         private static void BuildScoreboard(HudPanel panel)
         {
             GameObject boardGo = CreateUIObject("Scoreboard", panel.transform);
@@ -213,8 +300,8 @@ namespace FloatingIsLand.EditorTools
             boardBg.color = new Color(0.06f, 0.07f, 0.10f, 0.72f);
 
             panel.scoreText = CreateLeftText(boardGo.transform, "Score", "总分 0", 34, new Vector2(18f, -18f), new Vector2(320f, 44f));
-            panel.goldText = CreateLeftText(boardGo.transform, "Gold", "金币 0", 28, new Vector2(18f, -64f), new Vector2(320f, 38f));
-            panel.levelText = CreateLeftText(boardGo.transform, "Level", "等级 0 / 20", 24, new Vector2(18f, -104f), new Vector2(320f, 34f));
+            panel.clearProgressText = CreateLeftText(boardGo.transform, "ClearProgress", "通关需 0", 24, new Vector2(18f, -64f), new Vector2(330f, 38f));
+            panel.levelText = CreateLeftText(boardGo.transform, "Group", "第 0 / 20 组", 24, new Vector2(18f, -104f), new Vector2(320f, 34f));
 
             Button next = CreateButton(boardGo.transform, "NextGroupButton", "解锁下一组", new Vector2(18f, -148f), new Vector2(324f, 62f));
             SetAnchor((RectTransform)next.transform, new Vector2(0f, 1f));
@@ -293,10 +380,63 @@ namespace FloatingIsLand.EditorTools
         private static void BuildSettlementPanel(Transform uiRoot)
         {
             SettlementPanel panel = CreatePanel<SettlementPanel>(uiRoot, "SettlementPanel", new Color(0.08f, 0.09f, 0.13f, 0.98f));
-            panel.summaryText = CreateText(panel.transform, "Summary", "", 36, new Vector2(0f, 100f), new Vector2(1400f, 400f));
-            panel.nextRunButton = CreateButton(panel.transform, "NextRunButton", "下一关", new Vector2(-180f, -180f), new Vector2(300f, 70f));
-            panel.menuButton = CreateButton(panel.transform, "MenuButton", "回主界面", new Vector2(180f, -180f), new Vector2(300f, 70f));
+            panel.titleText = CreateText(panel.transform, "Title", "", 52, new Vector2(0f, 380f), new Vector2(1400f, 80f));
+            panel.summaryText = CreateText(panel.transform, "Summary", "", 32, new Vector2(0f, 120f), new Vector2(1400f, 420f));
+            BuildSubmitArea(panel);
+            panel.nextRunButton = CreateButton(panel.transform, "NextRunButton", "下一关", new Vector2(-180f, -400f), new Vector2(300f, 70f));
+            panel.menuButton = CreateButton(panel.transform, "MenuButton", "回主界面", new Vector2(180f, -400f), new Vector2(300f, 70f));
             panel.gameObject.SetActive(false);
+        }
+
+        /// <summary>结算面板的上榜区：只在整局结束时显示（昵称输入 + 提交 + 名次回显）。</summary>
+        private static void BuildSubmitArea(SettlementPanel panel)
+        {
+            GameObject rootGo = CreateUIObject("SubmitArea", panel.transform);
+            var rootRt = (RectTransform)rootGo.transform;
+            rootRt.sizeDelta = new Vector2(1000f, 200f);
+            rootRt.anchoredPosition = new Vector2(0f, -220f);
+            panel.submitRoot = rootGo;
+
+            CreateText(rootGo.transform, "Label", "留个名字上榜（本地记录）", 28, new Vector2(0f, 70f), new Vector2(800f, 40f));
+            panel.nameInput = CreateInputField(rootGo.transform, "NameInput", "昵称…", new Vector2(-130f, 0f), new Vector2(460f, 66f));
+            panel.submitButton = CreateButton(rootGo.transform, "SubmitButton", "提交成绩", new Vector2(230f, 0f), new Vector2(260f, 66f));
+            panel.submitResultText = CreateText(rootGo.transform, "SubmitResult", "", 26, new Vector2(0f, -60f), new Vector2(800f, 40f));
+        }
+
+        private static InputField CreateInputField(Transform parent, string name, string placeholder, Vector2 anchoredPos, Vector2 size)
+        {
+            GameObject go = CreateUIObject(name, parent);
+            var rt = (RectTransform)go.transform;
+            rt.sizeDelta = size;
+            rt.anchoredPosition = anchoredPos;
+            Image bg = go.AddComponent<Image>();
+            bg.color = new Color(0.16f, 0.18f, 0.24f, 1f);
+
+            InputField input = go.AddComponent<InputField>();
+            input.targetGraphic = bg;
+            input.characterLimit = 16;
+            input.lineType = InputField.LineType.SingleLine;
+
+            Text hint = CreateText(go.transform, "Placeholder", placeholder, 26, Vector2.zero, size);
+            hint.color = new Color(0.55f, 0.58f, 0.65f, 1f);
+            hint.alignment = TextAnchor.MiddleLeft;
+            StretchToParent(hint.rectTransform);
+            input.placeholder = hint;
+
+            Text text = CreateText(go.transform, "Text", "", 26, Vector2.zero, size);
+            text.supportRichText = false;
+            text.alignment = TextAnchor.MiddleLeft;
+            StretchToParent(text.rectTransform);
+            input.textComponent = text;
+            return input;
+        }
+
+        private static void StretchToParent(RectTransform rt)
+        {
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = new Vector2(14f, 4f);
+            rt.offsetMax = new Vector2(-14f, -4f);
         }
 
         // ---------- uGUI 构建小工具 ----------

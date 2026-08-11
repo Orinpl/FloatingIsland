@@ -83,7 +83,6 @@ namespace FloatingIsLand.Config
                 Tables.GameConfig.anchorDockDecayPercents,
                 Tables.LogisticsConfig.coverRadius,
                 Tables.LogisticsConfig.baseCoverScore,
-                Tables.GameConfig.scoreToGoldRatio,
                 maxWindLevel: Tables.WindConfig.maxWindLevel,
                 initialWindLevelMin: Tables.WindConfig.initialWindLevelMin,
                 initialWindLevelMax: Tables.WindConfig.initialWindLevelMax,
@@ -94,7 +93,7 @@ namespace FloatingIsLand.Config
                 logisticsWindLinkScore: Tables.LogisticsConfig.windLinkScore);
         }
 
-        /// <summary>装配 Level 表（局内 20 级进度）。</summary>
+        /// <summary>装配 Level 表（一关内的建筑组序列）。</summary>
         public static List<LevelDef> CreateLevels()
         {
             if (!Tables.IsLoaded)
@@ -107,13 +106,57 @@ namespace FloatingIsLand.Config
             {
                 levels.Add(new LevelDef(
                     row.level,
-                    row.unlockCost,
+                    row.unlockScore,
                     row.groupCount,
                     row.groupSizeMin,
                     row.groupSizeMax,
                     ReadForcedThemes(row)));
             }
             return levels;
+        }
+
+        /// <summary>装配 Stage 表（3 关的关卡配置）。</summary>
+        public static List<StageDef> CreateStages()
+        {
+            if (!Tables.IsLoaded)
+            {
+                throw new InvalidOperationException("配表尚未加载，不能装配关卡表。");
+            }
+
+            var stages = new List<StageDef>(Tables.Stage.Count);
+            foreach (StageRow row in Tables.Stage.All)
+            {
+                stages.Add(new StageDef(
+                    row.stageId,
+                    row.nameCn,
+                    row.groupCount,
+                    row.clearScore,
+                    row.unlockScoreMult));
+            }
+            return stages;
+        }
+
+        /// <summary>按关卡 Id 装配单关配置；表里没有该关返回 null。</summary>
+        public static StageDef CreateStage(int stageId)
+        {
+            foreach (StageDef stage in CreateStages())
+            {
+                if (stage.StageId == stageId)
+                {
+                    return stage;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>一局共几关（Stage 表行数）。</summary>
+        public static int StageCount()
+        {
+            if (!Tables.IsLoaded)
+            {
+                throw new InvalidOperationException("配表尚未加载，不能读关卡数。");
+            }
+            return Tables.Stage.Count;
         }
 
         /// <summary>装配 BuildingGroupTheme 表（选组用的主题配方）。</summary>

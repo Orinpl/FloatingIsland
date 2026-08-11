@@ -5,7 +5,10 @@
     "mapWidth": 250,
     "mapHeight": 250,
     "prefabPath": "Prefab/Stage/stage_01",
-    "islandCellSpan": 40
+    "islandCellSpan": 40,
+    "groupCount": 20,
+    "clearScore": 2600,
+    "unlockScoreMult": 1.0
   },
   {
     "stageId": 2,
@@ -13,7 +16,10 @@
     "mapWidth": 250,
     "mapHeight": 250,
     "prefabPath": "Prefab/Stage/stage_02",
-    "islandCellSpan": 40
+    "islandCellSpan": 40,
+    "groupCount": 14,
+    "clearScore": 1250,
+    "unlockScoreMult": 0.72
   },
   {
     "stageId": 3,
@@ -21,6 +27,9 @@
     "mapWidth": 250,
     "mapHeight": 250,
     "prefabPath": "Prefab/Stage/stage_03",
-    "islandCellSpan": 40
+    "islandCellSpan": 40,
+    "groupCount": 17,
+    "clearScore": 1750,
+    "unlockScoreMult": 0.82
   }
 ]

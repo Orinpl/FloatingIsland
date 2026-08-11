@@ -492,7 +492,10 @@ namespace FloatingIsLand.Domain.Build
 
         /// <summary>
         /// 地图上是否还存在该变体的合法落点（§2 结束条件之二：无合法建造位置即结束）。
-        /// 逐格试摆，250×250 的图一次约 6 万次判定，只在「一组建完」这种低频时机调用。
+        ///
+        /// 只遍历**已刷地形的格子**而不是整张 250×250 的网格：岛屿只占地图中间一小块，
+        /// 按整网格从 (0,0) 扫要先空转十几万次虚空格才碰到岛。已刷格通常几千个，
+        /// 且正常情况下头几格就能命中并提前返回，因此可以放在「每次落地后」这种频次上调用。
         /// </summary>
         public bool HasAnyValidPlacement(BuildingBlueprint blueprint)
         {
@@ -501,19 +504,15 @@ namespace FloatingIsLand.Domain.Build
                 return false;
             }
 
-            for (int layer = 0; layer < _map.LayerCount; layer++)
+            IReadOnlyList<MapCell> cells = _map.Cells;
+            for (int i = 0; i < cells.Count; i++)
             {
-                for (int z = 0; z < _map.Length; z++)
+                MapCell cell = cells[i];
+                for (int r = 0; r < 4; r++)
                 {
-                    for (int x = 0; x < _map.Width; x++)
+                    if (CanPlace(blueprint, cell.X, cell.Z, cell.Layer, (Rotation)r).IsValid)
                     {
-                        for (int r = 0; r < 4; r++)
-                        {
-                            if (CanPlace(blueprint, x, z, layer, (Rotation)r).IsValid)
-                            {
-                                return true;
-                            }
-                        }
+                        return true;
                     }
                 }
             }

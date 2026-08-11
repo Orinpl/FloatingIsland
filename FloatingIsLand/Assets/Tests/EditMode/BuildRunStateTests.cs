@@ -29,7 +29,7 @@ namespace FloatingIsLand.Tests
                     Blueprint("core_01"), Blueprint("rare_01"), Blueprint("other_01"),
                 },
                 new List<MapElementDef>(),
-                1f, 0, null, 3, 5, 0.5f);
+                1f, 0, null, 3, 5);
         }
 
         /// <summary>核心建筑权重高、上限松；稀有建筑保底 1 上限 1 —— 「采矿站多、工坊少」的最小复现。</summary>
@@ -55,9 +55,22 @@ namespace FloatingIsLand.Tests
             return new LevelDef(level, 0, groupCount, sizeMin, sizeMax, forced);
         }
 
-        private static BuildRunState Run(IReadOnlyList<LevelDef> levels, IReadOnlyList<GroupThemeDef> themes, int seed)
+        /// <summary>带分数门槛的组：unlockScore = 解锁本组所需的「本关得分」增量。</summary>
+        private static LevelDef GatedLevel(int level, int unlockScore)
         {
-            var run = new BuildRunState(levels, themes, Rules(), seed);
+            return new LevelDef(level, unlockScore, 1, 3, 3, null);
+        }
+
+        private static StageDef Stage(int groupCount = 99, int clearScore = 100000, float mult = 1f)
+        {
+            return new StageDef(1, "测试关", groupCount, clearScore, mult);
+        }
+
+        private static BuildRunState Run(
+            IReadOnlyList<LevelDef> levels, IReadOnlyList<GroupThemeDef> themes, int seed,
+            StageDef stage = null, int baseScore = 0)
+        {
+            var run = new BuildRunState(levels, themes, stage ?? Stage(), seed, baseScore);
             run.Start();
             return run;
         }
@@ -250,6 +263,109 @@ namespace FloatingIsLand.Tests
 
             Assert.AreEqual(1, run.Offers.Count, "配额用完也不能让这一级空手");
             Assert.AreEqual("onlyOne", run.Offers[0].ThemeId);
+        }
+
+        // ---------- 分数门槛解锁（GAME_DESIGN §4.1） ----------
+
+        private static List<LevelDef> GatedLadder()
+        {
+            // 首组免费，之后逐组涨价
+            return new List<LevelDef> { GatedLevel(1, 0), GatedLevel(2, 100), GatedLevel(3, 300) };
+        }
+
+        [Test]
+        public void 首组免费而后续组要够分才解锁()
+        {
+            var themes = new List<GroupThemeDef> { OtherTheme() };
+            BuildRunState run = Run(GatedLadder(), themes, 1);
+
+            Assert.AreEqual(1, run.Level, "第 1 组必须直接发出来，不看分数");
+            Assert.IsFalse(run.CanAffordNextLevel(), "0 分不该解锁得了要 100 分的第 2 组");
+            Assert.IsFalse(run.TryUnlockNextLevel());
+            Assert.AreEqual(1, run.Level, "解锁失败不能改变任何状态");
+
+            run.AddBuildScore(99);
+            Assert.IsFalse(run.CanAffordNextLevel(), "差 1 分也是不够");
+
+            run.AddBuildScore(1);
+            Assert.IsTrue(run.CanAffordNextLevel());
+            Assert.IsTrue(run.TryUnlockNextLevel());
+            Assert.AreEqual(2, run.Level);
+        }
+
+        [Test]
+        public void 解锁门槛是准入不是消耗()
+        {
+            var themes = new List<GroupThemeDef> { OtherTheme() };
+            BuildRunState run = Run(GatedLadder(), themes, 1);
+
+            run.AddBuildScore(150);
+            Assert.IsTrue(run.TryUnlockNextLevel());
+            Assert.AreEqual(150, run.TotalScore, "解锁不扣分，否则「分数保留」无从谈起");
+        }
+
+        [Test]
+        public void 门槛以本关基线为准并被关卡倍率缩放()
+        {
+            var themes = new List<GroupThemeDef> { OtherTheme() };
+            // 上一关带来 1000 分；本关倍率 2 ⇒ 第 2 组门槛 = 1000 + 100×2
+            BuildRunState run = Run(GatedLadder(), themes, 1, Stage(mult: 2f), baseScore: 1000);
+
+            Assert.AreEqual(1000, run.TotalScore, "进关时分数保留，不清零");
+            Assert.AreEqual(0, run.StageScore);
+            Assert.AreEqual(1200, run.NextUnlockScore);
+            Assert.IsFalse(run.CanAffordNextLevel());
+
+            run.AddBuildScore(200);
+            Assert.AreEqual(1200, run.TotalScore);
+            Assert.AreEqual(200, run.StageScore);
+            Assert.IsTrue(run.CanAffordNextLevel(), "本关挣够 200 就该达标，不该被上一关的分数白送");
+        }
+
+        [Test]
+        public void 通关门槛同样以本关基线为准()
+        {
+            var themes = new List<GroupThemeDef> { OtherTheme() };
+            BuildRunState run = Run(GatedLadder(), themes, 1, Stage(clearScore: 500), baseScore: 1000);
+
+            Assert.AreEqual(1500, run.ClearScore);
+            Assert.IsFalse(run.IsStageCleared);
+
+            run.AddBuildScore(499);
+            Assert.IsFalse(run.IsStageCleared);
+
+            run.AddBuildScore(1);
+            Assert.IsTrue(run.IsStageCleared, "达到通关分即解锁下一关");
+        }
+
+        [Test]
+        public void 本关组数被关卡配置截断()
+        {
+            var themes = new List<GroupThemeDef> { OtherTheme() };
+            var levels = new List<LevelDef> { GatedLevel(1, 0), GatedLevel(2, 0), GatedLevel(3, 0) };
+
+            BuildRunState run = Run(levels, themes, 1, Stage(groupCount: 2));
+            Assert.AreEqual(2, run.TotalLevels, "Level 表有 3 组，但本关只开 2 组");
+
+            Assert.IsTrue(run.TryUnlockNextLevel());
+            Assert.AreEqual(2, run.Level);
+            Assert.IsTrue(run.IsLastGroup);
+            Assert.IsFalse(run.TryUnlockNextLevel(), "本关组数用完就不能再解锁了");
+        }
+
+        [Test]
+        public void 负分会拉低总分并可能重新卡住门槛()
+        {
+            var themes = new List<GroupThemeDef> { OtherTheme() };
+            BuildRunState run = Run(GatedLadder(), themes, 1);
+
+            run.AddBuildScore(120);
+            Assert.IsTrue(run.CanAffordNextLevel());
+
+            // 摆不下跳过一栋要扣分（§4.3），扣完可能就够不着门槛了
+            run.AddBuildScore(-30);
+            Assert.AreEqual(90, run.TotalScore);
+            Assert.IsFalse(run.CanAffordNextLevel());
         }
 
         [Test]

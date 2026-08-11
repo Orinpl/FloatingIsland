@@ -73,8 +73,7 @@ namespace FloatingIsLand.Tests
                 giantWindmillGenericScore: giantWindmillGeneric,
                 anchorDockDecayPercents: new[] { 1f, 0.5f, 0.25f, 0f },
                 logisticsCoverRadius: logisticsCoverRadius,
-                logisticsBaseCoverScore: logisticsCoverScore,
-                scoreToGoldRatio: 1f);
+                logisticsBaseCoverScore: logisticsCoverScore);
         }
 
         // ---------- 摆放校验 ----------

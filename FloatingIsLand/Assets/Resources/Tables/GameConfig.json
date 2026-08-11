@@ -1,9 +1,7 @@
 {
   "cellSize": 2.0,
   "totalLevels": 20,
-  "scoreToGoldRatio": 1.0,
   "freeRefreshCount": 1,
-  "refreshCostGold": 60,
   "skipPenaltyScore": -20,
   "guaranteeEasyBuilding": true,
   "giantWindmillGenericScore": 10,

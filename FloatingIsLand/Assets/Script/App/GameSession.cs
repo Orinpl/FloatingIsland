@@ -22,9 +22,12 @@ namespace FloatingIsLand.App
         private BuildBoard _board;
         private ScoreEngine _scoring;
         private BuildRunState _run;
+        private StageDef _stage;
+        private int _stageCount;
         private WindSystem _wind;
         private WindScoreKeeper _windKeeper;
         private int _selectedHandIndex = -1;
+        private bool _ended;
 
         /// <summary>本局局外参数（关数 + 种子）。</summary>
         public RunContext Context { get; }
@@ -66,10 +69,34 @@ namespace FloatingIsLand.App
         }
 
         /// <summary>
-        /// 演示模式：解锁下一组不检查金币也不扣费（用户要求的临时可玩 demo——
-        /// 可以一直建，建完一组直接点得分按钮拿下一组）。正式版关掉即回到 §4.1 的金币解锁。
+        /// 调试开关：解锁下一组不检查分数门槛。正式流程是 false（§4.1 的分数门槛解锁），
+        /// 只在编辑器里想快速跑穿关卡时才打开。
         /// </summary>
-        public bool DemoFreeUnlock { get; set; } = true;
+        public bool DebugFreeUnlock { get; set; }
+
+        /// <summary>本关配置；地图尚未注入时为 null。</summary>
+        public StageDef Stage
+        {
+            get { return _stage; }
+        }
+
+        /// <summary>一共几关（Stage 表行数）。</summary>
+        public int StageCount
+        {
+            get { return _stageCount; }
+        }
+
+        /// <summary>本关是否已达通关分（达标后可进下一关，但不强制）。</summary>
+        public bool IsStageCleared
+        {
+            get { return _run != null && _run.IsStageCleared; }
+        }
+
+        /// <summary>本关是不是最后一关。</summary>
+        public bool IsFinalStage
+        {
+            get { return _stage != null && _stage.StageId >= _stageCount; }
+        }
 
         /// <summary>当前选中的手牌下标；-1 = 未选中。</summary>
         public int SelectedHandIndex
@@ -141,9 +168,20 @@ namespace FloatingIsLand.App
             _board.WindField = _wind;
             _windKeeper = new WindScoreKeeper();
 
+            int stageId = Context != null ? Context.StageId : 1;
+            _stage = BuildRuleSetFactory.CreateStage(stageId);
+            if (_stage == null)
+            {
+                throw new InvalidOperationException($"Stage 表里没有第 {stageId} 关（关数超出配表？）。");
+            }
+            _stageCount = BuildRuleSetFactory.StageCount();
+
             List<LevelDef> levels = BuildRuleSetFactory.CreateLevels();
             List<GroupThemeDef> themes = BuildRuleSetFactory.CreateGroupThemes();
-            _run = new BuildRunState(levels, themes, _rules, Context != null ? Context.Seed : 0);
+            _run = new BuildRunState(
+                levels, themes, _stage,
+                Context != null ? Context.Seed : 0,
+                Context != null ? Context.CarryScore : 0);
             _run.Changed += OnRunChanged;
             _run.Start();
 
@@ -246,6 +284,7 @@ namespace FloatingIsLand.App
             // 同一个下标已经换成了另一种建筑，鼠标还停在原地就更容易误建。
             _selectedHandIndex = -1;
             SelectionChanged?.Invoke();
+            CheckStageEnd();
             return true;
         }
 
@@ -338,34 +377,134 @@ namespace FloatingIsLand.App
         /// <summary>选定其中一组建筑，组内全部进手牌。</summary>
         public bool ChooseOffer(int index)
         {
-            return _run != null && _run.ChooseOffer(index);
+            if (_run == null || !_run.ChooseOffer(index))
+            {
+                return false;
+            }
+            // 整组都摆不下（地图快满了）也是结束条件，选完就得判一次
+            CheckStageEnd();
+            return true;
         }
 
         /// <summary>
-        /// 请求下一组建筑（左下角计分区那个按钮）。
-        /// <see cref="DemoFreeUnlock"/> 为 true 时不看金币直接给；否则按 §4.1 扣解锁费用。
+        /// 请求下一组建筑（左下角计分区那个按钮）。达到分数门槛即解锁，**不扣分**。
         /// </summary>
-        /// <returns>false = 已经是最后一级，或金币不足。</returns>
+        /// <returns>false = 本关的组已发完，或累计分还没到下一组门槛。</returns>
         public bool RequestNextGroup()
         {
             if (_run == null)
             {
                 return false;
             }
-            return DemoFreeUnlock ? _run.AdvanceToNextLevel() : _run.TryUnlockNextLevel();
+            return DebugFreeUnlock ? _run.AdvanceToNextLevel() : _run.TryUnlockNextLevel();
         }
 
-        /// <summary>结束本局并产出结算结果。</summary>
-        public void EndRun()
+        /// <summary>
+        /// 本关是否已经走不下去（GAME_DESIGN §2.2 结束条件之二与之三）：
+        /// ① 手牌空、没有待选组，且累计分不够解锁下一组；
+        /// ② 手牌还在，但里面没有任何一张在地图上还找得到合法落点。
+        ///
+        /// ② 是全图逐格试摆，只在「手牌见底 / 刚放完一栋」这种低频时机调用。
+        /// </summary>
+        public bool IsStuck()
         {
+            if (_run == null || _board == null)
+            {
+                return false;
+            }
+
+            if (_run.Hand.Count == 0)
+            {
+                return _run.Offers.Count == 0 && !CanUnlockNextGroup();
+            }
+
+            for (int i = 0; i < _run.Hand.Count; i++)
+            {
+                BuildingBlueprint blueprint = _rules.GetBlueprintOrNull(_run.Hand[i]);
+                if (blueprint != null && _board.HasAnyValidPlacement(blueprint))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>下一组解锁得了吗（调试开关打开时恒为「还有组就行」）。</summary>
+        public bool CanUnlockNextGroup()
+        {
+            if (_run == null || _run.IsLastGroup)
+            {
+                return false;
+            }
+            return DebugFreeUnlock || _run.CanAffordNextLevel();
+        }
+
+        /// <summary>
+        /// 结束本关并产出结算结果。走不下去时由 <see cref="CheckStageEnd"/> 自动调用；
+        /// 玩家达到通关分后主动点「进入下一关」也走这里（<paramref name="playerRequested"/> = true）。
+        /// 重复调用只生效一次。
+        /// </summary>
+        public void EndRun(bool playerRequested = false)
+        {
+            if (_ended)
+            {
+                return;
+            }
+            _ended = true;
+
             var result = new RunResult
             {
+                StageId = _stage != null ? _stage.StageId : 0,
+                StageName = _stage != null ? _stage.NameCn : "",
+                StageScore = _run != null ? _run.StageScore : 0,
                 TotalScore = _run != null ? _run.TotalScore : 0,
-                EndReason = _run == null
-                    ? "地图未装载，本局无有效进度"
-                    : $"手动结束：第 {_run.Level}/{_run.TotalLevels} 级，已建 {(_board != null ? _board.Buildings.Count : 0)} 栋",
+                ClearScore = _run != null ? _run.ClearScore : 0,
+                StageCleared = _run != null && _run.IsStageCleared,
+                IsFinalStage = IsFinalStage,
+                GroupsPlayed = _run != null ? _run.Level : 0,
+                GroupTotal = _run != null ? _run.TotalLevels : 0,
+                BuildingsPlaced = _board != null ? _board.Buildings.Count : 0,
             };
+            result.EndReason = DescribeEndReason(result, playerRequested);
             Ended?.Invoke(result);
+        }
+
+        private string DescribeEndReason(RunResult result, bool playerRequested)
+        {
+            if (_run == null)
+            {
+                return "地图未装载，本关无有效进度";
+            }
+            if (playerRequested)
+            {
+                return result.IsFinalStage ? "打穿最后一关，主动收官" : "已达通关分，主动进入下一关";
+            }
+            if (_run.Hand.Count > 0)
+            {
+                return "手牌里的建筑在地图上都找不到落点了";
+            }
+            if (_run.IsLastGroup)
+            {
+                return $"本关 {result.GroupTotal} 组建筑已全部发完";
+            }
+            return $"分数不足以解锁下一组（还差 {Math.Max(0, _run.NextUnlockScore - _run.TotalScore)} 分）";
+        }
+
+        /// <summary>
+        /// 每次状态变化后检查本关是否该结束。通关与否都走同一个判定——
+        /// 已通关的玩家不是「立刻被赶去下一关」，而是**同样打到走不下去**才结算，
+        /// 这样「不强制进入下一关、可以继续摆」才是真的（用户要求）。
+        /// </summary>
+        private void CheckStageEnd()
+        {
+            if (_ended || _run == null || _board == null)
+            {
+                return;
+            }
+            if (IsStuck())
+            {
+                EndRun();
+            }
         }
 
         private void OnRunChanged()

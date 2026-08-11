@@ -2,6 +2,6 @@
   "maxWindLevel": 5,
   "initialWindLevelMin": 1,
   "initialWindLevelMax": 3,
-  "initialWindLengthMin": 8,
-  "initialWindLengthMax": 16
+  "initialWindLengthMin": 16,
+  "initialWindLengthMax": 30
 }

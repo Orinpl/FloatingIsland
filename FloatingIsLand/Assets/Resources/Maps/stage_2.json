@@ -12192,6 +12192,34 @@
       "layer": 0,
       "e": "anchor",
       "r": 0
+    },
+    {
+      "x": 117,
+      "z": 111,
+      "layer": 0,
+      "e": "windSource",
+      "r": 0
+    },
+    {
+      "x": 121,
+      "z": 127,
+      "layer": 0,
+      "e": "windSource",
+      "r": 0
+    },
+    {
+      "x": 130,
+      "z": 135,
+      "layer": 0,
+      "e": "windSource",
+      "r": 0
+    },
+    {
+      "x": 140,
+      "z": 135,
+      "layer": 0,
+      "e": "windSource",
+      "r": 0
     }
   ]
 }

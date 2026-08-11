@@ -1,7 +1,7 @@
+using FloatingIsLand.GameInput;
 using FloatingIsLand.View;
 using SoulGames.EasyGridBuilderPro;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace FloatingIsLand.ViewEGB
 {
@@ -104,13 +104,16 @@ namespace FloatingIsLand.ViewEGB
             z = 0;
             layer = 0;
 
+            // 指针位置统一问 PointerInput：PC 是光标，手机是最近点过的那一点
+            // （触屏没有悬停，"指着哪"只能靠点出来，见 PointerInput 类注释）。
             Camera camera = Camera.main;
-            if (camera == null || Mouse.current == null)
+            Vector2 screenPoint;
+            if (camera == null || !PointerInput.TryGetHoverPosition(out screenPoint))
             {
                 return false;
             }
 
-            Ray ray = camera.ScreenPointToRay(Mouse.current.position.ReadValue());
+            Ray ray = camera.ScreenPointToRay(screenPoint);
             var plane = new Plane(Vector3.up, new Vector3(0f, gridSystem.transform.position.y, 0f));
             if (!plane.Raycast(ray, out float distance))
             {

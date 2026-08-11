@@ -34,7 +34,7 @@
       "##",
       "##"
     ],
-    "radius": 6,
+    "radius": 5,
     "countMin": 3,
     "countMax": 5,
     "isTerrain": false,
@@ -59,8 +59,8 @@
       "#"
     ],
     "radius": 0,
-    "countMin": 2,
-    "countMax": 4,
+    "countMin": 5,
+    "countMax": 8,
     "isTerrain": false,
     "prefabPath": ""
   },

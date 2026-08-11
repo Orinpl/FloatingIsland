@@ -1,7 +1,7 @@
 using System;
 using FloatingIsLand.App;
+using FloatingIsLand.GameInput;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 namespace FloatingIsLand.ViewEGB
@@ -67,8 +67,7 @@ namespace FloatingIsLand.ViewEGB
                 _hoverQuad.gameObject.SetActive(false);
             }
 
-            Mouse mouse = Mouse.current;
-            if (hovered && mouse != null && mouse.leftButton.wasPressedThisFrame && !IsPointerOverUI())
+            if (hovered && ClickedThisFrame())
             {
                 _hasSelection = true;
                 _selectedCell = new Vector3Int(x, z, layer);
@@ -117,9 +116,21 @@ namespace FloatingIsLand.ViewEGB
             return session != null && session.SelectedBlueprint != null;
         }
 
-        private static bool IsPointerOverUI()
+        /// <summary>
+        /// 本帧玩家点了地格没有。PC 是左键按下，手机是一次点击（抬手且没拖动，见 PointerInput）。
+        /// UI 遮挡判定走 PointerInput 的按位置射线——手机上不能用 EventSystem 的无参重载，
+        /// 那个查的是鼠标 pointerId，手指恒返回 false，会出现「点 HUD 的同时还选中了按钮背后的格子」。
+        /// </summary>
+        private static bool ClickedThisFrame()
         {
-            return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
+            if (PointerInput.IsTouchMode)
+            {
+                // 遮挡要按**这一下点在哪**判，不能按黏性悬停判：点 HUD 按钮时悬停还停在地面上，
+                // 拿悬停去问就会得出「没压着 UI」，于是按个按钮顺带把格子也选了
+                return PointerInput.TapThisFrame && !PointerInput.IsOverUI(PointerInput.TapPosition);
+            }
+            Mouse mouse = Mouse.current;
+            return mouse != null && mouse.leftButton.wasPressedThisFrame && !PointerInput.IsHoverOverUI();
         }
     }
 }

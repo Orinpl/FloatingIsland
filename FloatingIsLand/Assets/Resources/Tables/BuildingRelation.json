@@ -82,7 +82,8 @@
   {
     "buildingId": "restaurant",
     "bonusFrom": [
-      "residence:10"
+      "residence:10",
+      "granary:12"
     ],
     "penaltyFrom": []
   },
@@ -105,8 +106,8 @@
   {
     "buildingId": "residence",
     "bonusFrom": [
-      "restaurant:12:2",
-      "shop:12:2",
+      "restaurant:16:2",
+      "shop:16:2",
       "citizenCenter:20:1",
       "residence:8:4",
       "logisticsPoint:10:2",

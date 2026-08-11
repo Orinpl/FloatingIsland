@@ -65,7 +65,6 @@ namespace FloatingIsLand.Tests
                 layerHeightFactor: 1f, giantWindmillGenericScore: 0,
                 anchorDockDecayPercents: null,
                 logisticsCoverRadius: coverRadius, logisticsBaseCoverScore: coverScore,
-                scoreToGoldRatio: 1f,
                 maxWindLevel: 5,
                 initialWindLevelMin: windLevelMin, initialWindLevelMax: windLevelMax,
                 initialWindLengthMin: windLengthMin, initialWindLengthMax: windLengthMax,

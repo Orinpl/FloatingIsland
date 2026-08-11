@@ -172,7 +172,7 @@ namespace FloatingIsLand.View
             GameFlow flow = GameFlow.Instance;
             if (flow != null && flow.CurrentRun != null)
             {
-                return flow.CurrentRun.RunIndex;
+                return flow.CurrentRun.StageId;
             }
             return fallbackStageId;
         }

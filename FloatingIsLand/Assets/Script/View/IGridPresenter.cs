@@ -42,7 +42,12 @@ namespace FloatingIsLand.View
         /// <summary>世界坐标 → 指定层的格子坐标；越界返回 false。</summary>
         bool WorldToCell(Vector3 worldPosition, int layer, out int x, out int z);
 
-        /// <summary>当前鼠标悬停的格子；不在网格上返回 false。骨架版只探测第 0 层，M1 接入地形数据后按层归属扩展。</summary>
+        /// <summary>
+        /// 指针当前指着的格子；不在网格上返回 false。骨架版只探测第 0 层，M1 接入地形数据后按层归属扩展。
+        ///
+        /// 「指针指着哪」由 <c>PointerInput</c> 统一给：PC 是光标位置，手机是最近一次点击的位置
+        /// （触屏没有悬停，见 Docs/PROJECT_BUILD.md §11.1）。所以调用方两端共用同一条路径，不必分平台。
+        /// </summary>
         bool TryGetHoveredCell(out int x, out int z, out int layer);
     }
 }

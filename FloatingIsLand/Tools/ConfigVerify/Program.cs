@@ -39,7 +39,8 @@ namespace ConfigVerify
                 Console.WriteLine($"  - {name,-20} {Describe(name)}");
             }
 
-            if (!ValidateBuildingRelations() || !ValidateElementBonuses() || !ValidateFootprints() || !ValidateGroupThemes())
+            if (!ValidateBuildingRelations() || !ValidateElementBonuses() || !ValidateFootprints()
+                || !ValidateGroupThemes() || !ValidateStages())
             {
                 return 1;
             }
@@ -378,6 +379,86 @@ namespace ConfigVerify
             return true;
         }
 
+        /// <summary>
+        /// 校验关卡表：组数不能超过 Level 表能提供的组、通关分与门槛倍率必须为正，
+        /// 且**第 1 组必须免费**（Level[1].unlockScore = 0）——否则玩家开局就卡死，
+        /// 一分没有却要求有分才能拿第一组建筑。反射软依赖，表/列缺失时跳过。
+        /// </summary>
+        private static bool ValidateStages()
+        {
+            List<Dictionary<string, object>> stageRows = ReadTable("Stage");
+            List<Dictionary<string, object>> levelRows = ReadTable("Level");
+            if (stageRows == null || levelRows == null)
+            {
+                Console.WriteLine("[验证] 跳过关卡校验（表不存在）。");
+                return true;
+            }
+
+            var errors = new List<string>();
+
+            // 第 1 组免费：这是「首组建筑免费」的唯一数据出处
+            foreach (Dictionary<string, object> row in levelRows)
+            {
+                if (Int(row, "level") == 1 && Int(row, "unlockScore") != 0)
+                {
+                    errors.Add($"Level[1].unlockScore = {Int(row, "unlockScore")}，第 1 组必须免费（填 0）");
+                }
+            }
+
+            // 门槛必须随组序单调不减，否则「越往后越贵」的承诺就破了
+            var byLevel = new List<Dictionary<string, object>>(levelRows);
+            byLevel.Sort((a, b) => Int(a, "level").CompareTo(Int(b, "level")));
+            for (int i = 1; i < byLevel.Count; i++)
+            {
+                int prev = Int(byLevel[i - 1], "unlockScore");
+                int cur = Int(byLevel[i], "unlockScore");
+                if (cur < prev)
+                {
+                    errors.Add(
+                        $"Level[{Int(byLevel[i], "level")}].unlockScore = {cur} 比上一组的 {prev} 还低"
+                        + "（组解锁门槛必须逐组递增）");
+                }
+            }
+
+            foreach (Dictionary<string, object> row in stageRows)
+            {
+                int stageId = Int(row, "stageId");
+                string context = $"Stage[{stageId}]";
+                int groupCount = Int(row, "groupCount");
+                if (groupCount <= 0)
+                {
+                    errors.Add($"{context}: groupCount 须为正整数");
+                }
+                else if (groupCount > levelRows.Count)
+                {
+                    errors.Add(
+                        $"{context}: groupCount = {groupCount} 超过 Level 表的 {levelRows.Count} 行"
+                        + "（本关会在组数用完前就没组可发）");
+                }
+                if (Int(row, "clearScore") <= 0)
+                {
+                    errors.Add($"{context}: clearScore 须为正整数（通关门槛不能是 0，那样开局即通关）");
+                }
+                if (Flt(row, "unlockScoreMult") <= 0f)
+                {
+                    errors.Add($"{context}: unlockScoreMult 须为正数（1 = 直接用 Level 表的门槛曲线）");
+                }
+            }
+
+            if (errors.Count > 0)
+            {
+                foreach (string error in errors)
+                {
+                    Console.Error.WriteLine("[验证] " + error);
+                }
+                Console.Error.WriteLine($"[验证] 关卡校验失败：{errors.Count} 个错误。");
+                return false;
+            }
+
+            Console.WriteLine($"[验证] 关卡校验通过：{stageRows.Count} 关，组数/通关分/门槛倍率与首组免费均合法。");
+            return true;
+        }
+
         private sealed class ParsedMember
         {
             public string VariantId = "";
@@ -635,6 +716,12 @@ namespace ConfigVerify
         {
             object value;
             return row.TryGetValue(field, out value) && value is int i ? i : 0;
+        }
+
+        private static float Flt(Dictionary<string, object> row, string field)
+        {
+            object value;
+            return row.TryGetValue(field, out value) && value is float f ? f : 0f;
         }
 
         private static string[] Arr(Dictionary<string, object> row, string field)

@@ -1,32 +1,65 @@
 {
-  "workbook": "FloatingIsland",
-  "sheetOrder": 8,
-  "table": "GameConfig",
-  "kind": "singleton",
-  "fields": [
-    { "name": "cellSize", "type": "float", "desc": "一个格子的世界边长（单位：米）。必须与 EGB 网格预制体的 cellSize 一致（当前 2）；模型导入后处理按它把建筑缩放到 footprint 对应的格数" },
-    { "name": "totalLevels", "type": "int", "desc": "每局总等级数（§4.1=20）" },
-    { "name": "scoreToGoldRatio", "type": "float", "desc": "正分转金币比例（即时建造分×比例=金币；负分不倒扣 §3.3；0=待定）" },
-    { "name": "freeRefreshCount", "type": "int", "desc": "每局免费刷新建筑组次数（随机保护 §4.3；0=待定）" },
-    { "name": "refreshCostGold", "type": "int", "desc": "免费次数用完后每次刷新的金币费用（§4.3；0=待定）" },
-    { "name": "skipPenaltyScore", "type": "int", "desc": "跳过一栋无法合法放置建筑的扣分（负值，§4.3 保护机制；0=不启用）" },
-    { "name": "guaranteeEasyBuilding", "type": "bool", "desc": "是否保证每组至少一栋容易放置的建筑（§4.3 保护机制）" },
-    { "name": "giantWindmillGenericScore", "type": "int", "desc": "巨型风车通用加分——范围内任意普通建筑获得；有专属条目（BuildingMapElement.exclusive=TRUE）的建筑用专属分替代不叠加（§6；0=待定）" },
-    { "name": "layerHeightFactor", "type": "float", "desc": "层高折算系数 k（决策 26）：建筑/元素的影响范围为球形，三维欧氏距离 = √(水平格距² + (高度层差×k)²)。表现层的 EGB verticalGridHeight = k × cellSize，两边必须同一个 k（当前预制体 2/2 → k=1）" },
-    { "name": "anchorDockDecayPercents", "type": "float[]", "desc": "同一锚点下第 N 座船坞的锚点收益倍率（§12.8 已定：1|0.5|0.25|0，第 4 座及以后 0）" }
-  ],
+  "kind": "singleton", 
   "rows": [
     {
-      "cellSize": 2,
-      "totalLevels": 20,
-      "scoreToGoldRatio": 1.0,
-      "freeRefreshCount": 1,
-      "refreshCostGold": 60,
-      "skipPenaltyScore": -20,
-      "guaranteeEasyBuilding": true,
-      "giantWindmillGenericScore": 10,
-      "layerHeightFactor": 1,
-      "anchorDockDecayPercents": [1, 0.5, 0.25, 0]
+      "totalLevels": 20, 
+      "layerHeightFactor": 1, 
+      "skipPenaltyScore": -20, 
+      "guaranteeEasyBuilding": true, 
+      "freeRefreshCount": 1, 
+      "cellSize": 2, 
+      "anchorDockDecayPercents": [
+        1, 
+        0.5, 
+        0.25, 
+        0
+      ], 
+      "giantWindmillGenericScore": 10
     }
-  ]
+  ], 
+  "fields": [
+    {
+      "type": "float", 
+      "name": "cellSize", 
+      "desc": "一个格子的世界边长（单位：米）。必须与 EGB 网格预制体的 cellSize 一致（当前 2）；模型导入后处理按它把建筑缩放到 footprint 对应的格数"
+    }, 
+    {
+      "type": "int", 
+      "name": "totalLevels", 
+      "desc": "每局总等级数（§4.1=20）"
+    }, 
+    {
+      "type": "int", 
+      "name": "freeRefreshCount", 
+      "desc": "每局免费刷新建筑组次数（随机保护 §4.3；0=待定）"
+    }, 
+    {
+      "type": "int", 
+      "name": "skipPenaltyScore", 
+      "desc": "跳过一栋无法合法放置建筑的扣分（负值，§4.3 保护机制；0=不启用）"
+    }, 
+    {
+      "type": "bool", 
+      "name": "guaranteeEasyBuilding", 
+      "desc": "是否保证每组至少一栋容易放置的建筑（§4.3 保护机制）"
+    }, 
+    {
+      "type": "int", 
+      "name": "giantWindmillGenericScore", 
+      "desc": "巨型风车通用加分——范围内任意普通建筑获得；有专属条目（BuildingMapElement.exclusive=TRUE）的建筑用专属分替代不叠加（§6；0=待定）"
+    }, 
+    {
+      "type": "float", 
+      "name": "layerHeightFactor", 
+      "desc": "层高折算系数 k（决策 26）：建筑/元素的影响范围为球形，三维欧氏距离 = √(水平格距² + (高度层差×k)²)。表现层的 EGB verticalGridHeight = k × cellSize，两边必须同一个 k（当前预制体 2/2 → k=1）"
+    }, 
+    {
+      "type": "float[]", 
+      "name": "anchorDockDecayPercents", 
+      "desc": "同一锚点下第 N 座船坞的锚点收益倍率（§12.8 已定：1|0.5|0.25|0，第 4 座及以后 0）"
+    }
+  ], 
+  "workbook": "FloatingIsland", 
+  "table": "GameConfig", 
+  "sheetOrder": 8
 }

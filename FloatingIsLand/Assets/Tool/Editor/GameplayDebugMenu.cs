@@ -58,7 +58,10 @@ namespace FloatingIsLand.EditorTools
             }
 
             BuildRunState run = session.Run;
-            text.AppendLine($"  等级 {run.Level}/{run.TotalLevels}  总分 {run.TotalScore}  金币 {run.Gold}");
+            text.AppendLine($"  第 {run.Level}/{run.TotalLevels} 组  总分 {run.TotalScore}"
+                            + $"（本关 {run.StageScore}，基线 {run.StageBaseScore}）");
+            text.AppendLine($"  下一组门槛 {run.NextUnlockScore}，通关门槛 {run.ClearScore}"
+                            + $"{(run.IsStageCleared ? "（已达标）" : "")}");
             text.AppendLine($"  待选组 {run.Offers.Count} 个，手牌 {run.Hand.Count} 张，已建 {session.Board.Buildings.Count} 栋");
             text.AppendLine($"  地图 {session.Board.Map.Width}×{session.Board.Map.Length}，已刷 {session.Board.Map.PaintedCount} 格，元素 {session.Board.Elements.Count} 个");
             for (int i = 0; i < run.Hand.Count; i++)
@@ -251,7 +254,7 @@ namespace FloatingIsLand.EditorTools
 
             bool advanced = session.RequestNextGroup();
             Debug.Log($"[调试] 一级推进完成：等级 {session.Run.Level}，总分 {session.Run.TotalScore}，" +
-                      $"金币 {session.Run.Gold}，已建 {session.Board.Buildings.Count} 栋，" +
+                      $"已建 {session.Board.Buildings.Count} 栋，" +
                       $"{(advanced ? "已进入下一级并抽出新组" : "没有下一级了")}。");
         }
 

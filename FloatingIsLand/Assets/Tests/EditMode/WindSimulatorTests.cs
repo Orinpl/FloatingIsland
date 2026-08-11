@@ -47,7 +47,6 @@ namespace FloatingIsLand.Tests
                 layerHeightFactor: 1f, giantWindmillGenericScore: 0,
                 anchorDockDecayPercents: null,
                 logisticsCoverRadius: 0, logisticsBaseCoverScore: 0,
-                scoreToGoldRatio: 1f,
                 maxWindLevel: 5,
                 windExtendLength: extendLength, windExtendMaxPerWind: extendMax);
         }

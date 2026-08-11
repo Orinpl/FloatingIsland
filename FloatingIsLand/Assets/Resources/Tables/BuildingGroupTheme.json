@@ -58,9 +58,9 @@
     "weight": 9,
     "maxPerRun": 0,
     "members": [
-      "residence_01:4:1:2",
-      "restaurant_01:3:1:2",
-      "shop_01:3:1:2"
+      "residence_01:6:2:3",
+      "restaurant_01:2:1:1",
+      "shop_01:2:1:1"
     ]
   },
   {

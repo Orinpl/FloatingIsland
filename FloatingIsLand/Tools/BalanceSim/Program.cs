@@ -8,15 +8,18 @@ using FloatingIsLand.Domain.Build;
 using FloatingIsLand.Domain.Map;
 using FloatingIsLand.Domain.Wind;
 
-// 积分曲线仿真：用贪心 AI 玩家把一局跑完，看金币产出能不能跟上 Level.unlockCost 的解锁曲线。
+// 积分曲线仿真：用贪心 AI 玩家把一整局（Stage 表里的全部关卡）连着打完，
+// 看得分产出能不能跟上 Level.unlockScore 的组解锁门槛与 Stage.clearScore 的通关门槛。
 //
-// 判据（GAME_DESIGN §2 结束条件之三：建筑组处理完但金币不足解锁下一等级 → 本局结束）：
-//   - 太难 = 玩家在很靠前的等级就卡住，20 级根本走不完；
-//   - 太易 = 每级金币都大幅溢出，解锁费用形同虚设。
-// 目标手感：能走到 20 级附近，且中后期金币余量不宽裕（留一点决策压力）。
+// 判据（GAME_DESIGN §2.2 结束条件）：
+//   - 太难 = 玩家在很靠前的关/组就卡住，3 关根本走不完；
+//   - 太易 = 每组门槛都大幅溢出，门槛形同虚设。
+// 目标手感：多数局能打穿 3 关，且中后期分数余量不宽裕（留一点决策压力）。
+//
+// 分数**跨关保留**：每关的门槛都以「进入本关时的累计总分」为基线做增量，
+// 所以仿真必须一关接一关地连着跑，不能各关独立算。
 
 const int DefaultRuns = 30;
-const string MapRelPath = "Assets/Resources/Maps/stage_1.json";
 const string TablesRelPath = "Assets/Resources/Tables";
 
 string root = DetectRoot();
@@ -39,53 +42,104 @@ if (runs <= 0)
     runs = DefaultRuns;
 }
 
-// 免费解锁：跳过金币门槛强行跑满 20 级，用来量「不被卡住时的收入曲线」——
-// 定价必须以这条曲线为基准，否则就是拿一个自己卡住自己的样本去调价。
+// 免费解锁：跳过分数门槛强行把每关的组走满，用来量「不被卡住时的得分曲线」。
+// 定价必须以这条曲线为基准，否则就是拿一个自己卡住自己的样本去定门槛。
 bool freeUnlock = args.Any(a => string.Equals(a, "--free-unlock", StringComparison.OrdinalIgnoreCase));
 
 TableLoader.LoadFromDirectory(Path.Combine(root, ToPath(TablesRelPath)));
 
-string mapPath = Path.Combine(root, ToPath(MapRelPath));
-if (!File.Exists(mapPath))
-{
-    Console.Error.WriteLine($"[错误] 找不到地图 {mapPath}。");
-    Console.Error.WriteLine("       先在 Unity 里跑 Tools → 地图 → 按岛屿模型生成地图。");
-    return 1;
-}
-
-MapSnapshot map = MapJson.Load("stage_1", File.ReadAllText(mapPath));
 BuildRuleSet rules = BuildRuleSetFactory.Create();
 List<LevelDef> levels = BuildRuleSetFactory.CreateLevels();
 List<GroupThemeDef> themes = BuildRuleSetFactory.CreateGroupThemes();
+List<StageDef> stages = BuildRuleSetFactory.CreateStages();
 
-Console.WriteLine($"[仿真] 地图 stage_1：{map.Width}×{map.Length}，已刷 {map.PaintedCount} 格，元素 {map.Elements.Count} 个。");
-Console.WriteLine($"[仿真] 规则集：{rules.Blueprints.Count} 个建筑变体 / {rules.Elements.Count} 类元素；跑 {runs} 局。");
-Console.WriteLine();
-
-var results = new List<RunOutcome>(runs);
-for (int seed = 1; seed <= runs; seed++)
+var maps = new Dictionary<int, MapSnapshot>();
+foreach (StageDef stage in stages)
 {
-    results.Add(Simulate(map, rules, levels, themes, seed, freeUnlock));
+    string mapPath = Path.Combine(root, ToPath($"Assets/Resources/Maps/stage_{stage.StageId}.json"));
+    if (!File.Exists(mapPath))
+    {
+        Console.Error.WriteLine($"[错误] 找不到第 {stage.StageId} 关地图 {mapPath}。");
+        Console.Error.WriteLine("       先在 Unity 里跑 Tools → 地图 → 按岛屿模型生成地图。");
+        return 1;
+    }
+    maps[stage.StageId] = MapJson.Load($"stage_{stage.StageId}", File.ReadAllText(mapPath));
 }
 
-Report(results, levels);
+Console.WriteLine($"[仿真] 规则集：{rules.Blueprints.Count} 个建筑变体 / {rules.Elements.Count} 类元素 / {themes.Count} 个建筑组主题。");
+foreach (StageDef stage in stages)
+{
+    MapSnapshot m = maps[stage.StageId];
+    Console.WriteLine(
+        $"[仿真] 第 {stage.StageId} 关「{stage.NameCn}」：{m.Width}×{m.Length} 已刷 {m.PaintedCount} 格，"
+        + $"{stage.GroupCount} 组，通关分 +{stage.ClearScore}，门槛倍率 ×{stage.UnlockScoreMult}");
+}
+Console.WriteLine($"[仿真] 跑 {runs} 局{(freeUnlock ? "（免门槛，量得分曲线）" : "")}。");
+Console.WriteLine();
+
+var games = new List<GameOutcome>(runs);
+for (int seed = 1; seed <= runs; seed++)
+{
+    games.Add(SimulateGame(maps, rules, levels, themes, stages, seed, freeUnlock));
+}
+
+Report(games, levels, stages);
 return 0;
 
-// ---------------------------------------------------------------- 仿真主体
+// ---------------------------------------------------------------- 一整局（连打全部关卡）
 
-static RunOutcome Simulate(
-    MapSnapshot map, BuildRuleSet rules, List<LevelDef> levels, List<GroupThemeDef> themes, int seed, bool freeUnlock)
+static GameOutcome SimulateGame(
+    Dictionary<int, MapSnapshot> maps, BuildRuleSet rules, List<LevelDef> levels,
+    List<GroupThemeDef> themes, List<StageDef> stages, int seed, bool freeUnlock)
 {
+    var game = new GameOutcome { Seed = seed };
+    int carry = 0;
+
+    foreach (StageDef stage in stages)
+    {
+        StageOutcome stageOutcome = SimulateStage(
+            maps[stage.StageId], rules, levels, themes, stage, seed, carry, freeUnlock);
+        game.Stages.Add(stageOutcome);
+
+        carry = stageOutcome.TotalScore;
+        game.TotalScore = carry;
+        game.StagesReached = stage.StageId;
+
+        if (stageOutcome.Cleared)
+        {
+            game.StagesCleared++;
+        }
+        else if (!freeUnlock)
+        {
+            // 没达通关分就到此为止——后面的关根本进不去。
+            // 但 --free-unlock 是用来量各关产能上限的，被通关门槛拦住就永远量不到后面的关，
+            // 所以那个模式下照样往下跑。
+            break;
+        }
+    }
+
+    game.Completed = game.StagesCleared >= stages.Count;
+    return game;
+}
+
+// ---------------------------------------------------------------- 一关
+
+static StageOutcome SimulateStage(
+    MapSnapshot map, BuildRuleSet rules, List<LevelDef> levels, List<GroupThemeDef> themes,
+    StageDef stage, int seed, int carryScore, bool freeUnlock)
+{
+    // 每关一张新图、一套新风场；种子掺上关号，避免 3 关的随机序列完全一样
+    int stageSeed = seed * 101 + stage.StageId * 7919;
     var board = new BuildBoard(map, rules);
     // 风场必须接：风帆的 windPath 建造限制、风力即时分、风车风力曲线全靠它。
     // 不接的话仿真会谎报「风帆一定放得下」且把它的风力分算成 0。
-    var wind = new WindSystem(board, seed);
+    var wind = new WindSystem(board, stageSeed);
     board.WindField = wind;
     var scoring = new ScoreEngine(board);
-    var run = new BuildRunState(levels, themes, rules, seed);
-    var random = new DeterministicRandom(seed * 31 + 7);
+    var run = new BuildRunState(levels, themes, stage, stageSeed, carryScore);
+    var random = new DeterministicRandom(stageSeed * 31 + 7);
 
-    var outcome = new RunOutcome { Seed = seed };
+    var outcome = new StageOutcome { StageId = stage.StageId, BaseScore = carryScore };
     run.Start();
 
     while (true)
@@ -104,15 +158,14 @@ static RunOutcome Simulate(
                     best = g;
                 }
             }
-            // 主题分布是本次改版的验收口径之一：前期该只出生产线，后期才该出物流/港口
-            outcome.ThemeAtLevel[run.Level] = run.Offers[best].ThemeId;
+            // 主题分布是分组设计的验收口径之一
+            outcome.ThemeAtGroup[run.Level] = run.Offers[best].ThemeId;
             run.ChooseOffer(best);
         }
 
         // 逐栋摆放：每栋找当前最优落点
-        bool placedAny = false;
-        int levelIncome = 0;
-        int levelPlaced = 0;
+        int groupIncome = 0;
+        int groupPlaced = 0;
         while (run.Hand.Count > 0)
         {
             BuildingBlueprint blueprint = rules.GetBlueprintOrNull(run.Hand[0]);
@@ -145,29 +198,28 @@ static RunOutcome Simulate(
             outcome.PlacedBuildings++;
             outcome.PlacedByVariant.TryGetValue(blueprint.VariantId, out int placed);
             outcome.PlacedByVariant[blueprint.VariantId] = placed + 1;
-            levelIncome += Math.Max(0, spot.Score);
-            levelPlaced++;
-            placedAny = true;
+            groupIncome += Math.Max(0, spot.Score);
+            groupPlaced++;
         }
 
-        outcome.GoldAtLevel[run.Level] = run.Gold;
-        outcome.ScoreAtLevel[run.Level] = run.TotalScore;
-        outcome.IncomeAtLevel[run.Level] = levelIncome;
-        outcome.PlacedAtLevel[run.Level] = levelPlaced;
-
-        if (run.Level >= run.TotalLevels)
+        // 通关分是在第几组达成的——「达标就能走，不必建完全部组」这条要能量得出来
+        if (outcome.ClearedAtGroup == 0 && run.IsStageCleared)
         {
-            outcome.EndReason = "走完 20 级";
+            outcome.ClearedAtGroup = run.Level;
+        }
+
+        outcome.StageScoreAtGroup[run.Level] = run.StageScore;
+        outcome.IncomeAtGroup[run.Level] = groupIncome;
+        outcome.PlacedAtGroup[run.Level] = groupPlaced;
+
+        if (run.IsLastGroup)
+        {
+            outcome.EndReason = $"本关 {run.TotalLevels} 组全部发完";
             break;
         }
         if (!freeUnlock && !run.CanAffordNextLevel())
         {
-            outcome.EndReason = "金币不足以解锁下一级";
-            break;
-        }
-        if (!placedAny && run.Hand.Count == 0 && run.Offers.Count == 0 && outcome.PlacedBuildings == 0)
-        {
-            outcome.EndReason = "无处可建";
+            outcome.EndReason = $"分数不足以解锁第 {run.Level + 1} 组（差 {run.NextUnlockScore - run.TotalScore}）";
             break;
         }
 
@@ -181,9 +233,12 @@ static RunOutcome Simulate(
         }
     }
 
-    outcome.FinalLevel = run.Level;
+    outcome.GroupsReached = run.Level;
+    outcome.GroupTotal = run.TotalLevels;
+    outcome.StageScore = run.StageScore;
     outcome.TotalScore = run.TotalScore;
-    outcome.FinalGold = run.Gold;
+    outcome.ClearScore = run.ClearScore;
+    outcome.Cleared = run.IsStageCleared;
     return outcome;
 }
 
@@ -240,85 +295,104 @@ static Spot FindBestSpot(BuildBoard board, ScoreEngine scoring, BuildingBlueprin
 
 // ---------------------------------------------------------------- 报告
 
-static void Report(List<RunOutcome> results, List<LevelDef> levels)
+static void Report(List<GameOutcome> games, List<LevelDef> levels, List<StageDef> stages)
 {
     Console.WriteLine("== 单局结果 ==");
-    Console.WriteLine("种子   到达等级   总分      末金币   已建   跳过   结束原因");
-    foreach (RunOutcome r in results.Take(10))
+    Console.WriteLine("种子   通关关数   最终总分   止步于");
+    foreach (GameOutcome g in games.Take(10))
     {
-        Console.WriteLine(
-            $"{r.Seed,-6} {r.FinalLevel,-10} {r.TotalScore,-9} {r.FinalGold,-8} {r.PlacedBuildings,-6} {r.SkippedBuildings,-6} {r.EndReason}");
+        StageOutcome last = g.Stages[g.Stages.Count - 1];
+        string where = g.Completed
+            ? "打穿全部关卡"
+            : $"第 {last.StageId} 关第 {last.GroupsReached}/{last.GroupTotal} 组：{last.EndReason}";
+        Console.WriteLine($"{g.Seed,-6} {g.StagesCleared,-10} {g.TotalScore,-10} {where}");
     }
-    if (results.Count > 10)
+    if (games.Count > 10)
     {
-        Console.WriteLine($"…（共 {results.Count} 局，上面只列前 10 局）");
+        Console.WriteLine($"…（共 {games.Count} 局，上面只列前 10 局）");
     }
     Console.WriteLine();
 
-    double avgLevel = results.Average(r => r.FinalLevel);
-    double avgScore = results.Average(r => r.TotalScore);
-    int finished = results.Count(r => r.FinalLevel >= levels.Count);
+    int completed = games.Count(g => g.Completed);
     Console.WriteLine("== 汇总 ==");
-    Console.WriteLine($"平均到达等级：{avgLevel:0.0} / {levels.Count}");
-    Console.WriteLine($"平均总分：    {avgScore:0}");
-    Console.WriteLine($"通关率：      {finished} / {results.Count}（{100.0 * finished / results.Count:0.0}%）");
+    Console.WriteLine($"平均通关关数：{games.Average(g => g.StagesCleared):0.00} / {stages.Count}");
+    Console.WriteLine($"整局通关率：  {completed} / {games.Count}（{100.0 * completed / games.Count:0.0}%）");
+    Console.WriteLine($"平均最终总分：{games.Average(g => g.TotalScore):0}");
     Console.WriteLine();
 
-    Console.WriteLine("== 每级建造收入（定价基准） ==");
-    Console.WriteLine("等级  本级平均收入   累计收入   本级建筑数   单栋均分   建议解锁价(累计60%)");
-    double cumulative = 0;
-    for (int i = 0; i < levels.Count; i++)
+    Console.WriteLine("== 每关 ==");
+    Console.WriteLine("关卡  样本   通关率     到达组数   达标于第N组   本关得分   通关门槛(增量)   已建   跳过");
+    foreach (StageDef stage in stages)
     {
-        LevelDef level = levels[i];
-        var samples = results.Where(r => r.IncomeAtLevel.ContainsKey(level.Level)).ToList();
+        var samples = games
+            .SelectMany(g => g.Stages)
+            .Where(s => s.StageId == stage.StageId)
+            .ToList();
         if (samples.Count == 0)
         {
             continue;
         }
-        double income = samples.Average(r => r.IncomeAtLevel[level.Level]);
-        double placed = samples.Average(r => r.PlacedAtLevel[level.Level]);
-        cumulative += income;
-        double perBuilding = placed > 0 ? income / placed : 0;
-        // 建议价 = “走到本级为止的累计收入”的 60%，再减去前面已收的费用，
-        // 即把总支出控制在总收入的 60% 上下，留 40% 作为容错与决策空间。
-        double suggested = i + 1 < levels.Count ? cumulative * 0.6 : 0;
-        Console.WriteLine($"{level.Level,-5} {income,-13:0} {cumulative,-11:0} {placed,-12:0.0} {perBuilding,-11:0} {suggested,-10:0}");
+        double clearRate = 100.0 * samples.Count(s => s.Cleared) / samples.Count;
+        var clearedSamples = samples.Where(s => s.ClearedAtGroup > 0).ToList();
+        string clearedAt = clearedSamples.Count > 0
+            ? $"{clearedSamples.Average(s => s.ClearedAtGroup):0.0} / {stage.GroupCount}"
+            : "—";
+        Console.WriteLine(
+            $"{stage.StageId,-5} {samples.Count,-6} {clearRate,-10:0.0}% {samples.Average(s => s.GroupsReached),-10:0.0} "
+            + $"{clearedAt,-13} {samples.Average(s => s.StageScore),-10:0} {stage.ClearScore,-16} "
+            + $"{samples.Average(s => s.PlacedBuildings),-6:0.0} {samples.Average(s => s.SkippedBuildings),-6:0.0}");
     }
     Console.WriteLine();
 
-    // 判据用「本级收入 / 本级解锁价」的覆盖率，而不是拿累计金币比单级费用：
-    // 金币只进不出，累计额必然远大于单级价，用它判难易永远得出“偏易”。
-    Console.WriteLine("== 每级收支平衡 ==");
-    Console.WriteLine("等级  本级收入   解锁下一级   覆盖率   结束时结余   判定");
-    for (int i = 0; i < levels.Count; i++)
+    foreach (StageDef stage in stages)
+    {
+        ReportStageGroups(games, levels, stage);
+    }
+
+    ReportThemes(games, levels);
+    ReportVariantMix(games);
+}
+
+/// <summary>一关内每组的收支：本组得分 vs 下一组门槛，覆盖率就是难易度。</summary>
+static void ReportStageGroups(List<GameOutcome> games, List<LevelDef> levels, StageDef stage)
+{
+    var samples = games.SelectMany(g => g.Stages).Where(s => s.StageId == stage.StageId).ToList();
+    if (samples.Count == 0)
+    {
+        return;
+    }
+
+    Console.WriteLine($"== 第 {stage.StageId} 关 每组收支（门槛已乘 ×{stage.UnlockScoreMult}） ==");
+    Console.WriteLine("组    样本   本组得分   本关累计   下一组门槛   余量     判定");
+    for (int i = 0; i < levels.Count && i < stage.GroupCount; i++)
     {
         LevelDef level = levels[i];
-        var samples = results.Where(r => r.GoldAtLevel.ContainsKey(level.Level)).ToList();
-        if (samples.Count == 0)
+        var reached = samples.Where(s => s.IncomeAtGroup.ContainsKey(level.Level)).ToList();
+        if (reached.Count == 0)
         {
             continue;
         }
 
-        LevelDef next = i + 1 < levels.Count ? levels[i + 1] : null;
-        int need = next != null ? next.UnlockCost : 0;
-        double income = samples.Average(r => r.IncomeAtLevel[level.Level]);
-        double gold = samples.Average(r => r.GoldAtLevel[level.Level]);
-        double coverage = need > 0 ? income / need : 0;
+        LevelDef next = i + 1 < levels.Count && i + 1 < stage.GroupCount ? levels[i + 1] : null;
+        int need = next != null ? stage.ScaleUnlockScore(next.UnlockScore) : 0;
+        double income = reached.Average(s => s.IncomeAtGroup[level.Level]);
+        double cumulative = reached.Average(s => s.StageScoreAtGroup[level.Level]);
+        double margin = cumulative - need;
 
         string verdict;
         if (next == null)
         {
             verdict = "—";
         }
-        else if (gold < need)
+        else if (margin < 0)
         {
-            verdict = "卡住（结余不够解锁）";
+            verdict = "卡住（平均都过不去）";
         }
-        else if (coverage < 1.0)
+        else if (margin < income * 0.35)
         {
-            verdict = "吃老本（本级收入盖不住本级费用）";
+            verdict = "吃紧（余量不到一组产出的三成）";
         }
-        else if (coverage > 1.8)
+        else if (margin > income * 2.5)
         {
             verdict = "偏松";
         }
@@ -327,47 +401,23 @@ static void Report(List<RunOutcome> results, List<LevelDef> levels)
             verdict = "合理";
         }
 
-        Console.WriteLine($"{level.Level,-5} {income,-10:0} {need,-12} {coverage,-9:0.00} {gold,-11:0} {verdict}");
-    }
-
-    double totalIncome = 0;
-    double totalCost = 0;
-    for (int i = 0; i < levels.Count; i++)
-    {
-        var samples = results.Where(r => r.IncomeAtLevel.ContainsKey(levels[i].Level)).ToList();
-        if (samples.Count > 0)
-        {
-            totalIncome += samples.Average(r => r.IncomeAtLevel[levels[i].Level]);
-        }
-        if (i > 0)
-        {
-            totalCost += levels[i].UnlockCost;
-        }
-    }
-    Console.WriteLine($"总收入 {totalIncome:0}，总解锁支出 {totalCost:0}，支出占比 {100 * totalCost / Math.Max(1, totalIncome):0.#}%");
-    Console.WriteLine();
-
-    Console.WriteLine("== 结束原因分布 ==");
-    foreach (var group in results.GroupBy(r => r.EndReason).OrderByDescending(g => g.Count()))
-    {
-        Console.WriteLine($"  {group.Key}：{group.Count()} 局");
+        Console.WriteLine(
+            $"{level.Level,-5} {reached.Count,-6} {income,-10:0} {cumulative,-10:0} {need,-12} {margin,-8:0} {verdict}");
     }
     Console.WriteLine();
-
-    ReportThemes(results, levels);
-    ReportVariantMix(results);
 }
 
-/// <summary>每级选中的主题分布——用来验收「前期生产 / 中期居住商业 / 后期物流港口」的节奏。</summary>
-static void ReportThemes(List<RunOutcome> results, List<LevelDef> levels)
+/// <summary>每组选中的主题分布——验收「前期生产 / 中期居住商业 / 后期物流港口」的节奏。</summary>
+static void ReportThemes(List<GameOutcome> games, List<LevelDef> levels)
 {
-    Console.WriteLine("== 每级选中的主题分布 ==");
-    Console.WriteLine("等级  样本   主题（次数）");
+    Console.WriteLine("== 每组选中的主题分布（全部关卡合计） ==");
+    Console.WriteLine("组    样本   主题（次数）");
     foreach (LevelDef level in levels)
     {
-        var picks = results
-            .Where(r => r.ThemeAtLevel.ContainsKey(level.Level))
-            .Select(r => r.ThemeAtLevel[level.Level])
+        var picks = games
+            .SelectMany(g => g.Stages)
+            .Where(s => s.ThemeAtGroup.ContainsKey(level.Level))
+            .Select(s => s.ThemeAtGroup[level.Level])
             .ToList();
         if (picks.Count == 0)
         {
@@ -375,40 +425,40 @@ static void ReportThemes(List<RunOutcome> results, List<LevelDef> levels)
         }
         string detail = string.Join("  ", picks
             .GroupBy(t => t)
-            .OrderByDescending(g => g.Count())
-            .Select(g => $"{g.Key}×{g.Count()}"));
+            .OrderByDescending(x => x.Count())
+            .Select(x => $"{x.Key}×{x.Count()}"));
         Console.WriteLine($"{level.Level,-5} {picks.Count,-6} {detail}");
     }
     Console.WriteLine();
 }
 
-/// <summary>各建筑变体的落地/跳过统计——用来验收「核心建筑多、增幅建筑少」和放不下的风险。</summary>
-static void ReportVariantMix(List<RunOutcome> results)
+/// <summary>各建筑变体的落地/跳过统计——验收「核心建筑多、增幅建筑少」和放不下的风险。</summary>
+static void ReportVariantMix(List<GameOutcome> games)
 {
     var placed = new Dictionary<string, int>();
     var skipped = new Dictionary<string, int>();
-    foreach (RunOutcome r in results)
+    foreach (StageOutcome s in games.SelectMany(g => g.Stages))
     {
-        foreach (var kv in r.PlacedByVariant)
+        foreach (var kv in s.PlacedByVariant)
         {
             placed.TryGetValue(kv.Key, out int n);
             placed[kv.Key] = n + kv.Value;
         }
-        foreach (var kv in r.SkippedByVariant)
+        foreach (var kv in s.SkippedByVariant)
         {
             skipped.TryGetValue(kv.Key, out int n);
             skipped[kv.Key] = n + kv.Value;
         }
     }
 
-    Console.WriteLine("== 建筑出现量（全部局合计） ==");
+    Console.WriteLine("== 建筑出现量（全部局全部关卡合计） ==");
     Console.WriteLine("变体              落地    跳过    每局落地");
     foreach (var kv in placed.Concat(skipped.Where(s => !placed.ContainsKey(s.Key)))
                  .OrderByDescending(kv => kv.Value))
     {
         placed.TryGetValue(kv.Key, out int ok);
         skipped.TryGetValue(kv.Key, out int no);
-        Console.WriteLine($"{kv.Key,-17} {ok,-7} {no,-7} {(double)ok / results.Count,-8:0.0}");
+        Console.WriteLine($"{kv.Key,-17} {ok,-7} {no,-7} {(double)ok / games.Count,-8:0.0}");
     }
 }
 
@@ -444,25 +494,49 @@ internal struct Spot
     public int Score;
 }
 
-internal sealed class RunOutcome
+/// <summary>一整局（连打全部关卡）的结果。</summary>
+internal sealed class GameOutcome
 {
     public int Seed;
-    public int FinalLevel;
+    /// <summary>打穿了几关。</summary>
+    public int StagesCleared;
+    /// <summary>走到了第几关（含没通关的那一关）。</summary>
+    public int StagesReached;
+    /// <summary>最终累计总分（排行榜记的就是它）。</summary>
     public int TotalScore;
-    public int FinalGold;
+    public bool Completed;
+    public readonly List<StageOutcome> Stages = new List<StageOutcome>();
+}
+
+/// <summary>一关的结果。</summary>
+internal sealed class StageOutcome
+{
+    public int StageId;
+    /// <summary>进入本关时的累计总分（本关一切门槛的基线）。</summary>
+    public int BaseScore;
+    public int GroupsReached;
+    public int GroupTotal;
+    /// <summary>本关内得到的分。</summary>
+    public int StageScore;
+    /// <summary>本关结束时的累计总分。</summary>
+    public int TotalScore;
+    /// <summary>通关门槛（累计分口径）。</summary>
+    public int ClearScore;
+    public bool Cleared;
+    /// <summary>通关分是在本关第几组达成的；0 = 整关都没达标。</summary>
+    public int ClearedAtGroup;
     public int PlacedBuildings;
     public int SkippedBuildings;
     public string EndReason = "";
-    /// <summary>本级选中的那组来自哪个主题（验收分组节奏用）。</summary>
-    public readonly Dictionary<int, string> ThemeAtLevel = new Dictionary<int, string>();
-    /// <summary>各变体成功落地次数（验收组内配比用）。</summary>
+
+    /// <summary>本关第 N 组选中的主题。</summary>
+    public readonly Dictionary<int, string> ThemeAtGroup = new Dictionary<int, string>();
+    /// <summary>本关第 N 组的正分收入。</summary>
+    public readonly Dictionary<int, int> IncomeAtGroup = new Dictionary<int, int>();
+    /// <summary>本关第 N 组结束时的本关累计分。</summary>
+    public readonly Dictionary<int, int> StageScoreAtGroup = new Dictionary<int, int>();
+    /// <summary>本关第 N 组落地的建筑数。</summary>
+    public readonly Dictionary<int, int> PlacedAtGroup = new Dictionary<int, int>();
     public readonly Dictionary<string, int> PlacedByVariant = new Dictionary<string, int>();
-    /// <summary>各变体因放不下被跳过的次数（前期就给受地形限制的建筑，风险全在这一栏）。</summary>
     public readonly Dictionary<string, int> SkippedByVariant = new Dictionary<string, int>();
-    public readonly Dictionary<int, int> GoldAtLevel = new Dictionary<int, int>();
-    public readonly Dictionary<int, int> ScoreAtLevel = new Dictionary<int, int>();
-    /// <summary>本级内的正分收入（=可转金币部分）。</summary>
-    public readonly Dictionary<int, int> IncomeAtLevel = new Dictionary<int, int>();
-    /// <summary>本级内成功落地的建筑数。</summary>
-    public readonly Dictionary<int, int> PlacedAtLevel = new Dictionary<int, int>();
 }

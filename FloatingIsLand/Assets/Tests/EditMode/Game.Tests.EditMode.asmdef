@@ -2,9 +2,11 @@
     "name": "Game.Tests.EditMode",
     "rootNamespace": "FloatingIsLand.Tests",
     "references": [
+        "Game.App",
         "Game.Domain",
         "Game.Config",
         "Game.View",
+        "Game.Input",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

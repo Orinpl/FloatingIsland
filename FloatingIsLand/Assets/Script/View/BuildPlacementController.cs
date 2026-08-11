@@ -3,8 +3,8 @@ using FloatingIsLand.App;
 using FloatingIsLand.Domain.Build;
 using FloatingIsLand.Domain.Map;
 using FloatingIsLand.Domain.Wind;
+using FloatingIsLand.GameInput;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 namespace FloatingIsLand.View
@@ -12,6 +12,12 @@ namespace FloatingIsLand.View
     /// <summary>
     /// 建造模式的摆放交互：选中手牌后，建筑 ghost 跟随鼠标吸附到格子，
     /// 滚轮旋转 90° 步进，左键落地，右键 / Esc 取消选中。
+    ///
+    /// 手机端是同一套流程、另一组动作（触屏没有悬停也没有滚轮）：
+    /// 点一下格子 = 把落点挪过去（手指抬起后预览还在，不挡视线），
+    /// **再点同一格** = 落地；旋转 / 建造 / 取消走 HUD 触屏工具条，经
+    /// <see cref="BuildCommandBus"/> 传进来。落地、算分、预览全部还是同一份代码，
+    /// 两端唯一的区别只有「怎么选中这一格」和「怎么说确认」。
     ///
     /// 相机操作保持原有逻辑不变（WASD 平移、右键拖旋转、中键拖平移、Shift/Ctrl 升降）；
     /// 只有滚轮在建造模式下让位给建筑旋转——通过 <see cref="InputArbiter"/> 声明占用，
@@ -86,6 +92,16 @@ namespace FloatingIsLand.View
         private int _hoverLayer;
         private bool _hoverValid;
 
+        // 触屏的二次确认：上一次点出来的落点。再点同一格才落地，
+        // 否则手指点哪就建哪——手机上误触代价太高，而且点下去的瞬间手指正好挡着要看的分数。
+        private bool _touchArmed;
+        private int _touchArmedX;
+        private int _touchArmedZ;
+        private int _touchArmedLayer;
+
+        /// <summary>本帧 HUD 触屏工具条按了「建造」。按钮回调和 Update 不同步，先记下来到 HandleClicks 里统一处理。</summary>
+        private bool _placeCommandPending;
+
         // 光标格 = 建筑中心；锚点格 = 旋转后占地的最小角（领域层与摆放口径都按锚点算）。
         // 两者必须分开存：光标格来自鼠标，锚点格随朝向变，混用就会出现"预览和落点差一截"。
         private int _anchorX;
@@ -114,10 +130,40 @@ namespace FloatingIsLand.View
             _presenter = gridPresenterBehaviour as IGridPresenter;
         }
 
+        private void OnEnable()
+        {
+            BuildCommandBus.RotateRequested += OnRotateCommand;
+            BuildCommandBus.PlaceRequested += OnPlaceCommand;
+            BuildCommandBus.CancelRequested += OnCancelCommand;
+        }
+
+        /// <summary>HUD「旋转」：触屏没有滚轮，转 90° 只能靠按钮。</summary>
+        private void OnRotateCommand()
+        {
+            _rotation = _rotation.Step(1);
+        }
+
+        /// <summary>HUD「建造」：按钮回调不在 Update 里，先立旗子，落地统一在 HandleClicks 走同一条路径。</summary>
+        private void OnPlaceCommand()
+        {
+            _placeCommandPending = true;
+        }
+
+        /// <summary>HUD「取消」：等价于 PC 上的 Esc。</summary>
+        private void OnCancelCommand()
+        {
+            if (_session != null)
+            {
+                _session.ClearSelection();
+            }
+        }
+
         /// <summary>绑定本局会话。由 MapBootstrap 在建造链路就绪后调用。</summary>
         public void Bind(GameSession session)
         {
             Unbind();
+            // 新一局从干净的输入状态起手：上一局拖到一半的手势、点出来的黏性落点都不该带过来
+            PointerInput.Reset();
             _session = session;
             if (_session != null)
             {
@@ -172,11 +218,18 @@ namespace FloatingIsLand.View
 
         private void OnDisable()
         {
+            BuildCommandBus.RotateRequested -= OnRotateCommand;
+            BuildCommandBus.PlaceRequested -= OnPlaceCommand;
+            BuildCommandBus.CancelRequested -= OnCancelCommand;
+            _placeCommandPending = false;
+
             // 失活时必须归还滚轮，否则相机永远缩放不了
             InputArbiter.ScrollConsumedByGameplay = false;
             HideTerrainOverlay();
             HideFootprint();
             HidePreviewOverlays();
+            DisarmTouch();
+            BuildPreviewState.Clear();
         }
 
         private void OnDestroy()
@@ -291,10 +344,13 @@ namespace FloatingIsLand.View
             {
                 _hasHover = false;
                 HoverMessage = string.Empty;
+                _placeCommandPending = false;
+                DisarmTouch();
                 DestroyGhost();
                 HideTerrainOverlay();
                 HideFootprint();
                 HidePreviewOverlays();
+                BuildPreviewState.Clear();
                 return;
             }
 
@@ -302,6 +358,7 @@ namespace FloatingIsLand.View
             HandleRotation();
             UpdateHover(blueprint);
             UpdateTerrainFocus();
+            PublishPreviewState();
             HandleClicks();
         }
 
@@ -495,23 +552,14 @@ namespace FloatingIsLand.View
 
         private void HandleClicks()
         {
-            Mouse mouse = Mouse.current;
             Keyboard keyboard = Keyboard.current;
-
             if (keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
             {
                 _session.ClearSelection();
                 return;
             }
 
-            if (mouse == null)
-            {
-                return;
-            }
-
-            // 右键是相机旋转的按住键，只在「没有拖动」的单击上取消选中会引起误判，
-            // 所以取消统一交给 Esc 与 UI 上的再次点击，右键不参与建造。
-            if (!mouse.leftButton.wasPressedThisFrame || !_hasHover || IsPointerOverUI())
+            if (!ConsumePlaceRequest())
             {
                 return;
             }
@@ -535,6 +583,88 @@ namespace FloatingIsLand.View
             }
 
             Debug.Log($"[建造] 无法摆放：{check.Reason}");
+        }
+
+        /// <summary>
+        /// 这一帧玩家有没有要求落地。三个来源：HUD 的「建造」按钮、触屏的二次点击、PC 的左键。
+        /// 无论从哪来，往下都走同一条落地路径——两端的落点、算分、余晖不会分叉。
+        /// </summary>
+        private bool ConsumePlaceRequest()
+        {
+            bool commanded = _placeCommandPending;
+            _placeCommandPending = false;
+            if (commanded)
+            {
+                // 指令来自 HUD 按钮，它本来就在 UI 上，不必再查 UI 遮挡；但没有落点就没得建
+                return _hasHover;
+            }
+
+            if (PointerInput.IsTouchMode)
+            {
+                return ConsumeTouchTap();
+            }
+
+            Mouse mouse = Mouse.current;
+            // 右键是相机旋转的按住键，只在「没有拖动」的单击上取消选中会引起误判，
+            // 所以取消统一交给 Esc 与 UI 上的再次点击，右键不参与建造。
+            return mouse != null
+                   && mouse.leftButton.wasPressedThisFrame
+                   && _hasHover
+                   && !IsPointerOverUI();
+        }
+
+        /// <summary>
+        /// 触屏的二次确认：第一次点把落点挪过去，再点同一格才落地。
+        ///
+        /// 不做成「点哪建哪」是因为手机上这一下代价太高——手指按下的瞬间正好盖住要看的东西
+        /// （范围环、邻居身上的 +3），玩家等于闭着眼睛在建；而且误触没有 Esc 可以救。
+        /// 分成两下之后，第一下抬手就能看清这一摆值多少分，第二下才是承诺。
+        /// </summary>
+        private bool ConsumeTouchTap()
+        {
+            if (!PointerInput.TapThisFrame || PointerInput.IsOverUI(PointerInput.TapPosition))
+            {
+                return false;
+            }
+
+            if (!_hasHover)
+            {
+                // 点到了网格外（天空 / 虚空），当作撤销预选，免得下一次点回来直接就建了
+                DisarmTouch();
+                return false;
+            }
+
+            if (_touchArmed
+                && _touchArmedX == _hoverX
+                && _touchArmedZ == _hoverZ
+                && _touchArmedLayer == _hoverLayer)
+            {
+                return true;
+            }
+
+            _touchArmed = true;
+            _touchArmedX = _hoverX;
+            _touchArmedZ = _hoverZ;
+            _touchArmedLayer = _hoverLayer;
+            return false;
+        }
+
+        /// <summary>撤销触屏的预选，让下一次点击回到「先选位置」而不是「直接落地」。</summary>
+        private void DisarmTouch()
+        {
+            _touchArmed = false;
+        }
+
+        /// <summary>
+        /// 把当帧预览结论交给 HUD（见 <see cref="BuildPreviewState"/>）。
+        /// 手机上「建造」是个按钮，玩家得能看出它为什么是灰的；PC 上这条顺带把
+        /// 一直算着却没人显示的「预计得分 N」摆到了提示栏里。
+        /// </summary>
+        private void PublishPreviewState()
+        {
+            BuildPreviewState.HasTarget = _hasHover;
+            BuildPreviewState.CanPlace = _hasHover && _hoverValid;
+            BuildPreviewState.Message = HoverMessage;
         }
 
         /// <summary>
@@ -583,11 +713,13 @@ namespace FloatingIsLand.View
         {
             // 每次换建筑都从 0° 起手，避免上一栋的朝向莫名其妙带到下一栋
             _rotation = Rotation.Deg0;
+            // 换了建筑就得重新选一次落点：上一栋预选的格子对这一栋未必放得下
+            DisarmTouch();
         }
 
         private static bool IsPointerOverUI()
         {
-            return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
+            return PointerInput.IsHoverOverUI();
         }
     }
 }

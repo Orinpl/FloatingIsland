@@ -1,19 +1,88 @@
 {
-  "workbook": "FloatingIsland",
-  "sheetOrder": 7,
-  "table": "Stage",
-  "kind": "rows",
-  "fields": [
-    { "name": "stageId", "type": "int", "desc": "关卡 Id（主键，1 起；每关一张独立的浮空岛地图）" },
-    { "name": "nameCn", "type": "string", "desc": "关卡显示名" },
-    { "name": "mapWidth", "type": "int", "desc": "本关地图宽（格；需求=250。地图稀疏存储，岛屿只占其中一部分，其余为虚空）" },
-    { "name": "mapHeight", "type": "int", "desc": "本关地图高（格；需求=250）" },
-    { "name": "prefabPath", "type": "string", "desc": "关卡岛屿模型/场景资源路径（Resources 相对路径或 Addressables key，与 BuildingVariant.prefabPath 同口径；空=白模占位）。由菜单 Tools/美术/生成白模 Prefab 生成到 Assets/Resources/Prefab/Stage/" },
-    { "name": "islandCellSpan", "type": "int", "desc": "岛屿模型入场时缩放到的可玩跨度（格）：把模型 XZ 包围盒的长边等比缩放到 islandCellSpan × GameConfig.cellSize 米，居中放在地图中心。地形刷子按缩放后的岛面轮廓描摹地块" }
-  ],
+  "kind": "rows", 
   "rows": [
-    { "stageId": 1, "nameCn": "浮空岛·一", "mapWidth": 250, "mapHeight": 250, "prefabPath": "Prefab/Stage/stage_01", "islandCellSpan": 40 },
-    { "stageId": 2, "nameCn": "浮空岛·二", "mapWidth": 250, "mapHeight": 250, "prefabPath": "Prefab/Stage/stage_02", "islandCellSpan": 40 },
-    { "stageId": 3, "nameCn": "浮空岛·三", "mapWidth": 250, "mapHeight": 250, "prefabPath": "Prefab/Stage/stage_03", "islandCellSpan": 40 }
-  ]
+    {
+      "prefabPath": "Prefab/Stage/stage_01", 
+      "mapHeight": 250, 
+      "nameCn": "浮空岛·一", 
+      "groupCount": 20, 
+      "clearScore": 2600, 
+      "stageId": 1, 
+      "unlockScoreMult": 1.0, 
+      "islandCellSpan": 40, 
+      "mapWidth": 250
+    }, 
+    {
+      "prefabPath": "Prefab/Stage/stage_02", 
+      "mapHeight": 250, 
+      "nameCn": "浮空岛·二", 
+      "groupCount": 14, 
+      "clearScore": 1250, 
+      "stageId": 2, 
+      "unlockScoreMult": 0.72, 
+      "islandCellSpan": 40, 
+      "mapWidth": 250
+    }, 
+    {
+      "prefabPath": "Prefab/Stage/stage_03", 
+      "mapHeight": 250, 
+      "nameCn": "浮空岛·三", 
+      "groupCount": 17, 
+      "clearScore": 1750, 
+      "stageId": 3, 
+      "unlockScoreMult": 0.82, 
+      "islandCellSpan": 40, 
+      "mapWidth": 250
+    }
+  ], 
+  "fields": [
+    {
+      "type": "int", 
+      "name": "stageId", 
+      "desc": "关卡 Id（主键，1 起；每关一张独立的浮空岛地图）"
+    }, 
+    {
+      "type": "string", 
+      "name": "nameCn", 
+      "desc": "关卡显示名"
+    }, 
+    {
+      "type": "int", 
+      "name": "mapWidth", 
+      "desc": "本关地图宽（格；需求=250。地图稀疏存储，岛屿只占其中一部分，其余为虚空）"
+    }, 
+    {
+      "type": "int", 
+      "name": "mapHeight", 
+      "desc": "本关地图高（格；需求=250）"
+    }, 
+    {
+      "type": "string", 
+      "name": "prefabPath", 
+      "desc": "关卡岛屿模型/场景资源路径（Resources 相对路径或 Addressables key，与 BuildingVariant.prefabPath 同口径；空=白模占位）。由菜单 Tools/美术/生成白模 Prefab 生成到 Assets/Resources/Prefab/Stage/"
+    }, 
+    {
+      "type": "int", 
+      "name": "islandCellSpan", 
+      "desc": "岛屿模型入场时缩放到的可玩跨度（格）：把模型 XZ 包围盒的长边等比缩放到 islandCellSpan × GameConfig.cellSize 米，居中放在地图中心。地形刷子按缩放后的岛面轮廓描摹地块"
+    }, 
+    {
+      "type": "int", 
+      "name": "groupCount", 
+      "desc": "本关提供几组建筑（用 Level 表的前 N 行）。按本关地图容得下多少建筑定——地块摆满后每组收益会转负，组数超过产能只是让玩家白扣分。组数用完且已达通关分即可进下一关"
+    }, 
+    {
+      "type": "int", 
+      "name": "clearScore", 
+      "desc": "通关本关所需的累计分门槛（相对本关基线的增量）。取本关产能上限的七到八成，让玩家在最后几组之前就能达标、留出「达标后继续刷分」的空间。达标后「进入下一关」解锁，但**不强制**——玩家可以继续摆到组数用完或分数不够解锁下一组为止"
+    }, 
+    {
+      "type": "float", 
+      "name": "unlockScoreMult", 
+      "desc": "本关对 Level.unlockScore 的整体倍率。Level 表那条门槛曲线是按第 1 关的产能标定的，别的关地图不一样、产能也不一样，用这个倍率把同一条曲线缩放到本关的量级；1 = 直接用原曲线"
+    }
+  ], 
+  "workbook": "FloatingIsland", 
+  "table": "Stage", 
+  "sheetOrder": 7
 }

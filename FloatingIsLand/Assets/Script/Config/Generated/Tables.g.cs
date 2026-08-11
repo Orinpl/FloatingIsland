@@ -71,7 +71,7 @@ namespace FloatingIsLand.Config
         public string nameCn;
         /// <summary>占地形状掩码：每个元素是一行（自上而下）、|分隔，#=占用 .=空，各行长度须一致。如巨型风车 4×4=####|####|####|####，1×1=#。island/floatingZone 为区域填充地形，本列不启用（填 #）</summary>
         public string[] footprint;
-        /// <summary>有效范围（格，自占地边缘起算；巨型风车加分范围 / 锚点有效范围 / 矿藏有效范围；地形类元素填 0）</summary>
+        /// <summary>有效范围（格，自占地边缘起算）。只用于摆放合法性（采矿站的 oreRange 必须在矿藏范围内），不参与计分：计分一律用结算建筑自身的 Building.radius。建议与对应建筑的 radius 保持一致，否则会出现“能建但吃不到分”的一圈位置。地形类元素填 0</summary>
         public int radius;
         /// <summary>地图生成数量下限（巨型风车固定 1；windSource 即初始风数量 §20；0=不生成）</summary>
         public int countMin;
@@ -99,8 +99,8 @@ namespace FloatingIsLand.Config
     {
         /// <summary>等级（主键 1~20，§4.1）</summary>
         public int level;
-        /// <summary>解锁本级费用（金币；第 1 级免费=0，随等级递增 §4.1）</summary>
-        public int unlockCost;
+        /// <summary>解锁本组所需的累计分门槛（相对本关基线的增量；第 1 组=0 免费）。判定是「本关已得分 ≥ 本值 × Stage.unlockScoreMult」——达标即可解锁，**不扣分**。跨关时分数保留，门槛按进入本关时的总分重新起算（§4.1）</summary>
+        public int unlockScore;
         /// <summary>本级提供的建筑组数（二选一=2，§4.1）</summary>
         public int groupCount;
         /// <summary>每组建筑数量下限（设计建议 3，§4.2）</summary>
@@ -145,6 +145,12 @@ namespace FloatingIsLand.Config
         public string prefabPath;
         /// <summary>岛屿模型入场时缩放到的可玩跨度（格）：把模型 XZ 包围盒的长边等比缩放到 islandCellSpan × GameConfig.cellSize 米，居中放在地图中心。地形刷子按缩放后的岛面轮廓描摹地块</summary>
         public int islandCellSpan;
+        /// <summary>本关提供几组建筑（用 Level 表的前 N 行）。按本关地图容得下多少建筑定——地块摆满后每组收益会转负，组数超过产能只是让玩家白扣分。组数用完且已达通关分即可进下一关</summary>
+        public int groupCount;
+        /// <summary>通关本关所需的累计分门槛（相对本关基线的增量）。**按「大约打到六成组数时达标」定**——解锁下一关只看这个分，不要求把本关的组建完。达标后「进入下一关」随时可点，但**不强制**：玩家可以继续摆到组数用完或分数不够解锁下一组，把分数刷高了带进下一关</summary>
+        public int clearScore;
+        /// <summary>本关对 Level.unlockScore 的整体倍率。Level 表那条门槛曲线是按第 1 关的产能标定的，别的关地图不一样、产能也不一样，用这个倍率把同一条曲线缩放到本关的量级；1 = 直接用原曲线</summary>
+        public float unlockScoreMult;
     }
 
     /// <summary>FloatingIsland.xlsx!GameConfig（单例参数组）</summary>
@@ -154,12 +160,8 @@ namespace FloatingIsLand.Config
         public float cellSize;
         /// <summary>每局总等级数（§4.1=20）</summary>
         public int totalLevels;
-        /// <summary>正分转金币比例（即时建造分×比例=金币；负分不倒扣 §3.3；0=待定）</summary>
-        public float scoreToGoldRatio;
         /// <summary>每局免费刷新建筑组次数（随机保护 §4.3；0=待定）</summary>
         public int freeRefreshCount;
-        /// <summary>免费次数用完后每次刷新的金币费用（§4.3；0=待定）</summary>
-        public int refreshCostGold;
         /// <summary>跳过一栋无法合法放置建筑的扣分（负值，§4.3 保护机制；0=不启用）</summary>
         public int skipPenaltyScore;
         /// <summary>是否保证每组至少一栋容易放置的建筑（§4.3 保护机制）</summary>

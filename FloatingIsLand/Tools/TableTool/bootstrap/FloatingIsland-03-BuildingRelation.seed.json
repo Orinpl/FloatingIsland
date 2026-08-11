@@ -4,25 +4,157 @@
   "table": "BuildingRelation",
   "kind": "rows",
   "fields": [
-    { "name": "buildingId", "type": "string", "desc": "结算建筑 Id（主键 → Building 表）。关系有向：本行只描述「本建筑因周围有谁而加/扣分」，反向要在对方行里再写一条（§13 结算原则）" },
-    { "name": "bonusFrom", "type": "string[]", "desc": "加分来源：来源Id:分值[:上限]，多个用|分隔。上限=最多计入几个来源，省略/0=不限。来源填自己=同类聚集加分（如 residence:8:4）。判定范围一律用本建筑 Building.radius" },
-    { "name": "penaltyFrom", "type": "string[]", "desc": "扣分来源：格式同上，分值填正数表示扣多少分。来源填自己=同类拥挤惩罚（§15）" }
+    {
+      "name": "buildingId",
+      "type": "string",
+      "desc": "结算建筑 Id（主键 → Building 表）。关系有向：本行只描述「本建筑因周围有谁而加/扣分」，反向要在对方行里再写一条（§13 结算原则）"
+    },
+    {
+      "name": "bonusFrom",
+      "type": "string[]",
+      "desc": "加分来源：来源Id:分值[:上限]，多个用|分隔。上限=最多计入几个来源，省略/0=不限。来源填自己=同类聚集加分（如 residence:8:4）。判定范围一律用本建筑 Building.radius"
+    },
+    {
+      "name": "penaltyFrom",
+      "type": "string[]",
+      "desc": "扣分来源：格式同上，分值填正数表示扣多少分。来源填自己=同类拥挤惩罚（§15）"
+    }
   ],
   "rows": [
-    { "buildingId": "windVane",       "bonusFrom": ["residence:10"], "penaltyFrom": ["windVane:30"] },
-    { "buildingId": "windmill",       "bonusFrom": ["farm:12", "potentialTower:8", "workshop:8", "logisticsPoint:10:2"], "penaltyFrom": ["windmill:30"] },
-    { "buildingId": "farm",           "bonusFrom": ["windmill:12", "farm:6:4"], "penaltyFrom": [] },
-    { "buildingId": "potentialTower", "bonusFrom": ["windmill:10", "workshop:8", "logisticsPoint:10:2", "logisticsHub:15"], "penaltyFrom": ["potentialTower:15"] },
-    { "buildingId": "sail",           "bonusFrom": [], "penaltyFrom": [] },
-    { "buildingId": "miningStation",  "bonusFrom": [], "penaltyFrom": ["miningStation:30"] },
-    { "buildingId": "workshop",       "bonusFrom": ["miningStation:15", "logisticsPoint:10:2", "logisticsHub:15"], "penaltyFrom": [] },
-    { "buildingId": "dock",           "bonusFrom": ["workshop:10", "logisticsPoint:10:2", "logisticsHub:15"], "penaltyFrom": [] },
-    { "buildingId": "granary",        "bonusFrom": ["farm:12", "logisticsPoint:10:2", "logisticsHub:15"], "penaltyFrom": [] },
-    { "buildingId": "restaurant",     "bonusFrom": ["residence:10"], "penaltyFrom": [] },
-    { "buildingId": "shop",           "bonusFrom": ["workshop:8", "restaurant:8", "residence:10"], "penaltyFrom": [] },
-    { "buildingId": "citizenCenter",  "bonusFrom": [], "penaltyFrom": ["citizenCenter:30"] },
-    { "buildingId": "residence",      "bonusFrom": ["restaurant:12:2", "shop:12:2", "citizenCenter:20:1", "residence:8:4", "logisticsPoint:10:2", "logisticsHub:15:1"], "penaltyFrom": ["miningStation:15", "workshop:15"] },
-    { "buildingId": "logisticsPoint", "bonusFrom": [], "penaltyFrom": ["logisticsPoint:15"] },
-    { "buildingId": "logisticsHub",   "bonusFrom": ["logisticsPoint:12"], "penaltyFrom": ["logisticsHub:30"] }
+    {
+      "buildingId": "windVane",
+      "bonusFrom": [
+        "residence:10"
+      ],
+      "penaltyFrom": [
+        "windVane:30"
+      ]
+    },
+    {
+      "buildingId": "windmill",
+      "bonusFrom": [
+        "farm:12",
+        "potentialTower:8",
+        "workshop:8",
+        "logisticsPoint:10:2"
+      ],
+      "penaltyFrom": [
+        "windmill:30"
+      ]
+    },
+    {
+      "buildingId": "farm",
+      "bonusFrom": [
+        "windmill:12",
+        "farm:6:4"
+      ],
+      "penaltyFrom": []
+    },
+    {
+      "buildingId": "potentialTower",
+      "bonusFrom": [
+        "windmill:10",
+        "workshop:8",
+        "logisticsPoint:10:2",
+        "logisticsHub:15"
+      ],
+      "penaltyFrom": [
+        "potentialTower:15"
+      ]
+    },
+    {
+      "buildingId": "sail",
+      "bonusFrom": [],
+      "penaltyFrom": []
+    },
+    {
+      "buildingId": "miningStation",
+      "bonusFrom": [],
+      "penaltyFrom": [
+        "miningStation:30"
+      ]
+    },
+    {
+      "buildingId": "workshop",
+      "bonusFrom": [
+        "miningStation:15",
+        "logisticsPoint:10:2",
+        "logisticsHub:15"
+      ],
+      "penaltyFrom": []
+    },
+    {
+      "buildingId": "dock",
+      "bonusFrom": [
+        "workshop:10",
+        "logisticsPoint:10:2",
+        "logisticsHub:15"
+      ],
+      "penaltyFrom": []
+    },
+    {
+      "buildingId": "granary",
+      "bonusFrom": [
+        "farm:12",
+        "logisticsPoint:10:2",
+        "logisticsHub:15"
+      ],
+      "penaltyFrom": []
+    },
+    {
+      "buildingId": "restaurant",
+      "bonusFrom": [
+        "residence:10",
+        "granary:12"
+      ],
+      "penaltyFrom": []
+    },
+    {
+      "buildingId": "shop",
+      "bonusFrom": [
+        "workshop:8",
+        "restaurant:8",
+        "residence:10"
+      ],
+      "penaltyFrom": []
+    },
+    {
+      "buildingId": "citizenCenter",
+      "bonusFrom": [],
+      "penaltyFrom": [
+        "citizenCenter:30"
+      ]
+    },
+    {
+      "buildingId": "residence",
+      "bonusFrom": [
+        "restaurant:16:2",
+        "shop:16:2",
+        "citizenCenter:20:1",
+        "residence:8:4",
+        "logisticsPoint:10:2",
+        "logisticsHub:15:1"
+      ],
+      "penaltyFrom": [
+        "miningStation:15",
+        "workshop:15"
+      ]
+    },
+    {
+      "buildingId": "logisticsPoint",
+      "bonusFrom": [],
+      "penaltyFrom": [
+        "logisticsPoint:15"
+      ]
+    },
+    {
+      "buildingId": "logisticsHub",
+      "bonusFrom": [
+        "logisticsPoint:12"
+      ],
+      "penaltyFrom": [
+        "logisticsHub:30"
+      ]
+    }
   ]
 }

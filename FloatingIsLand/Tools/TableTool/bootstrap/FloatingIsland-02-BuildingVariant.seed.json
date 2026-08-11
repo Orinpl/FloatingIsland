@@ -4,29 +4,207 @@
   "table": "BuildingVariant",
   "kind": "rows",
   "fields": [
-    { "name": "variantId", "type": "string", "desc": "变体 Id（主键，建议 建筑Id_序号，如 residence_01）" },
-    { "name": "buildingId", "type": "string", "desc": "所属建筑模板 Id → Building 表（一个模板可挂多个变体；计分/关系/建造限制走模板，占地与外观走变体）" },
-    { "name": "nameCn", "type": "string", "desc": "变体显示名（UI 手牌用）。空=沿用 Building.nameCn；一个模板挂多个变体时必须逐个填，否则玩家在手牌里分不出 2×2 居民区和 L 形居民区" },
-    { "name": "footprint", "type": "string[]", "desc": "占地形状掩码：每个元素是一行（自上而下）、|分隔，#=占用 .=空，各行长度须一致且至少一个#。如 2×2=##|##，L形(3+1)=###|#..，凹形(3+2)=#.#|###。占用格全部要求满足模板的 placement 地形" },
-    { "name": "prefabPath", "type": "string", "desc": "表现 Prefab 路径（Resources 相对路径或 Addressables key，表现层统一口径；空=白模占位）。由菜单 Tools/美术/生成白模 Prefab 从 Assets/Res/<资产名>/fbx/ 批量生成到 Assets/Resources/Prefab/Building/" }
+    {
+      "name": "variantId",
+      "type": "string",
+      "desc": "变体 Id（主键，建议 建筑Id_序号，如 residence_01）"
+    },
+    {
+      "name": "buildingId",
+      "type": "string",
+      "desc": "所属建筑模板 Id → Building 表（一个模板可挂多个变体；计分/关系/建造限制走模板，占地与外观走变体）"
+    },
+    {
+      "name": "nameCn",
+      "type": "string",
+      "desc": "变体显示名（UI 手牌用）。空=沿用 Building.nameCn；一个模板挂多个变体时必须逐个填，否则玩家在手牌里分不出 2×2 居民区和 L 形居民区"
+    },
+    {
+      "name": "footprint",
+      "type": "string[]",
+      "desc": "占地形状掩码：每个元素是一行（自上而下）、|分隔，#=占用 .=空，各行长度须一致且至少一个#。如 2×2=##|##，L形(3+1)=###|#..，凹形(3+2)=#.#|###。占用格全部要求满足模板的 placement 地形"
+    },
+    {
+      "name": "prefabPath",
+      "type": "string",
+      "desc": "表现 Prefab 路径（Resources 相对路径或 Addressables key，表现层统一口径；空=白模占位）。由菜单 Tools/美术/生成白模 Prefab 从 Assets/Res/<资产名>/fbx/ 批量生成到 Assets/Resources/Prefab/Building/"
+    }
   ],
   "rows": [
-    { "variantId": "windVane_01",       "buildingId": "windVane",       "footprint": ["#"], "prefabPath": "Prefab/Building/windVane_01" },
-    { "variantId": "windmill_01",       "buildingId": "windmill",       "footprint": ["##", "##"], "prefabPath": "" },
-    { "variantId": "farm_01",           "buildingId": "farm",           "footprint": ["#"], "prefabPath": "Prefab/Building/farm_01" },
-    { "variantId": "potentialTower_01", "buildingId": "potentialTower", "footprint": ["##", "##"], "prefabPath": "Prefab/Building/potentialTower_01" },
-    { "variantId": "sail_01",           "buildingId": "sail",           "footprint": ["#"], "prefabPath": "Prefab/Building/sail_01" },
-    { "variantId": "miningStation_01",  "buildingId": "miningStation",  "footprint": ["##"], "prefabPath": "Prefab/Building/miningStation_01" },
-    { "variantId": "workshop_01",       "buildingId": "workshop",       "footprint": ["###", "###", "###"], "prefabPath": "Prefab/Building/workshop_01" },
-    { "variantId": "dock_01",           "buildingId": "dock",           "footprint": ["######", "######", "######", "######", "######", "######"], "prefabPath": "Prefab/Building/dock_01" },
-    { "variantId": "granary_01",        "buildingId": "granary",        "footprint": ["##", "##"], "prefabPath": "Prefab/Building/granary_01" },
-    { "variantId": "restaurant_01",     "buildingId": "restaurant",     "footprint": ["##", "##"], "prefabPath": "Prefab/Building/restaurant_01" },
-    { "variantId": "shop_01",           "buildingId": "shop",           "footprint": ["##", "##"], "prefabPath": "Prefab/Building/shop_01" },
-    { "variantId": "citizenCenter_01",  "buildingId": "citizenCenter",  "footprint": ["####", "####", "####", "####"], "prefabPath": "Prefab/Building/citizenCenter_01" },
-    { "variantId": "residence_01",      "buildingId": "residence",      "nameCn": "居民区·方形", "footprint": ["##", "##"], "prefabPath": "Prefab/Building/residence_01" },
-    { "variantId": "residence_02",      "buildingId": "residence",      "nameCn": "居民区·L形",  "footprint": ["###", "#.."], "prefabPath": "Prefab/Building/residence_02" },
-    { "variantId": "residence_03",      "buildingId": "residence",      "nameCn": "居民区·凹形", "footprint": ["#.#", "###"], "prefabPath": "Prefab/Building/residence_03" },
-    { "variantId": "logisticsPoint_01", "buildingId": "logisticsPoint", "footprint": ["##", "##"], "prefabPath": "Prefab/Building/logisticsPoint_01" },
-    { "variantId": "logisticsHub_01",   "buildingId": "logisticsHub",   "footprint": ["####", "####", "####", "####"], "prefabPath": "Prefab/Building/logisticsHub_01" }
+    {
+      "variantId": "windVane_01",
+      "buildingId": "windVane",
+      "footprint": [
+        "#"
+      ],
+      "prefabPath": "Prefab/Building/windVane_01",
+      "nameCn": ""
+    },
+    {
+      "variantId": "windmill_01",
+      "buildingId": "windmill",
+      "footprint": [
+        "##",
+        "##"
+      ],
+      "prefabPath": "Prefab/Building/windmill_01",
+      "nameCn": ""
+    },
+    {
+      "variantId": "farm_01",
+      "buildingId": "farm",
+      "footprint": [
+        "#"
+      ],
+      "prefabPath": "Prefab/Building/farm_01",
+      "nameCn": ""
+    },
+    {
+      "variantId": "potentialTower_01",
+      "buildingId": "potentialTower",
+      "footprint": [
+        "##",
+        "##"
+      ],
+      "prefabPath": "Prefab/Building/potentialTower_01",
+      "nameCn": ""
+    },
+    {
+      "variantId": "sail_01",
+      "buildingId": "sail",
+      "footprint": [
+        "#"
+      ],
+      "prefabPath": "Prefab/Building/sail_01",
+      "nameCn": ""
+    },
+    {
+      "variantId": "miningStation_01",
+      "buildingId": "miningStation",
+      "footprint": [
+        "##"
+      ],
+      "prefabPath": "Prefab/Building/miningStation_01",
+      "nameCn": ""
+    },
+    {
+      "variantId": "workshop_01",
+      "buildingId": "workshop",
+      "footprint": [
+        "###",
+        "###",
+        "###"
+      ],
+      "prefabPath": "Prefab/Building/workshop_01",
+      "nameCn": ""
+    },
+    {
+      "variantId": "dock_01",
+      "buildingId": "dock",
+      "footprint": [
+        "######",
+        "######",
+        "######",
+        "######",
+        "######",
+        "######"
+      ],
+      "prefabPath": "Prefab/Building/dock_01",
+      "nameCn": ""
+    },
+    {
+      "variantId": "granary_01",
+      "buildingId": "granary",
+      "footprint": [
+        "##",
+        "##"
+      ],
+      "prefabPath": "Prefab/Building/granary_01",
+      "nameCn": ""
+    },
+    {
+      "variantId": "restaurant_01",
+      "buildingId": "restaurant",
+      "footprint": [
+        "##",
+        "##"
+      ],
+      "prefabPath": "Prefab/Building/restaurant_01",
+      "nameCn": ""
+    },
+    {
+      "variantId": "shop_01",
+      "buildingId": "shop",
+      "footprint": [
+        "##",
+        "##"
+      ],
+      "prefabPath": "Prefab/Building/shop_01",
+      "nameCn": ""
+    },
+    {
+      "variantId": "citizenCenter_01",
+      "buildingId": "citizenCenter",
+      "footprint": [
+        "####",
+        "####",
+        "####",
+        "####"
+      ],
+      "prefabPath": "Prefab/Building/citizenCenter_01",
+      "nameCn": ""
+    },
+    {
+      "variantId": "residence_01",
+      "buildingId": "residence",
+      "nameCn": "居民区·方形",
+      "footprint": [
+        "##",
+        "##"
+      ],
+      "prefabPath": "Prefab/Building/residence_01"
+    },
+    {
+      "variantId": "residence_02",
+      "buildingId": "residence",
+      "nameCn": "居民区·L形",
+      "footprint": [
+        "###",
+        "#.."
+      ],
+      "prefabPath": "Prefab/Building/residence_02"
+    },
+    {
+      "variantId": "residence_03",
+      "buildingId": "residence",
+      "nameCn": "居民区·凹形",
+      "footprint": [
+        "#.#",
+        "###"
+      ],
+      "prefabPath": "Prefab/Building/residence_03"
+    },
+    {
+      "variantId": "logisticsPoint_01",
+      "buildingId": "logisticsPoint",
+      "footprint": [
+        "##",
+        "##"
+      ],
+      "prefabPath": "Prefab/Building/logisticsPoint_01",
+      "nameCn": ""
+    },
+    {
+      "variantId": "logisticsHub_01",
+      "buildingId": "logisticsHub",
+      "footprint": [
+        "####",
+        "####",
+        "####",
+        "####"
+      ],
+      "prefabPath": "Prefab/Building/logisticsHub_01",
+      "nameCn": ""
+    }
   ]
 }

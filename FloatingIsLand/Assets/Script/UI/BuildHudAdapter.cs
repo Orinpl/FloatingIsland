@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using FloatingIsLand.App;
 using FloatingIsLand.Domain.Build;
+using FloatingIsLand.GameInput;
 using UnityEngine;
 
 namespace FloatingIsLand.UI
@@ -31,6 +32,12 @@ namespace FloatingIsLand.UI
             _hud.HandItemClicked += OnHandItemClicked;
             _hud.OfferClicked += OnOfferClicked;
 
+            // 触屏工具条：面板只管长相，按下去干什么由这里翻译成玩法指令。
+            // 摆放交互在 Game.View，这个程序集够不着，所以走 App 层的 BuildCommandBus 转一手。
+            _hud.RotateClicked += BuildCommandBus.RequestRotate;
+            _hud.ConfirmClicked += BuildCommandBus.RequestPlace;
+            _hud.CancelClicked += BuildCommandBus.RequestCancel;
+
             if (_hud.nextGroupButton != null)
             {
                 _hud.nextGroupButton.onClick.AddListener(OnNextGroupClicked);
@@ -43,6 +50,9 @@ namespace FloatingIsLand.UI
             {
                 _hud.HandItemClicked -= OnHandItemClicked;
                 _hud.OfferClicked -= OnOfferClicked;
+                _hud.RotateClicked -= BuildCommandBus.RequestRotate;
+                _hud.ConfirmClicked -= BuildCommandBus.RequestPlace;
+                _hud.CancelClicked -= BuildCommandBus.RequestCancel;
                 if (_hud.nextGroupButton != null)
                 {
                     _hud.nextGroupButton.onClick.RemoveListener(OnNextGroupClicked);
@@ -62,7 +72,45 @@ namespace FloatingIsLand.UI
                 Subscribe();
                 Refresh();
             }
+
+            UpdatePlacingHud();
         }
+
+        /// <summary>
+        /// 摆放态下每帧要变的两样东西：触屏工具条的显隐/可用，以及「预计得分 N / 摆不下的原因」。
+        /// 这两样都跟着光标（手指）走，事件驱动的 <see cref="Refresh"/> 追不上，只能每帧刷。
+        /// 文本先比对再赋值——每帧写 Text.text 会让 Canvas 每帧重建一次网格。
+        /// </summary>
+        private void UpdatePlacingHud()
+        {
+            if (_hud == null)
+            {
+                return;
+            }
+
+            bool placing = _session != null && _session.IsBuildReady && _session.SelectedBlueprint != null;
+            _hud.SetTouchControls(placing && PointerInput.IsTouchMode, BuildPreviewState.CanPlace, "建造");
+
+            if (!placing)
+            {
+                // 非摆放态的提示是事件驱动的（选组 / 手牌空 / 通关达标），别在这儿每帧盖掉
+                _liveHint = null;
+                return;
+            }
+
+            string preview = BuildPreviewState.Message;
+            string hint = string.IsNullOrEmpty(preview)
+                ? PlacementHint()
+                : preview + "\n" + PlacementHint();
+            if (!string.Equals(hint, _liveHint, System.StringComparison.Ordinal))
+            {
+                _liveHint = hint;
+                _hud.SetHint(hint);
+            }
+        }
+
+        /// <summary>上一帧写进提示栏的文本，用来避开每帧重建 Canvas。</summary>
+        private string _liveHint;
 
         private void Subscribe()
         {
@@ -111,7 +159,7 @@ namespace FloatingIsLand.UI
                 return;
             }
 
-            // 还没选组就先把当前这批选掉（demo 里默认取第一组），否则连点会跳过整级建筑
+            // 还没选组就先把当前这批选掉（默认取第一组），否则连点会跳过整组建筑
             if (_session.HasPendingOffers)
             {
                 _session.ChooseOffer(0);
@@ -120,7 +168,10 @@ namespace FloatingIsLand.UI
 
             if (!_session.RequestNextGroup())
             {
-                _hud.SetHint("已经是最后一级，没有更多建筑组了。");
+                BuildRunState run = _session.Run;
+                _hud.SetHint(run != null && run.IsLastGroup
+                    ? "本关的建筑组已经全部发完了。"
+                    : $"分数不够——下一组需要 {(run != null ? run.NextUnlockScore : 0)} 分。");
             }
         }
 
@@ -133,7 +184,7 @@ namespace FloatingIsLand.UI
 
             if (_session == null || !_session.IsBuildReady)
             {
-                _hud.SetScoreboard(0, 0, 0, 0, "等待地图装载", false);
+                _hud.SetScoreboard(0, 0, false, 0, 0, "等待地图装载", false);
                 _hud.SetHand(null, -1);
                 _hud.SetOffers(null);
                 _hud.SetHint(string.Empty);
@@ -160,32 +211,52 @@ namespace FloatingIsLand.UI
                 _offerLabels.Add(DescribeGroup(run.Offers[g]));
             }
 
-            bool lastLevel = run.Level >= run.TotalLevels;
+            bool lastGroup = run.IsLastGroup;
             string buttonLabel;
             if (_session.HasPendingOffers)
             {
                 buttonLabel = "选第一组";
             }
-            else if (lastLevel)
+            else if (lastGroup)
             {
-                buttonLabel = "已达最高级";
+                buttonLabel = "本关建筑组已发完";
             }
-            else if (_session.DemoFreeUnlock)
+            else if (_session.DebugFreeUnlock)
             {
-                buttonLabel = "解锁下一组（demo 免费）";
+                buttonLabel = "解锁下一组（调试免费）";
+            }
+            else if (run.CanAffordNextLevel())
+            {
+                buttonLabel = $"解锁下一组（{run.NextUnlockScore} 分达标）";
             }
             else
             {
-                buttonLabel = $"解锁下一组（{run.NextUnlockCost} 金币）";
+                // 门槛是准入不是消耗，所以这里显示「还差多少」而不是「花多少」
+                buttonLabel = $"下一组需 {run.NextUnlockScore} 分（还差 {run.NextUnlockScore - run.TotalScore}）";
             }
 
-            bool interactable = _session.HasPendingOffers
-                                || (!lastLevel && (_session.DemoFreeUnlock || run.CanAffordNextLevel()));
+            bool interactable = _session.HasPendingOffers || _session.CanUnlockNextGroup();
 
-            _hud.SetScoreboard(run.TotalScore, run.Gold, run.Level, run.TotalLevels, buttonLabel, interactable);
+            _hud.SetScoreboard(
+                run.TotalScore, run.ClearScore, run.IsStageCleared,
+                run.Level, run.TotalLevels, buttonLabel, interactable);
+            _hud.SetEndRunButton(EndRunLabel(run));
             _hud.SetHand(_handItems, _session.SelectedHandIndex);
             _hud.SetOffers(_offerLabels);
             _hud.SetHint(BuildHint(run));
+        }
+
+        /// <summary>
+        /// 达通关分后这个按钮才是「进入下一关」；没达标时点它等于提前认输，
+        /// 所以标签要把后果说清楚，不能都叫「结束本局」。
+        /// </summary>
+        private string EndRunLabel(BuildRunState run)
+        {
+            if (!run.IsStageCleared)
+            {
+                return "提前结束（不再继续）";
+            }
+            return _session.IsFinalStage ? "通关收官 · 上榜" : "进入下一关";
         }
 
         private string BuildHint(BuildRunState run)
@@ -194,20 +265,42 @@ namespace FloatingIsLand.UI
             {
                 return "选择一组建筑（点中间的组按钮）。";
             }
+            if (run.IsStageCleared && run.Hand.Count == 0)
+            {
+                return _session.IsFinalStage
+                    ? "已达通关分——可以继续刷分，或点右上角收官上榜。"
+                    : "已达通关分——可以继续刷分攒下一关的底子，或点右上角进入下一关。";
+            }
             if (run.Hand.Count == 0)
             {
-                return "手牌已空——点左下角「解锁下一组」继续。";
+                return $"手牌已空——攒够 {run.NextUnlockScore} 分即可解锁下一组。";
             }
             if (_session.SelectedBlueprint == null)
             {
                 return "点下方建筑进入摆放模式。";
             }
-            if (string.Equals(_session.SelectedBlueprint.BuildingId, BuildRuleSet.SailBuildingId, System.StringComparison.Ordinal))
+            return PlacementHint();
+        }
+
+        /// <summary>
+        /// 摆放操作提示，分平台给：PC 有滚轮和 Esc，手机没有，得换成「再点一次」和工具条按钮。
+        /// 提示文案照抄错平台是新手最容易卡住的地方——手机上写着「滚轮旋转」等于没写。
+        /// </summary>
+        private string PlacementHint()
+        {
+            // 风帆的滚轮/旋转键不是旋转模型，而是切换风的左/右转向——预览流线会跟着变
+            bool sail = string.Equals(
+                _session.SelectedBlueprint.BuildingId, BuildRuleSet.SailBuildingId, System.StringComparison.Ordinal);
+
+            if (PointerInput.IsTouchMode)
             {
-                // 风帆的滚轮不是旋转模型，而是切换风的左/右转向——预览流线会跟着变
-                return "风帆须建在风带上；滚轮切换左/右转向（看流线预览），左键放置，Esc 取消。";
+                return sail
+                    ? "风帆须建在风带上；点地面选落点，「旋转」切换左/右转向（看流线预览），再点同一格或按「建造」放下。"
+                    : "点地面选落点，再点同一格（或按「建造」）放下；「旋转」转 90°，「取消」退出。";
             }
-            return "滚轮旋转，左键放置（放完退出摆放模式），Esc 取消。";
+            return sail
+                ? "风帆须建在风带上；滚轮切换左/右转向（看流线预览），左键放置，Esc 取消。"
+                : "滚轮旋转，左键放置（放完退出摆放模式），Esc 取消。";
         }
 
         private string DescribeGroup(BuildingGroup group)

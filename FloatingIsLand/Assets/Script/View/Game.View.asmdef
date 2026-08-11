@@ -5,6 +5,7 @@
         "Game.App",
         "Game.Domain",
         "Game.Config",
+        "Game.Input",
         "Unity.InputSystem"
     ],
     "includePlatforms": [],

@@ -1,36 +1,206 @@
 {
-  "workbook": "FloatingIsland",
-  "sheetOrder": 6,
-  "table": "Level",
-  "kind": "rows",
-  "fields": [
-    { "name": "level", "type": "int", "desc": "等级（主键 1~20，§4.1）" },
-    { "name": "unlockCost", "type": "int", "desc": "解锁本级费用（金币；第 1 级免费=0，随等级递增 §4.1）。按 BalanceSim --free-unlock 量出的收入曲线定价，总支出 ≈ 总收入 85%" },
-    { "name": "groupCount", "type": "int", "desc": "本级提供的建筑组数（二选一=2，§4.1）" },
-    { "name": "groupSizeMin", "type": "int", "desc": "每组建筑数量下限（设计建议 3，§4.2）" },
-    { "name": "groupSizeMax", "type": "int", "desc": "每组建筑数量上限（设计建议 5，§4.2）" },
-    { "name": "themes", "type": "string[]", "desc": "本级强制使用的建筑组主题（主题Id → BuildingGroupTheme 表主键，多个用|分隔）。留空 = 按 BuildingGroupTheme 的 minLevel/maxLevel 自动筛选本级可用主题，这是常规做法；只有需要写死开局体验时才填" }
-  ],
+  "kind": "rows", 
   "rows": [
-    { "level": 1, "unlockCost": 0,   "groupCount": 2, "groupSizeMin": 3, "groupSizeMax": 5, "themes": ["mining", "farmland"] },
-    { "level": 2, "unlockCost": 60,  "groupCount": 2, "groupSizeMin": 3, "groupSizeMax": 5, "themes": ["civicCenter", "mining"] },
-    { "level": 3, "unlockCost": 80,  "groupCount": 2, "groupSizeMin": 3, "groupSizeMax": 5, "themes": [] },
-    { "level": 4, "unlockCost": 100, "groupCount": 2, "groupSizeMin": 3, "groupSizeMax": 5, "themes": [] },
-    { "level": 5, "unlockCost": 115, "groupCount": 2, "groupSizeMin": 3, "groupSizeMax": 5, "themes": [] },
-    { "level": 6, "unlockCost": 130, "groupCount": 2, "groupSizeMin": 3, "groupSizeMax": 5, "themes": [] },
-    { "level": 7, "unlockCost": 170, "groupCount": 2, "groupSizeMin": 3, "groupSizeMax": 5, "themes": [] },
-    { "level": 8, "unlockCost": 190, "groupCount": 2, "groupSizeMin": 3, "groupSizeMax": 5, "themes": [] },
-    { "level": 9, "unlockCost": 200, "groupCount": 2, "groupSizeMin": 3, "groupSizeMax": 5, "themes": [] },
-    { "level": 10, "unlockCost": 230, "groupCount": 2, "groupSizeMin": 3, "groupSizeMax": 5, "themes": [] },
-    { "level": 11, "unlockCost": 240, "groupCount": 2, "groupSizeMin": 3, "groupSizeMax": 5, "themes": [] },
-    { "level": 12, "unlockCost": 250, "groupCount": 2, "groupSizeMin": 3, "groupSizeMax": 5, "themes": [] },
-    { "level": 13, "unlockCost": 265, "groupCount": 2, "groupSizeMin": 3, "groupSizeMax": 5, "themes": [] },
-    { "level": 14, "unlockCost": 270, "groupCount": 2, "groupSizeMin": 3, "groupSizeMax": 5, "themes": [] },
-    { "level": 15, "unlockCost": 280, "groupCount": 2, "groupSizeMin": 3, "groupSizeMax": 5, "themes": [] },
-    { "level": 16, "unlockCost": 320, "groupCount": 2, "groupSizeMin": 3, "groupSizeMax": 5, "themes": [] },
-    { "level": 17, "unlockCost": 330, "groupCount": 2, "groupSizeMin": 3, "groupSizeMax": 5, "themes": [] },
-    { "level": 18, "unlockCost": 345, "groupCount": 2, "groupSizeMin": 3, "groupSizeMax": 5, "themes": [] },
-    { "level": 19, "unlockCost": 355, "groupCount": 2, "groupSizeMin": 3, "groupSizeMax": 5, "themes": [] },
-    { "level": 20, "unlockCost": 375, "groupCount": 2, "groupSizeMin": 3, "groupSizeMax": 5, "themes": [] }
-  ]
+    {
+      "themes": [
+        "mining", 
+        "farmland"
+      ], 
+      "level": 1, 
+      "groupCount": 2, 
+      "groupSizeMin": 3, 
+      "groupSizeMax": 5, 
+      "unlockScore": 0
+    }, 
+    {
+      "themes": [
+        "civicCenter", 
+        "mining"
+      ], 
+      "level": 2, 
+      "groupCount": 2, 
+      "groupSizeMin": 3, 
+      "groupSizeMax": 5, 
+      "unlockScore": 65
+    }, 
+    {
+      "themes": [], 
+      "level": 3, 
+      "groupCount": 2, 
+      "groupSizeMin": 3, 
+      "groupSizeMax": 5, 
+      "unlockScore": 155
+    }, 
+    {
+      "themes": [], 
+      "level": 4, 
+      "groupCount": 2, 
+      "groupSizeMin": 3, 
+      "groupSizeMax": 5, 
+      "unlockScore": 250
+    }, 
+    {
+      "themes": [], 
+      "level": 5, 
+      "groupCount": 2, 
+      "groupSizeMin": 3, 
+      "groupSizeMax": 5, 
+      "unlockScore": 360
+    }, 
+    {
+      "themes": [], 
+      "level": 6, 
+      "groupCount": 2, 
+      "groupSizeMin": 3, 
+      "groupSizeMax": 5, 
+      "unlockScore": 500
+    }, 
+    {
+      "themes": [], 
+      "level": 7, 
+      "groupCount": 2, 
+      "groupSizeMin": 3, 
+      "groupSizeMax": 5, 
+      "unlockScore": 640
+    }, 
+    {
+      "themes": [], 
+      "level": 8, 
+      "groupCount": 2, 
+      "groupSizeMin": 3, 
+      "groupSizeMax": 5, 
+      "unlockScore": 805
+    }, 
+    {
+      "themes": [], 
+      "level": 9, 
+      "groupCount": 2, 
+      "groupSizeMin": 3, 
+      "groupSizeMax": 5, 
+      "unlockScore": 1000
+    }, 
+    {
+      "themes": [], 
+      "level": 10, 
+      "groupCount": 2, 
+      "groupSizeMin": 3, 
+      "groupSizeMax": 5, 
+      "unlockScore": 1200
+    }, 
+    {
+      "themes": [], 
+      "level": 11, 
+      "groupCount": 2, 
+      "groupSizeMin": 3, 
+      "groupSizeMax": 5, 
+      "unlockScore": 1450
+    }, 
+    {
+      "themes": [], 
+      "level": 12, 
+      "groupCount": 2, 
+      "groupSizeMin": 3, 
+      "groupSizeMax": 5, 
+      "unlockScore": 1700
+    }, 
+    {
+      "themes": [], 
+      "level": 13, 
+      "groupCount": 2, 
+      "groupSizeMin": 3, 
+      "groupSizeMax": 5, 
+      "unlockScore": 1965
+    }, 
+    {
+      "themes": [], 
+      "level": 14, 
+      "groupCount": 2, 
+      "groupSizeMin": 3, 
+      "groupSizeMax": 5, 
+      "unlockScore": 2360
+    }, 
+    {
+      "themes": [], 
+      "level": 15, 
+      "groupCount": 2, 
+      "groupSizeMin": 3, 
+      "groupSizeMax": 5, 
+      "unlockScore": 2720
+    }, 
+    {
+      "themes": [], 
+      "level": 16, 
+      "groupCount": 2, 
+      "groupSizeMin": 3, 
+      "groupSizeMax": 5, 
+      "unlockScore": 3115
+    }, 
+    {
+      "themes": [], 
+      "level": 17, 
+      "groupCount": 2, 
+      "groupSizeMin": 3, 
+      "groupSizeMax": 5, 
+      "unlockScore": 3515
+    }, 
+    {
+      "themes": [], 
+      "level": 18, 
+      "groupCount": 2, 
+      "groupSizeMin": 3, 
+      "groupSizeMax": 5, 
+      "unlockScore": 3940
+    }, 
+    {
+      "themes": [], 
+      "level": 19, 
+      "groupCount": 2, 
+      "groupSizeMin": 3, 
+      "groupSizeMax": 5, 
+      "unlockScore": 4290
+    }, 
+    {
+      "themes": [], 
+      "level": 20, 
+      "groupCount": 2, 
+      "groupSizeMin": 3, 
+      "groupSizeMax": 5, 
+      "unlockScore": 4675
+    }
+  ], 
+  "fields": [
+    {
+      "type": "int", 
+      "name": "level", 
+      "desc": "等级（主键 1~20，§4.1）"
+    }, 
+    {
+      "type": "int", 
+      "name": "unlockScore", 
+      "desc": "解锁本组所需的累计分门槛（相对本关基线的增量；第 1 组=0 免费）。判定是「本关已得分 ≥ 本值 × Stage.unlockScoreMult」——达标即可解锁，**不扣分**。跨关时分数保留，门槛按进入本关时的总分重新起算（§4.1）"
+    }, 
+    {
+      "type": "int", 
+      "name": "groupCount", 
+      "desc": "本级提供的建筑组数（二选一=2，§4.1）"
+    }, 
+    {
+      "type": "int", 
+      "name": "groupSizeMin", 
+      "desc": "每组建筑数量下限（设计建议 3，§4.2）"
+    }, 
+    {
+      "type": "int", 
+      "name": "groupSizeMax", 
+      "desc": "每组建筑数量上限（设计建议 5，§4.2）"
+    }, 
+    {
+      "type": "string[]", 
+      "name": "themes", 
+      "desc": "本级强制使用的建筑组主题（主题Id → BuildingGroupTheme 表主键，多个用|分隔）。留空 = 按 BuildingGroupTheme 的 minLevel/maxLevel 自动筛选本级可用主题，这是常规做法；只有需要写死开局体验时才填"
+    }
+  ], 
+  "workbook": "FloatingIsland", 
+  "table": "Level", 
+  "sheetOrder": 6
 }

@@ -15381,6 +15381,34 @@
       "layer": 0,
       "e": "ore",
       "r": 0
+    },
+    {
+      "x": 122,
+      "z": 106,
+      "layer": 0,
+      "e": "windSource",
+      "r": 0
+    },
+    {
+      "x": 114,
+      "z": 109,
+      "layer": 0,
+      "e": "windSource",
+      "r": 0
+    },
+    {
+      "x": 126,
+      "z": 112,
+      "layer": 0,
+      "e": "windSource",
+      "r": 0
+    },
+    {
+      "x": 138,
+      "z": 112,
+      "layer": 0,
+      "e": "windSource",
+      "r": 0
     }
   ]
 }
