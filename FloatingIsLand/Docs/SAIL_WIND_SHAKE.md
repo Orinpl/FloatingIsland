@@ -1,212 +1,134 @@
-# 风帆受风抖动需求拆分与使用说明
+# 风帆全局 3D 风场方案
 
-> 对应需求："还有风帆被风吹动的时候的抖动之类的"。
->
-> 目标是让风帆在有风时出现轻微摆动、鼓起、抖动的表现。该需求只属于表现层，不改变风帆转向风路的领域规则。
+本文档已完全替代旧的 Transform 抖动和 CPU Mesh 变形方案。当前实现是：全局 `Texture3D` 风场 + Shader 顶点动画。
 
----
+## 当前实现
 
-## 1. 适用资源
+| 内容 | 文件 |
+|---|---|
+| 风帆顶点动画 Shader | `Assets/Resources/Shaders/FI_SailWind.shader` |
+| 风帆材质 Inspector | `Assets/Editor/FI_SailWindShaderGUI.cs` |
+| 全局风场控制器 | `Assets/Script/View/Environment/GlobalWindFieldController.cs` |
+| 六面连续 3D 风场 | `Assets/Resources/Wind/GlobalWindField_Seamless.asset` |
+| 3D 风场生成器 | `Assets/Editor/SeamlessWindTexture3DGenerator.cs` |
+| 风帆材质 | `Assets/Res/sail/mat/sail.mat` |
 
-当前项目里已有风帆建筑 Prefab：
+旧的 `SailWindShake` 及其 meta 已删除，`AmbientWindMotionBinder` 不再给风帆挂 Transform 动画脚本。
 
-- `Assets/Resources/Prefab/Building/sail_01.prefab`
+## Texture3D 数据定义
 
-推荐新增脚本目录：
+`GlobalWindField_Seamless.asset` 是真实 Unity `Texture3D` 资产，不是画了立方体的二维图片。
 
-- `Assets/Script/View/Environment/SailWindShake.cs`
+- 尺寸：`32 × 32 × 32`
+- 格式：`RGBA32`
+- Filter Mode：`Trilinear`
+- Wrap Mode：`Repeat`
+- RGB：归一化风向，从 `[0, 1]` 解码到 `[-1, 1]`
+- A：风力强度，范围 `[0, 1]`
 
-如果以后风帆有多个型号，可以继续使用同一个组件，只针对不同 Prefab 调参数。
+体素由三轴周期函数生成。X、Y、Z 每个轴在一个周期后数值和变化趋势都连续，因此左右、上下、前后六个面均可循环拼接。纹理不包含重复边界切片，跨边界插值由 `Repeat` 完成。
 
----
-
-## 2. 需求拆分
-
-### 2.1 基础版本：Transform 抖动
-
-适合快速做出效果，成本最低。
-
-实现方式：
-
-- 找到风帆布面的子节点，例如 `SailCloth`。
-- 给该节点或它的父节点挂 `SailWindShake`。
-- 每帧根据 `sin` 和噪声做轻微本地旋转、位移或缩放。
-- 风越强，摆动幅度越大；无风时只保留很弱的待机摆动或停止。
-
-优点：
-
-- 实现快。
-- 不要求 Mesh 可读。
-- 不需要新 Shader。
-
-缺点：
-
-- 整块布一起动，近看不够像布料。
-
-### 2.2 进阶版本：顶点波动
-
-适合镜头能近距离看到风帆时使用。
-
-实现方式：
-
-- 在运行时复制风帆 Mesh。
-- 缓存原始顶点。
-- 根据顶点高度或 UV，越靠近固定边摆动越小，越靠近自由边摆动越大。
-- 沿布面法线或横向做波形偏移。
-- 风力越高，幅度和频率越高。
-
-优点：
-
-- 近看更像被风吹动的布。
-- 可以做出从固定边到自由边逐渐变大的抖动。
-
-缺点：
-
-- 需要 Mesh 可读，或需要在导入设置里开启 Read/Write。
-- 顶点很多时每帧改 Mesh 有一定开销。
-
----
-
-## 3. 推荐实现顺序
-
-先做基础版本，再按需要升级。
-
-1. 先实现 Transform 抖动，确认风帆在 Play Mode 下有动态。
-2. 再接入风力等级，让无风、小风、大风有不同幅度。
-3. 如果近景效果不够，再把 `SailWindShake` 扩展成顶点波动模式。
-4. 最后再考虑 Shader 风动，不建议一开始就做。
-
----
-
-## 4. 推荐参数
-
-| 参数 | 建议默认值 | 说明 |
-|---|---:|---|
-| `windStrength` | `1` | 表现层使用的风力强度，后续可接领域层 `ResultForce` |
-| `positionAmplitude` | `0.03` | 本地位移幅度 |
-| `rotationAmplitude` | `3` | 本地旋转幅度，单位角度 |
-| `frequency` | `1.5` | 摆动频率 |
-| `flutterFrequency` | `8` | 高频细抖频率 |
-| `flutterAmount` | `0.25` | 高频细抖占比 |
-| `windDirection` | `(1, 0, 0)` | 世界风向或本地风向，按接入方式定 |
-
-调参原则：
-
-- 远景风帆：位移小、旋转稍明显。
-- 近景风帆：旋转小、顶点波动明显。
-- 建造游戏里不要抖得太夸张，否则会干扰玩家看格子和建筑朝向。
-
----
-
-## 5. Unity 里怎么操作
-
-1. 打开 `Assets/Resources/Prefab/Building/sail_01.prefab`。
-2. 找到风帆布面节点；建议命名为 `SailCloth`。
-3. 把 `SailWindShake` 挂到 `SailCloth`，不要挂到整个建筑根节点，避免底座也跟着抖。
-4. 初始用基础参数：
+如需重新生成，在 Unity 菜单执行：
 
 ```text
-positionAmplitude = 0.02
-rotationAmplitude = 2
-frequency = 1.2
-flutterFrequency = 7
-flutterAmount = 0.2
+Tools/Floating Island/Regenerate Seamless 3D Wind Field
 ```
 
-5. 进入 Play Mode，观察风帆是否只在布面上产生轻微动态。
-6. 如果整块建筑跟着动，说明组件挂错节点，需要挪到布面子节点。
-7. 如果抖动方向不对，调整 `windDirection` 或节点本地轴向。
-8. 如果要接风系统，表现层读取当前风帆所在格子的 `ResultForce`，把它映射到 `windStrength`。
+## 全局风场采样
 
----
+`GlobalWindFieldController` 在没有手工指定纹理时，会默认加载：
 
-## 6. 脚本逻辑示例
-
-基础 Transform 版本可以这样写：
-
-```csharp
-using UnityEngine;
-
-namespace Game.View.Environment
-{
-    public sealed class SailWindShake : MonoBehaviour
-    {
-        [SerializeField] private float windStrength = 1f;
-        [SerializeField] private float positionAmplitude = 0.02f;
-        [SerializeField] private float rotationAmplitude = 2f;
-        [SerializeField] private float frequency = 1.2f;
-        [SerializeField] private float flutterFrequency = 7f;
-        [SerializeField] private float flutterAmount = 0.2f;
-        [SerializeField] private Vector3 localMoveAxis = Vector3.right;
-        [SerializeField] private Vector3 localRotateAxis = Vector3.forward;
-
-        private Vector3 baseLocalPosition;
-        private Quaternion baseLocalRotation;
-        private float phase;
-
-        private void Awake()
-        {
-            baseLocalPosition = transform.localPosition;
-            baseLocalRotation = transform.localRotation;
-            phase = Random.Range(0f, 100f);
-        }
-
-        private void Update()
-        {
-            float t = Time.time + phase;
-            float slow = Mathf.Sin(t * frequency);
-            float flutter = Mathf.Sin(t * flutterFrequency) * flutterAmount;
-            float wave = (slow + flutter) * Mathf.Max(0f, windStrength);
-
-            transform.localPosition = baseLocalPosition + localMoveAxis.normalized * (wave * positionAmplitude);
-            transform.localRotation = baseLocalRotation * Quaternion.AngleAxis(wave * rotationAmplitude, localRotateAxis.normalized);
-        }
-    }
-}
+```text
+Resources/Wind/GlobalWindField_Seamless
 ```
 
-后续接入领域风力时，不建议让这个组件自己计算格子风；应该由表现层控制器把风力传进来，例如：
+控制器向 Shader 发布：
 
-```csharp
-public void SetWindStrength(float value)
-{
-    windStrength = Mathf.Max(0f, value);
-}
+```text
+_GlobalWindField3D
+_GlobalWindFieldOrigin
+_GlobalWindFieldSize
+_GlobalWindFieldScrollSpeed
+_GlobalWindDirection
+_GlobalWindStrength
+_GlobalWindFieldEnabled
 ```
 
----
+世界坐标先转换为周期 UVW：
 
-## 7. 顶点波动升级方案
+```hlsl
+float3 uvw = frac(
+    (worldPos - _GlobalWindFieldOrigin.xyz) / _GlobalWindFieldSize.xyz +
+    _GlobalWindFieldScrollSpeed.xyz * _Time.y);
+```
 
-当 Transform 抖动不够时，再升级到 Mesh 形变。
+风场在顶点阶段采样，必须显式指定 LOD：
 
-操作条件：
+```hlsl
+float4 windSample = tex3Dlod(_GlobalWindField3D, float4(uvw, 0.0));
+float3 windDirection = normalize(windSample.rgb * 2.0 - 1.0);
+float windStrength = windSample.a * _GlobalWindStrength;
+```
 
-- 风帆 Mesh 需要开启 `Read/Write`。
-- `SailWindShake` 需要挂在带 `MeshFilter` 的布面节点上。
-- 运行时复制 Mesh，避免直接改 Project 里的原始资源。
+不能在顶点阶段使用普通 `tex3D()`。它需要隐式屏幕导数，会触发 D3D 顶点着色器编译错误 `cannot map expression to vs_4_0 instruction set`。
 
-推荐形变规则：
+## 风帆顶点动画
 
-- 以顶点本地高度或 UV.y 作为权重。
-- 固定边权重接近 `0`，自由边权重接近 `1`。
-- 偏移方向使用布面的本地法线或横向轴。
-- 每帧结束后调用 `mesh.RecalculateNormals()`，如果视觉上不需要法线变化，可跳过以省性能。
+最终位移由三部分组成：
 
-验收重点：
+```text
+固定边权重 × 风力 ×（低频整体摆动 + 中频布面波 + 高频细颤）
+```
 
-- 固定边不能明显脱离杆子。
-- 自由边有波纹。
-- 多个风帆相位不同。
-- 停用组件后可以恢复原始 Mesh。
+风帆 Shader 使用 `FI_SailWindShaderGUI`，Inspector 按 Surface、Lighting、Highlights、Sail Motion、Attachment Mask 和 Advanced 分组，操作方式与 `FI_LitShaderGUI` 一致。
 
----
+`Attachment Mask` 中通过 `Displacement Control Mode` 明确二选一：
 
-## 8. 验收清单
+- `Vertex Color`：只读取 `vertex color.r`，`R=0` 固定，`R=1` 完整位移。
+- `Mask Texture`：只读取 `_SailMaskTex.r`，使用 UV0 采样，黑色固定，白色完整位移。
 
-- `sail_01` 放进场景后，Play Mode 下只有风帆布面在动。
-- 无风时动作很轻或停止，有风时抖动增强。
-- 多个风帆不会完全同步。
-- 抖动不影响建筑根节点位置、占格、旋转和点击。
-- 不修改风路规则、计分规则和配置表。
+最终顶点位移 Mask 为：
 
+```text
+重映射后的当前模式 Mask × _SailMaskStrength
+```
+
+- `_SailMaskMode`：选择 `Vertex Color` 或 `Mask Texture`，两种来源不会相乘。
+- `_SailMaskTex`：仅在 `Mask Texture` 模式显示并生效。
+- `_SailMaskStart`：小于或等于该值的顶点严格保持零位移，用于扩大连接处固定带。
+- `_SailMaskEnd`：大于或等于该值的顶点使用完整位移，中间平滑过渡。
+- `_SailMaskStrength`：整体位移 Mask 强度，`0` 表示整张帆不发生顶点位移。
+- `_SailMaskInvert`：连接边的通道值为 `1` 时开启反转。
+
+当前材质默认使用 `Vertex Color`，固定区从 `0` 到 `0.08`。如果连接边写成了 `R=1`，开启 `Invert Mask`。需要按图片精细控制绳结和连接点时，切换到 `Mask Texture` 并把对应区域涂黑。
+
+主要材质参数：
+
+| 参数 | 默认值 | 用途 |
+|---|---:|---|
+| `_SailSwayAmplitude` | `0.08` | 整体摆动幅度 |
+| `_SailWaveSpeed` | `1.2` | 主波速度 |
+| `_SailWaveScale` | `0.8` | 世界空间波形尺度 |
+| `_SailClothAmplitude` | `0.03` | 布面波幅度 |
+| `_SailClothFrequency` | `2.5` | 布面波频率 |
+| `_SailFlutterAmplitude` | `0.01` | 高频细颤幅度 |
+| `_SailFlutterSpeed` | `8.0` | 高频细颤速度 |
+| `_SailWindPush` | `1.0` | 沿风向位移权重 |
+| `_SailNormalPush` | `0.35` | 沿法线鼓起权重 |
+
+## 运行规则
+
+- 场景有手工放置的 `GlobalWindFieldController` 时，使用该实例。
+- 场景没有控制器时，运行后自动创建一个全局实例。
+- 手工指定 `windFieldTexture` 时优先使用指定资源。
+- 没有指定时加载默认六面连续 `Texture3D`。
+- 默认资产丢失时，才使用运行时周期风场作为兜底。
+- 不逐个遍历风帆，不逐帧修改 Transform，不在 CPU 修改 Mesh 顶点。
+
+## 验收
+
+- Shader 无编译错误，风帆不显示紫色。
+- 多个风帆按同一全局风场响应，但因世界坐标不同不会完全同步。
+- 风场越过 X/Y/Z 边界时没有跳变接缝。
+- 固定边稳定，自由边摆动明显。
+- 修改全局风力、方向、风场尺寸和滚动速度时，所有风帆统一响应。
