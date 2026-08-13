@@ -8,7 +8,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: resHouse_01_texture_diffuse
-    second: {fileID: 2100000, guid: 588ea31f62ee2354284c746a97b5d85d, type: 2}
+    second: {fileID: 2100000, guid: 39066ebb96fc6824199644a6a666bda2, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

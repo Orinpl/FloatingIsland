@@ -8,7 +8,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: deco_bush_texture_diffuse
-    second: {fileID: 2100000, guid: 095f3888660dbeb45bd7c864e5ef4c89, type: 2}
+    second: {fileID: 2100000, guid: 5f3849f2d704cba4babbcccf687cc7ff, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

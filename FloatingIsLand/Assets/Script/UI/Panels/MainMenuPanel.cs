@@ -8,5 +8,11 @@ namespace FloatingIsLand.UI
         public Button startButton;
         public Button leaderboardButton;
         public Button quitButton;
+
+        private void Awake()
+        {
+            // 开场封面 + 循环背景视频。面板本身仍是哑视图：背景只是自己的皮，不碰任何流程。
+            MainMenuBackground.AttachTo(gameObject);
+        }
     }
 }

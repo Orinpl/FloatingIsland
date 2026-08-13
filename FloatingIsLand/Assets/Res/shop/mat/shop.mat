@@ -13,6 +13,7 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _IBL_USE_BUILTIN
+  - _NORMALMAP
   - _SMOOTH_NORMAL_OFF
   m_InvalidKeywords: []
   m_LightmapFlags: 4
@@ -91,7 +92,7 @@ Material:
     - _DstBlend: 0
     - _EmissionGroup: 0
     - _GlossMapScale: 1
-    - _Glossiness: 0.2
+    - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _IBLBlendMode: 0
     - _IBLGroup: 0

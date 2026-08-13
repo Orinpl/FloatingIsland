@@ -13,7 +13,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: shop_texture_diffuse
-    second: {fileID: 2100000, guid: 7662fa88e185b5f4d90870769376bb69, type: 2}
+    second: {fileID: 2100000, guid: c9dda23ec9a2deb4aa0d638641a32073, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule

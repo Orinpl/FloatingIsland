@@ -8,7 +8,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: deco_ore_01_texture_diffuse
-    second: {fileID: 2100000, guid: 368d9585e330a7f4fa7e577b8bdc1c37, type: 2}
+    second: {fileID: 2100000, guid: 77573af0791499d4b97b44b7a8837e2e, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

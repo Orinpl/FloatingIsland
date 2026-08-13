@@ -8,7 +8,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: logisticsHub_texture_diffuse
-    second: {fileID: 2100000, guid: ab495cd1efc356845a68fd46136be033, type: 2}
+    second: {fileID: 2100000, guid: 4fb039af259370847a2d48945f20599b, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule

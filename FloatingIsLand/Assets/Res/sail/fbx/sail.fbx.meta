@@ -13,7 +13,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: sail_texture_diffuse
-    second: {fileID: 2100000, guid: c0171a24d4bb47548b820236841e33b9, type: 2}
+    second: {fileID: 2100000, guid: bc2891da83ad9b946bad77e08f7d03e5, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
