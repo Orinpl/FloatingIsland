@@ -11,9 +11,10 @@ Material:
   m_Shader: {fileID: 4800000, guid: 6a3a5a44de374ef2b756f4f0e15ad0cc, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - _IBL_USE_BUILTIN
+  - _SMOOTH_NORMAL_OFF
   m_InvalidKeywords:
-  - _EMISSION
   - _EMISSIVE_COLOR_MAP
   - _MASKMAP
   - _METALLICGLOSSMAP
@@ -90,6 +91,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _IBLCubemap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _IridescenceMaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -104,6 +109,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _MaskMap:
         m_Texture: {fileID: 2800000, guid: 5484b2c0e3fe5ca4d98cc56a3eeba800, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MatCapTex:
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
@@ -122,6 +131,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _OutlineWidthMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _ParallaxMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -130,11 +143,19 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _ShadowRampTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SpecGlossMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SpecularColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SpecularMask:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -174,12 +195,14 @@ Material:
     - _AlphaSrcBlend: 1
     - _Ambient: 0.35
     - _Anisotropy: 0
+    - _BaseGroup: 1
     - _BevelHighlight: 0.45
     - _BevelSharpness: 18
     - _BevelWidth: 0.8
     - _BlendMode: 0
     - _BumpScale: 1
     - _CoatMask: 0
+    - _Cull: 0
     - _CullMode: 2
     - _CullModeForward: 2
     - _Cutoff: 1
@@ -210,6 +233,7 @@ Material:
     - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 1
     - _DstBlend: 0
+    - _EmissionGroup: 0
     - _EmissiveColorMode: 1
     - _EmissiveExposureWeight: 1
     - _EmissiveIntensity: 1
@@ -218,6 +242,7 @@ Material:
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
     - _EnergyConservingSpecularColor: 1
+    - _FlatNormalBlend: 1
     - _GlossMapScale: 1
     - _Glossiness: 0
     - _GlossyReflections: 1
@@ -231,19 +256,34 @@ Material:
     - _HeightTessAmplitude: 2
     - _HeightTessCenter: 0.5
     - _HighlightSize: 36
+    - _HighlightSoftness: 0.18
     - _HighlightStrength: 0.25
+    - _IBLBlendMode: 0
+    - _IBLGroup: 0
+    - _IBLIntensity: 0.5
+    - _IBLMetallic: 0
+    - _IBLRoughness: 0.3
+    - _IBLUseBuiltin: 1
     - _InvTilingScale: 1
     - _Ior: 1.5
     - _IridescenceMask: 1
     - _IridescenceThickness: 1
     - _LightSteps: 3
     - _LinkDetailsWithBase: 0
+    - _MatCapBlendMode: 0
+    - _MatCapGroup: 0
+    - _MatCapIntensity: 0.5
     - _MaterialID: 1
     - _Metallic: 1
     - _Mode: 0
+    - _NormalMapGroup: 0
     - _NormalMapSpace: 0
     - _NormalScale: 1
     - _OcclusionStrength: 1
+    - _OutlineColorMix: 0.2
+    - _OutlineGroup: 0
+    - _OutlineWidth: 0.006
+    - _OutlineZOffset: 0
     - _PPDLodThreshold: 5
     - _PPDMaxSamples: 15
     - _PPDMinSamples: 5
@@ -252,34 +292,56 @@ Material:
     - _Parallax: 0.02
     - _ReceivesSSR: 1
     - _RefractionModel: 0
+    - _RenderingGroup: 1
+    - _RimIntensity: 0.6
+    - _RimLightDirOffset: 0
+    - _RimLightGroup: 0
     - _RimPower: 3
+    - _RimShadowMask: 0.5
+    - _RimSmoothness: 0.1
     - _RimStrength: 0.08
     - _SSRefractionProjectionModel: 0
-    - _SailClothAmplitude: 0.03
-    - _SailClothFrequency: 2.5
-    - _SailFlutterAmplitude: 0.01
-    - _SailFlutterScale: 4
-    - _SailFlutterSpeed: 8
+    - _SailClothAmplitude: 0.018
+    - _SailClothFrequency: 5.4
+    - _SailFlutterAmplitude: 0.0023
+    - _SailFlutterScale: 11.97
+    - _SailFlutterSpeed: 25.8
     - _SailMaskEnabled: 0
     - _SailMaskEnd: 1
-    - _SailMaskInvert: 0
+    - _SailMaskInvert: 1
     - _SailMaskMode: 0
     - _SailMaskSource: 0
     - _SailMaskStart: 0.08
     - _SailMaskStrength: 1
-    - _SailNormalPush: 0.35
-    - _SailSwayAmplitude: 0.08
-    - _SailWaveScale: 0.8
-    - _SailWaveSpeed: 1.2
-    - _SailWindPush: 1
+    - _SailMaxDisplacement: 1.34
+    - _SailNormalPush: 0
+    - _SailSwayAmplitude: 0.5
+    - _SailWaveScale: 0.31
+    - _SailWaveSpeed: 2.73
+    - _SailWindPush: 1.1
+    - _Shadow2ndBorderPosition: -0.3
+    - _Shadow2ndBorderRange: 0.15
+    - _ShadowBorderPosition: 0
+    - _ShadowBorderRange: 0.3
+    - _ShadowEnvStrength: 0.2
+    - _ShadowGroup: 1
+    - _ShadowReceive: 0.5
+    - _ShadowSoftness: 0.04
+    - _ShadowStrength: 0.75
+    - _ShadowThreshold: 0.45
+    - _SmoothNormalMode: 0
     - _Smoothness: 0
     - _SmoothnessRemapMax: 1
     - _SmoothnessRemapMin: 0
     - _SmoothnessTextureChannel: 0
     - _SpecularAAScreenSpaceVariance: 0.1
     - _SpecularAAThreshold: 0.2
+    - _SpecularGroup: 0
     - _SpecularHighlights: 1
+    - _SpecularIntensity: 0.5
     - _SpecularOcclusionMode: 1
+    - _SpecularPower: 64
+    - _SpecularSmoothness: 0.05
     - _SrcBlend: 1
     - _StencilRef: 0
     - _StencilRefDepth: 8
@@ -311,7 +373,9 @@ Material:
     - _UVEmissive: 0
     - _UVSec: 0
     - _UseEmissiveIntensity: 0
+    - _UseShadowRamp: 0
     - _UseShadowThreshold: 0
+    - _WindGroup: 1
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestModeDistortion: 4
@@ -326,15 +390,22 @@ Material:
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 1024, g: 1024, b: 1024, a: 1}
     - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
-    - _HighlightColor: {r: 1, g: 0.86, b: 0.48, a: 1}
+    - _HighlightColor: {r: 1, g: 1, b: 1, a: 1}
+    - _IBLColor: {r: 1, g: 1, b: 1, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _LightDirection: {r: 0.35, g: 0.75, b: 0.45, a: 0}
+    - _MatCapColor: {r: 1, g: 1, b: 1, a: 1}
+    - _OutlineColor: {r: 0.19999996, g: 0.23999995, b: 0.27999997, a: 1}
+    - _RimColor: {r: 0.7, g: 0.85, b: 1, a: 1}
+    - _RimCustomOffset: {r: 0, g: 0, b: 0, a: 0}
+    - _SailObjectScale: {r: 1, g: 1, b: 1, a: 1}
+    - _Shadow2ndColor: {r: 0.54999995, g: 0.45, b: 0.65, a: 1}
     - _ShadowColor: {r: 0.45999992, g: 0.53999996, b: 0.72, a: 1}
     - _SpecColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
     - _ThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
-    - _TopColor: {r: 1, g: 0.94, b: 0.72, a: 1}
+    - _TopColor: {r: 1, g: 1, b: 1, a: 1}
     - _TransmittanceColor: {r: 1, g: 1, b: 1, a: 1}
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}

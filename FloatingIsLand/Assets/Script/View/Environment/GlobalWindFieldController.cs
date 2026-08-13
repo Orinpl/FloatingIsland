@@ -1,4 +1,7 @@
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace FloatingIsLand.View.Environment
 {
@@ -11,14 +14,18 @@ namespace FloatingIsLand.View.Environment
     {
         [SerializeField] private Vector3 fieldOrigin;
         [SerializeField] private Vector3 fieldSize = new Vector3(64f, 16f, 64f);
-        [SerializeField] private Vector3 fallbackDirection = Vector3.right;
         [SerializeField] private Vector3 fieldScrollSpeed = new Vector3(0.015f, 0f, 0f);
         [SerializeField, Min(0f)] private float globalStrength = 1f;
+        [SerializeField, Range(0f, 1f)] private float mainDirectionWeight = 0.75f;
         [SerializeField] private Texture3D windFieldTexture;
         [SerializeField] private bool generateProceduralField = true;
         [SerializeField, Range(4, 64)] private int proceduralResolution = 16;
         [SerializeField, Range(0f, 1f)] private float proceduralDirectionNoise = 0.18f;
         [SerializeField, Range(0f, 1f)] private float proceduralStrengthNoise = 0.2f;
+        [SerializeField] private bool drawWindGizmos = true;
+        [SerializeField] private bool drawGizmosWhenUnselected = true;
+        [SerializeField, Min(0.1f)] private float gizmoArrowLength = 6f;
+        [SerializeField, Range(1, 9)] private int gizmoStreamLineCount = 5;
 
         private static readonly int GlobalWindField3D = Shader.PropertyToID("_GlobalWindField3D");
         private static readonly int GlobalWindFieldOrigin = Shader.PropertyToID("_GlobalWindFieldOrigin");
@@ -26,12 +33,13 @@ namespace FloatingIsLand.View.Environment
         private static readonly int GlobalWindDirection = Shader.PropertyToID("_GlobalWindDirection");
         private static readonly int GlobalWindFieldScrollSpeed = Shader.PropertyToID("_GlobalWindFieldScrollSpeed");
         private static readonly int GlobalWindStrength = Shader.PropertyToID("_GlobalWindStrength");
+        private static readonly int GlobalWindMainDirectionWeight = Shader.PropertyToID("_GlobalWindMainDirectionWeight");
         private static readonly int GlobalWindFieldEnabled = Shader.PropertyToID("_GlobalWindFieldEnabled");
 
         private Texture3D _proceduralTexture;
         private Texture3D _defaultWindFieldTexture;
         private int _lastProceduralResolution;
-        private Vector3 _lastFallbackDirection;
+        private Vector3 _lastBaseDirection;
         private float _lastDirectionNoise;
         private float _lastStrengthNoise;
 
@@ -60,16 +68,16 @@ namespace FloatingIsLand.View.Environment
             set => fieldSize = value;
         }
 
-        public Vector3 FallbackDirection
-        {
-            get => fallbackDirection;
-            set => fallbackDirection = value;
-        }
-
         public float GlobalStrength
         {
             get => globalStrength;
             set => globalStrength = Mathf.Max(0f, value);
+        }
+
+        public float MainDirectionWeight
+        {
+            get => mainDirectionWeight;
+            set => mainDirectionWeight = Mathf.Clamp01(value);
         }
 
         public Vector3 FieldScrollSpeed
@@ -105,7 +113,10 @@ namespace FloatingIsLand.View.Environment
             fieldSize.y = Mathf.Max(0.001f, fieldSize.y);
             fieldSize.z = Mathf.Max(0.001f, fieldSize.z);
             globalStrength = Mathf.Max(0f, globalStrength);
+            mainDirectionWeight = Mathf.Clamp01(mainDirectionWeight);
             proceduralResolution = Mathf.Clamp(proceduralResolution, 4, 64);
+            gizmoArrowLength = Mathf.Max(0.1f, gizmoArrowLength);
+            gizmoStreamLineCount = Mathf.Clamp(gizmoStreamLineCount, 1, 9);
             Publish();
         }
 
@@ -127,12 +138,13 @@ namespace FloatingIsLand.View.Environment
                 activeTexture = GetOrCreateProceduralTexture();
             }
 
-            Vector3 direction = SafeDirection(fallbackDirection);
+            Vector3 direction = GetWindDirection();
             Shader.SetGlobalVector(GlobalWindFieldOrigin, fieldOrigin);
             Shader.SetGlobalVector(GlobalWindFieldSize, fieldSize);
             Shader.SetGlobalVector(GlobalWindDirection, direction);
             Shader.SetGlobalVector(GlobalWindFieldScrollSpeed, fieldScrollSpeed);
             Shader.SetGlobalFloat(GlobalWindStrength, globalStrength);
+            Shader.SetGlobalFloat(GlobalWindMainDirectionWeight, mainDirectionWeight);
             Shader.SetGlobalFloat(GlobalWindFieldEnabled, activeTexture != null ? 1f : 0f);
 
             if (activeTexture != null)
@@ -143,19 +155,20 @@ namespace FloatingIsLand.View.Environment
 
         private Texture3D GetOrCreateProceduralTexture()
         {
+            Vector3 baseDirection = GetWindDirection();
             if (_proceduralTexture == null ||
                 _lastProceduralResolution != proceduralResolution ||
-                _lastFallbackDirection != fallbackDirection ||
+                _lastBaseDirection != baseDirection ||
                 !Mathf.Approximately(_lastDirectionNoise, proceduralDirectionNoise) ||
                 !Mathf.Approximately(_lastStrengthNoise, proceduralStrengthNoise))
             {
-                RebuildProceduralTexture();
+                RebuildProceduralTexture(baseDirection);
             }
 
             return _proceduralTexture;
         }
 
-        private void RebuildProceduralTexture()
+        private void RebuildProceduralTexture(Vector3 baseDirection)
         {
             int resolution = Mathf.Clamp(proceduralResolution, 4, 64);
             var texture = new Texture3D(resolution, resolution, resolution, TextureFormat.RGBA32, false)
@@ -166,7 +179,7 @@ namespace FloatingIsLand.View.Environment
             };
 
             var colors = new Color[resolution * resolution * resolution];
-            Vector3 baseDirection = SafeDirection(fallbackDirection);
+            baseDirection = SafeDirection(baseDirection);
             int index = 0;
 
             for (int z = 0; z < resolution; z++)
@@ -208,10 +221,89 @@ namespace FloatingIsLand.View.Environment
 
             _proceduralTexture = texture;
             _lastProceduralResolution = resolution;
-            _lastFallbackDirection = fallbackDirection;
+            _lastBaseDirection = baseDirection;
             _lastDirectionNoise = proceduralDirectionNoise;
             _lastStrengthNoise = proceduralStrengthNoise;
         }
+
+        private Vector3 GetWindDirection()
+        {
+            return SafeDirection(transform.right);
+        }
+
+#if UNITY_EDITOR
+        private void OnDrawGizmos()
+        {
+            if (!drawWindGizmos || !drawGizmosWhenUnselected)
+            {
+                return;
+            }
+
+            DrawWindGizmos(false);
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            if (!drawWindGizmos)
+            {
+                return;
+            }
+
+            DrawWindGizmos(true);
+        }
+
+        private void DrawWindGizmos(bool selected)
+        {
+            Vector3 size = new Vector3(
+                Mathf.Max(0.001f, fieldSize.x),
+                Mathf.Max(0.001f, fieldSize.y),
+                Mathf.Max(0.001f, fieldSize.z));
+            Vector3 center = fieldOrigin + size * 0.5f;
+            Vector3 direction = GetWindDirection();
+            float strengthScale = Mathf.Clamp01(globalStrength / 3f);
+            Color fieldColor = selected
+                ? new Color(0.25f, 0.65f, 1f, 0.55f)
+                : new Color(0.25f, 0.65f, 1f, 0.25f);
+            Color arrowColor = Color.Lerp(new Color(0.55f, 0.8f, 1f, 0.75f), new Color(0.1f, 0.9f, 1f, 1f), strengthScale);
+
+            Gizmos.color = fieldColor;
+            Gizmos.DrawWireCube(center, size);
+            Gizmos.DrawWireSphere(fieldOrigin, HandleUtility.GetHandleSize(fieldOrigin) * 0.08f);
+
+            Handles.color = arrowColor;
+            DrawArrow(center - direction * gizmoArrowLength * 0.5f, direction, gizmoArrowLength);
+
+            int lineCount = Mathf.Max(1, gizmoStreamLineCount);
+            Vector3 side = Vector3.Cross(direction, Vector3.up);
+            if (side.sqrMagnitude < 0.0001f)
+            {
+                side = Vector3.Cross(direction, Vector3.forward);
+            }
+
+            side.Normalize();
+            Vector3 up = Vector3.Cross(side, direction).normalized;
+            float span = Mathf.Min(size.x, size.z) * 0.35f;
+            float lineLength = Mathf.Max(1f, gizmoArrowLength * 0.65f);
+            for (int i = 0; i < lineCount; i++)
+            {
+                float t = lineCount == 1 ? 0f : i / (lineCount - 1f) - 0.5f;
+                Vector3 offset = side * t * span + up * Mathf.Sin(i * 1.618f) * span * 0.12f;
+                DrawArrow(center + offset - direction * lineLength * 0.5f, direction, lineLength);
+            }
+        }
+
+        private static void DrawArrow(Vector3 start, Vector3 direction, float length)
+        {
+            Vector3 end = start + direction * length;
+            Handles.DrawLine(start, end);
+            Handles.ConeHandleCap(
+                0,
+                end,
+                Quaternion.LookRotation(direction),
+                HandleUtility.GetHandleSize(end) * 0.22f,
+                EventType.Repaint);
+        }
+#endif
 
         private static Vector3 SafeDirection(Vector3 value)
         {

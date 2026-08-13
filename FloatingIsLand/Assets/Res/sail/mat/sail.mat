@@ -33,31 +33,39 @@ Material:
     - _BevelHighlight: 0.45
     - _BevelSharpness: 18
     - _BevelWidth: 0.8
+    - _FlatNormalBlend: 1
     - _HighlightSize: 36
+    - _HighlightSoftness: 0.18
     - _HighlightStrength: 0.25
     - _LightSteps: 3
+    - _OutlineWidth: 0.006
     - _RimPower: 3
     - _RimStrength: 0.08
-    - _SailClothAmplitude: 0.03
+    - _SailClothAmplitude: 0.015
     - _SailClothFrequency: 2.5
-    - _SailFlutterAmplitude: 0.01
+    - _SailFlutterAmplitude: 0.004
     - _SailFlutterScale: 4
     - _SailFlutterSpeed: 8
     - _SailMaskInvert: 0
     - _SailMaskEnd: 1
-    - _SailMaskMode: 0
+    - _SailMaskMode: 3
     - _SailMaskStart: 0.08
     - _SailMaskStrength: 1
-    - _SailNormalPush: 0.35
-    - _SailSwayAmplitude: 0.08
+    - _SailMaxDisplacement: 10
+    - _SailNormalPush: 0
+    - _SailSwayAmplitude: 0.035
     - _SailWaveScale: 0.8
     - _SailWaveSpeed: 1.2
     - _SailWindPush: 1
+    - _ShadowSoftness: 0.04
+    - _ShadowStrength: 0.75
+    - _ShadowThreshold: 0.45
     - _TopTint: 0.18
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _HighlightColor: {r: 1, g: 0.86, b: 0.48, a: 1}
     - _LightDirection: {r: 0.35, g: 0.75, b: 0.45, a: 0}
+    - _OutlineColor: {r: 0.2, g: 0.24, b: 0.28, a: 1}
     - _ShadowColor: {r: 0.45999992, g: 0.53999996, b: 0.72, a: 1}
     - _TopColor: {r: 1, g: 0.94, b: 0.72, a: 1}
   m_BuildTextureStacks: []
