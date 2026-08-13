@@ -8,7 +8,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: citizenCenter_texture_diffuse
-    second: {fileID: 2100000, guid: afe1cb1575e935645a534b31bb754908, type: 2}
+    second: {fileID: 2100000, guid: ceb9e094bf9657942814596705543a79, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule

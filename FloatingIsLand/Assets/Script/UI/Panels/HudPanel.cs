@@ -240,14 +240,28 @@ namespace FloatingIsLand.UI
             }
         }
 
+        /// <summary>米色卡片底叠一层暖金表示选中。</summary>
+        private static readonly Color HandItemSelected = new Color(1f, 0.80f, 0.42f, 1f);
+
+        /// <summary>
+        /// 选中态染色。染的是按钮的 <see cref="ColorBlock"/> 而不只是 <c>Image.color</c>：
+        /// 后者会在鼠标划过时被 Button 的状态过渡覆写回 normalColor，选中高亮就没了。
+        /// </summary>
         private static void SetItemTint(Button item, bool selected)
         {
+            Color tint = selected ? HandItemSelected : Color.white;
+
+            ColorBlock colors = item.colors;
+            colors.normalColor = tint;
+            colors.selectedColor = tint;
+            colors.highlightedColor = tint * 1.08f;
+            colors.pressedColor = tint * 0.86f;
+            item.colors = colors;
+
             var image = item.GetComponent<Image>();
             if (image != null)
             {
-                image.color = selected
-                    ? new Color(1f, 0.85f, 0.35f, 0.95f)
-                    : new Color(1f, 1f, 1f, 0.75f);
+                image.color = tint; // 立刻生效，不用等下一次状态过渡
             }
         }
 
@@ -498,22 +512,24 @@ namespace FloatingIsLand.UI
             _touchBar.sizeDelta = new Vector2(
                 TouchButtonSize.x * 3f + TouchBarGap * 2f, TouchButtonSize.y);
 
-            // 从右往左：建造（最常按，放拇指最舒服的位置）→ 旋转 → 取消
+            // 从右往左：建造（最常按，放拇指最舒服的位置）→ 旋转 → 取消。
+            // 皮肤按语义分：建造是「往前走」用主木牌，取消是「退一步」用浅木条，
+            // 旋转是纯图标操作用方块——三个按钮光靠形状和色温就能分开，不用先读字。
             Text confirmLabel;
-            _confirmButton = CreateTouchButton("Confirm", "建造", 0, new Color(0.24f, 0.68f, 0.36f, 0.95f), out confirmLabel);
+            _confirmButton = CreateTouchButton("Confirm", "建造", 0, UIStyle.Primary, out confirmLabel);
             _confirmLabel = confirmLabel;
             _confirmButton.onClick.AddListener(() => { Action h = ConfirmClicked; if (h != null) { h(); } });
 
             Text ignored;
-            Button rotate = CreateTouchButton("Rotate", "旋转 ↻", 1, new Color(0.25f, 0.44f, 0.72f, 0.95f), out ignored);
+            Button rotate = CreateTouchButton("Rotate", "旋转 ↻", 1, UIStyle.Icon, out ignored);
             rotate.onClick.AddListener(() => { Action h = RotateClicked; if (h != null) { h(); } });
 
-            Button cancel = CreateTouchButton("Cancel", "取消", 2, new Color(0.42f, 0.44f, 0.5f, 0.95f), out ignored);
+            Button cancel = CreateTouchButton("Cancel", "取消", 2, UIStyle.Secondary, out ignored);
             cancel.onClick.AddListener(() => { Action h = CancelClicked; if (h != null) { h(); } });
         }
 
         /// <summary><paramref name="slotFromRight"/> = 从右往左第几个位置（0 起）。</summary>
-        private Button CreateTouchButton(string name, string label, int slotFromRight, Color color, out Text labelText)
+        private Button CreateTouchButton(string name, string label, int slotFromRight, UIStyle style, out Text labelText)
         {
             var go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button));
             go.transform.SetParent(_touchBar, false);
@@ -524,8 +540,6 @@ namespace FloatingIsLand.UI
             rt.pivot = new Vector2(1f, 0f);
             rt.sizeDelta = TouchButtonSize;
             rt.anchoredPosition = new Vector2(-slotFromRight * (TouchButtonSize.x + TouchBarGap), 0f);
-
-            go.GetComponent<Image>().color = color;
 
             var textGo = new GameObject("Label", typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
             textGo.transform.SetParent(go.transform, false);
@@ -540,10 +554,12 @@ namespace FloatingIsLand.UI
             labelText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             labelText.fontSize = TouchButtonFontSize;
             labelText.alignment = TextAnchor.MiddleCenter;
-            labelText.color = Color.white;
             labelText.raycastTarget = false; // 点击要落到按钮上，字不能挡
 
-            return go.GetComponent<Button>();
+            Button button = go.GetComponent<Button>();
+            // 工具条是运行时现建的，赶不上 UIManager.Awake 那趟统一刷皮，自己套一次
+            UISkin.ApplyButton(button, style);
+            return button;
         }
 
         /// <summary>取（必要时现建）条目下的一个 RawImage 子节点。没内容可显示又还没建过时返回 null。</summary>

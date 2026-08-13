@@ -13,7 +13,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: potentialTower_texture_diffuse
-    second: {fileID: 2100000, guid: e7d71a659a3d01046a20fa0e16172fc8, type: 2}
+    second: {fileID: 2100000, guid: 483bb1eb83a16034e8d1a7fbdaf7013e, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule

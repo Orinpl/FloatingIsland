@@ -8,7 +8,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: giantWindmill_texture_diffuse
-    second: {fileID: 2100000, guid: 2971694057a1f254188060b195204ec6, type: 2}
+    second: {fileID: 2100000, guid: 9ba749d92f49ad64f9e22dde8b518e32, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule

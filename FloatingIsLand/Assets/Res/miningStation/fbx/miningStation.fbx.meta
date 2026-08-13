@@ -8,7 +8,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: miningStation_texture_diffuse
-    second: {fileID: 2100000, guid: 7375caece66a1b04693ffa4fc15fddde, type: 2}
+    second: {fileID: 2100000, guid: a32d4dc5f06c3174c871990c0e8f32a3, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule

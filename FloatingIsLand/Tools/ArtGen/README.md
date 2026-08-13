@@ -144,6 +144,14 @@ FBX 二进制 parse → 改贴图 → 重新序列化（FBX 记录头里的 EndO
   由子代理逐图目检定切点（spec 落 `crop_one.py` 的 JSON），俯视图只存档。
 - **tripo-v3.1 硬限制**：只收 front/left/back/right（传 top 报 400 code 10030）；产物只有 GLB
   （无 geometry_file_format 参数）；不限面数时默认 ~50 万三角面/资产，贴图 jpg 仅 ~0.4MB。
+- **face_count 必传（2026-08-13 定 20000）**：对齐旧版 rodin 资产量级（~1.9 万三角/1.4MB），
+  FBX ~1MB/个、31 个共 ~46MB（不限面时 580MB）。**禁用 reduce_face（tripo-v2.0）后减**——
+  1 万四边面会把细柱/薄墙/树冠减崩成碎片泥团；要小模型就在生成端限面重生成。
+- **限面生成一次成功率 ~74%**，必须整批质检：`qa_render.py`（Blender 无头两视角渲染，
+  **传绝对路径**，相对路径按 Blender 自身 cwd 解析落错地方）→ 目视/子代理对照概念图判定 →
+  坏的清 `.3d.task/.3d.url` 重掷、新旧取优。注意两类「假缺陷」：概念图本身的怪造型
+  （deco_tree 树冠贴地）和 tripo 对特定概念的稳定幻觉（citizenCenter 屋顶圆包，连 50 万面
+  版都有）——重掷修不掉，对照 v1 归档（archive_v1_fullres/）确认后接受即可。
 - **429 限流**：一次性提交 31 个任务只放行 ~10 个并发，其余全部 "exceeded the limit"。
   `tripo_driver.py` 以 ≤3 并发滚动提交、429 自动清任务重排队（冷却 120s，每资产最多 6 次）。
   注意网关把状态 JSON 转义进 content[0].text，bash grep 原始引号匹配不到 `"status": "Failed"`。

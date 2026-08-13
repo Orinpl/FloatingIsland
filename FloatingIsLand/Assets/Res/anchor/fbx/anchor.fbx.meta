@@ -8,7 +8,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: anchor_texture_diffuse
-    second: {fileID: 2100000, guid: e6c8cdb26b753f242907f149f41140a9, type: 2}
+    second: {fileID: 2100000, guid: 433950747e6011948a89aff00e2c5b3a, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule

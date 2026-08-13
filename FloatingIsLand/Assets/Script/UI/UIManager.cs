@@ -14,6 +14,10 @@ namespace FloatingIsLand.UI
 
         private void Awake()
         {
+            // 先套皮再收面板：列表模板（手牌 / 二选一）也在这一遍里被刷到，
+            // 之后 Instantiate 出来的条目就天然带皮，不用每次刷新手牌再补一次。
+            UISkin.Apply(transform);
+
             foreach (UIPanel panel in GetComponentsInChildren<UIPanel>(true))
             {
                 Type type = panel.GetType();
