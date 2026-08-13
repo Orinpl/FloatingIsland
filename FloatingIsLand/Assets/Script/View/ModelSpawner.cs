@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using FloatingIsLand.Domain.Map;
+using FloatingIsLand.View.Environment;
 using UnityEngine;
 
 namespace FloatingIsLand.View
@@ -51,6 +52,7 @@ namespace FloatingIsLand.View
 
             instance.name = name;
             PlaceAt(instance, cornerPosition, rotation, footprint, cellSize);
+            AmbientWindMotionBinder.Apply(instance, prefabPath);
             return instance;
         }
 
