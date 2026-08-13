@@ -24,13 +24,13 @@ namespace FloatingIsLand.Config
         public string[] elementBonus;
         /// <summary>是否可获得基础物流覆盖分（设计：风帆/物流点/物流中心 FALSE，其余 TRUE，§10.3+真值表B）</summary>
         public bool canLogisticsCover;
-        /// <summary>风力直接得分曲线，索引=风力 0~5 级，|分隔（船坞=终局风能奖励 §12.8；风帆=建造即时分 §9.1；空=不吃风力分）</summary>
+        /// <summary>风力直接得分曲线，索引=风力 0~5 级，|分隔（浮空船=终局风能奖励 §12.8；风帆=建造即时分 §9.1；空=不吃风力分）</summary>
         public int[] windScoreByLevel;
         /// <summary>被风直接穿过时的惩罚，索引=风力 0~5 级（居民区 4/5 级填负值 §12.13；空=无惩罚）</summary>
         public int[] windPassPenaltyByLevel;
         /// <summary>居民区相关邻接分的风力倍率，索引=风力 0~5 级（风向标专用 §12.1；空=不乘）</summary>
         public float[] residentWindMultByLevel;
-        /// <summary>孤立惩罚：范围内无任何加分来源时的扣分（负值；船坞用 §12.8；0=无）</summary>
+        /// <summary>孤立惩罚：范围内无任何加分来源时的扣分（负值；浮空船用 §12.8；0=无）</summary>
         public int isolationPenaltyScore;
         /// <summary>开发批次：1=MVP 首批，2=第二批（§19）</summary>
         public int mvpBatch;
@@ -90,7 +90,7 @@ namespace FloatingIsLand.Config
         public int level;
         /// <summary>名称（UI 显示）</summary>
         public string nameCn;
-        /// <summary>通用风力倍率（吃风建筑的通用即时分倍率 §20；0=待定。船坞/风帆/风向标有各自专用曲线，不走本列）</summary>
+        /// <summary>通用风力倍率（吃风建筑的通用即时分倍率 §20；0=待定。浮空船/风帆/风向标有各自专用曲线，不走本列）</summary>
         public float scoreMultiplier;
     }
 
@@ -170,7 +170,7 @@ namespace FloatingIsLand.Config
         public int giantWindmillGenericScore;
         /// <summary>层高折算系数 k（决策 26）：建筑/元素的影响范围为球形，三维欧氏距离 = √(水平格距² + (高度层差×k)²)。表现层的 EGB verticalGridHeight = k × cellSize，两边必须同一个 k（当前预制体 2/2 → k=1）</summary>
         public float layerHeightFactor;
-        /// <summary>同一锚点下第 N 座船坞的锚点收益倍率（§12.8 已定：1|0.5|0.25|0，第 4 座及以后 0）</summary>
+        /// <summary>同一锚地下第 N 艘浮空船的锚地收益倍率（§12.8 已定：1|0.5|0.25|0，第 4 艘及以后 0）。锚地：给建造船只提供锚地</summary>
         public float[] anchorDockDecayPercents;
     }
 

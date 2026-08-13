@@ -7,13 +7,18 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: anchor_texture_diffuse
+    second: {fileID: 2100000, guid: e6c8cdb26b753f242907f149f41140a9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: model
     second: {fileID: 2100000, guid: bfe70f17a0155fd43bd9a0ec8693cbd9, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: texture_diffuse
-    second: {fileID: 2100000, guid: 22b7b62b90f7a3a498b1c4760a3857ce, type: 2}
+    second: {fileID: 2100000, guid: 4e16f78623ebcc0449ee93cafbe8e281, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

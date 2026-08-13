@@ -65,8 +65,28 @@ namespace FloatingIsLand.GameInput
         /// <summary>点击位置；<see cref="Tap"/> 为 false 时无意义。</summary>
         public readonly Vector2 TapPosition;
 
+        /// <summary>
+        /// 单指刚落到屏幕上的那一帧（0 → 1 根手指）。
+        ///
+        /// 和 <see cref="Pan"/> 分开报是有用的：<see cref="Pan"/> 要等累计位移过了点击阈值才出量，
+        /// 也就是说手指落下与「开始拖」之间必然隔着至少一帧。玩法层要在这一帧就决定
+        /// 「这一次拖归建筑还是归相机」，才能赶在第一个平移量产生之前把归属定下来
+        /// （否则画面会先跳一帧再交接）。
+        /// </summary>
+        public readonly bool PressBegan;
+
+        /// <summary>手指全部离开屏幕的那一帧（>0 → 0 根手指）。</summary>
+        public readonly bool PressEnded;
+
+        /// <summary>当前主手指的屏幕位置；抬手那一帧是离开前的最后位置。</summary>
+        public readonly Vector2 Position;
+
+        /// <summary>这一帧屏幕上还有没有手指。</summary>
+        public readonly bool HasFinger;
+
         public TouchGesture(Vector2 pan, float pinchDelta, float twistDegrees, Vector2 twoFingerDrag,
-            bool tap, Vector2 tapPosition)
+            bool tap, Vector2 tapPosition,
+            bool pressBegan, bool pressEnded, Vector2 position, bool hasFinger)
         {
             Pan = pan;
             PinchDelta = pinchDelta;
@@ -74,6 +94,10 @@ namespace FloatingIsLand.GameInput
             TwoFingerDrag = twoFingerDrag;
             Tap = tap;
             TapPosition = tapPosition;
+            PressBegan = pressBegan;
+            PressEnded = pressEnded;
+            Position = position;
+            HasFinger = hasFinger;
         }
     }
 
@@ -141,7 +165,8 @@ namespace FloatingIsLand.GameInput
             }
 
             // 0 → 1：一次新手势开始
-            if (count == 1 && _prevCount == 0)
+            bool pressBegan = count == 1 && _prevCount == 0;
+            if (pressBegan)
             {
                 _gestureActive = true;
                 _gestureStartTime = frame.Time;
@@ -179,7 +204,8 @@ namespace FloatingIsLand.GameInput
             }
 
             // 手指全抬起：这一次算不算点击
-            if (count == 0 && _prevCount > 0 && _gestureActive)
+            bool pressEnded = count == 0 && _prevCount > 0;
+            if (pressEnded && _gestureActive)
             {
                 _gestureActive = false;
                 if (!_multiFinger && _travel <= TapSlopPixels && frame.Time - _gestureStartTime <= TapMaxSeconds)
@@ -190,7 +216,9 @@ namespace FloatingIsLand.GameInput
             }
 
             _prevCount = count;
-            return new TouchGesture(pan, pinch, twist, twoFingerDrag, tap, tapPosition);
+            return new TouchGesture(
+                pan, pinch, twist, twoFingerDrag, tap, tapPosition,
+                pressBegan, pressEnded, _lastPosition, count > 0);
         }
     }
 }

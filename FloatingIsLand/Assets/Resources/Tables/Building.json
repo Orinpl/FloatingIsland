@@ -132,7 +132,7 @@
   },
   {
     "buildingId": "dock",
-    "nameCn": "船坞",
+    "nameCn": "浮空船",
     "category": "windEnergy",
     "placement": "floatingZone",
     "radius": 6,

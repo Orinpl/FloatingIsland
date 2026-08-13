@@ -12,8 +12,13 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: restaurant_texture_diffuse
+    second: {fileID: 2100000, guid: 9eb352ac4bf8bb34bb3ee742533acd7c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: texture_diffuse
-    second: {fileID: 2100000, guid: 802e622ee81393542b5a75f0aa6169a8, type: 2}
+    second: {fileID: 2100000, guid: 398ba0a06ab015141857563a6bf5fa98, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

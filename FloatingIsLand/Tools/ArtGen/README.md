@@ -135,3 +135,26 @@ FBX 二进制 parse → 改贴图 → 重新序列化（FBX 记录头里的 EndO
 `manifest.tsv` 的资产 id 对齐 `Tables/FloatingIsland.xlsx`：建筑 id → `Building.buildingId`，
 变体 id（如 `residence_02`）→ `BuildingVariant.variantId`，地图元素 → `MapElement.elementId`。
 **占地格数以配表 `footprint` 为准**，效果图上的底板格子只是给 AI 的比例参考，模型导入后需按格宽缩放对齐。
+
+## tripo-v3.1 路线（2026-08-13 起）
+
+概念图已有人工三视图时跳过 stage a/b，直接：切图 → `tripo_driver.py` 生成 → `convert_all_glb.sh` 转 FBX → `swap_in_fbx.sh` 换入。
+
+- **切图**：概念图多为「正/侧/俯」横排白底，面板间常有几像素级粘连，纯列扫描不可靠——
+  由子代理逐图目检定切点（spec 落 `crop_one.py` 的 JSON），俯视图只存档。
+- **tripo-v3.1 硬限制**：只收 front/left/back/right（传 top 报 400 code 10030）；产物只有 GLB
+  （无 geometry_file_format 参数）；不限面数时默认 ~50 万三角面/资产，贴图 jpg 仅 ~0.4MB。
+- **429 限流**：一次性提交 31 个任务只放行 ~10 个并发，其余全部 "exceeded the limit"。
+  `tripo_driver.py` 以 ≤3 并发滚动提交、429 自动清任务重排队（冷却 120s，每资产最多 6 次）。
+  注意网关把状态 JSON 转义进 content[0].text，bash grep 原始引号匹配不到 `"status": "Failed"`。
+- **GLB→FBX**：便携 Blender（D:/tools/blender-4.5.3-windows-x64）跑 `convert_glb2fbx.py`，
+  贴图数据块按语义改名（Color→<id>_texture_diffuse、NormalGL→<id>_texture_normal，ORM 弃用——
+  通道布局 R=AO/G=Rough/B=Metal，直接当 _MetallicGlossMap 挂会错）。
+- **换入后清旧贴图**：旧 rodin 的 `texture_diffuse.png` 与新 `<id>_texture_diffuse.jpg` 会同时
+  命中提取器的语义匹配，重生成的资产必须先删旧贴图再重跑提取。
+- **长菜单不要走 MCP execute_menu_item**：提取/生成把主线程阻塞几分钟，桥心跳超时被 hub 判掉线。
+  用 `Assets/Editor/MenuQueueRunner.cs`：菜单路径逐行写 `Temp/menu_queue.txt`，
+  结果看 `Temp/menu_queue_result.txt`（每行 ok/fail+耗时，收尾 `=== done ===`）。
+- **民居拼装**：`ResidenceAssembler.cs` 把 `Assets/Res/resHouse_NN` 的 1×1 房子按 BuildingVariant
+  footprint 拼 田/L/凹；收尾做「整块 min-fit 缩放 + 重居中」，否则长边差 0.2% 过不了对位校验。
+- **装饰品**：`DecoPrefabGenerator.cs` 扫 `Assets/Res/deco_*` → `Prefab/Deco/`，按前缀配目标尺寸。

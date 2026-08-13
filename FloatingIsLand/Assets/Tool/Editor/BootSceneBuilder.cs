@@ -212,6 +212,12 @@ namespace FloatingIsLand.EditorTools
             CanvasScaler scaler = uiRootGo.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920f, 1080f);
+            // Expand（按较小边缩放）而不是 MatchWidthOrHeight=0.5：PC 端是可自由拖拽的窗口，
+            // 宽高比什么都可能。0.5 是宽高取几何平均，窗口被拉扁时画布逻辑高度会小于 1080，
+            // 于是贴着上下边放的东西（结算页 ±400 的按钮、HUD 底栏）直接被推出屏幕。
+            // Expand 保证 1920×1080 这块参考区域**永远完整可见**，多出来的宽或高摊给留白，
+            // 而面板内的元素都是锚在四角/四边上的，留白只会让它们离得更开，不会错位。
+            scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
             scaler.matchWidthOrHeight = 0.5f;
             uiRootGo.AddComponent<GraphicRaycaster>();
             uiRootGo.AddComponent<UIManager>();

@@ -43,6 +43,14 @@ namespace FloatingIsLand.EditorTools
         /// </summary>
         private const AndroidSdkVersions AndroidMinSdk = AndroidSdkVersions.AndroidApiLevel24;
 
+        /// <summary>
+        /// PC 端初次启动的窗口大小。取 1600×900 而不是 1920×1080：后者在 1080p 桌面上
+        /// 连标题栏带任务栏根本放不下，Windows 会把窗口挤到屏幕外，第一眼就像坏了。
+        /// 16:9 与 UI 参考分辨率同比，起始不会有任何缩放误差。
+        /// </summary>
+        private const int WindowsDefaultWidth = 1600;
+        private const int WindowsDefaultHeight = 900;
+
         // ── 菜单 ──────────────────────────────────────────────────────────────
 
         [MenuItem("Tools/打包/同时打包 Windows + Android", priority = 0)]
@@ -129,6 +137,8 @@ namespace FloatingIsLand.EditorTools
                 return false;
             }
 
+            ApplyWindowsPlayerSettings();
+
             Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
             SwitchTo(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64);
 
@@ -142,6 +152,61 @@ namespace FloatingIsLand.EditorTools
             };
 
             return Run("Windows x64", options);
+        }
+
+        /// <summary>
+        /// PC 端的窗口形态：**有边框窗口 + 可拖边调整大小**，而不是独占全屏。
+        ///
+        /// 这几项是一整套，缺一项就不成立：
+        /// <list type="bullet">
+        /// <item>fullScreenMode = Windowed —— 默认的 FullScreenWindow 是无边框全屏，
+        ///       没有窗口边缘可拖，resizableWindow 勾了也白勾。</item>
+        /// <item>resizableWindow = true —— 才有可拖的边框与最大化按钮。</item>
+        /// <item>defaultIsNativeResolution = false —— 开着的话初始窗口按显示器分辨率来，
+        ///       在 1080p 桌面上会得到一个比屏幕还大的窗口；关掉才用下面这对默认宽高。</item>
+        /// <item>allowFullscreenSwitch = true —— 保留 Alt+Enter 切全屏，玩家想全屏还是能全屏。</item>
+        /// </list>
+        ///
+        /// 窗口能被拉成任意宽高比，UI 侧靠 Boot 场景 CanvasScaler 的 Expand 匹配模式兜住
+        /// （见 BootSceneBuilder，1920×1080 参考分辨率按较小边缩放，保证不裁切）。
+        /// </summary>
+        private static void ApplyWindowsPlayerSettings()
+        {
+            if (PlayerSettings.fullScreenMode != FullScreenMode.Windowed)
+            {
+                Debug.Log($"[打包] PC 窗口模式：{PlayerSettings.fullScreenMode} → Windowed（带边框窗口）");
+                PlayerSettings.fullScreenMode = FullScreenMode.Windowed;
+            }
+
+            if (!PlayerSettings.resizableWindow)
+            {
+                Debug.Log("[打包] PC 窗口可调整大小：关 → 开（窗口边缘可拖拽）");
+                PlayerSettings.resizableWindow = true;
+            }
+
+            if (PlayerSettings.defaultIsNativeResolution)
+            {
+                Debug.Log("[打包] PC 默认用显示器原生分辨率：开 → 关（改用下面的默认窗口尺寸）");
+                PlayerSettings.defaultIsNativeResolution = false;
+            }
+
+            if (PlayerSettings.defaultScreenWidth != WindowsDefaultWidth ||
+                PlayerSettings.defaultScreenHeight != WindowsDefaultHeight)
+            {
+                Debug.Log(
+                    $"[打包] PC 初始窗口尺寸：{PlayerSettings.defaultScreenWidth}×{PlayerSettings.defaultScreenHeight} → " +
+                    $"{WindowsDefaultWidth}×{WindowsDefaultHeight}");
+                PlayerSettings.defaultScreenWidth = WindowsDefaultWidth;
+                PlayerSettings.defaultScreenHeight = WindowsDefaultHeight;
+            }
+
+            if (!PlayerSettings.allowFullscreenSwitch)
+            {
+                Debug.Log("[打包] PC 允许 Alt+Enter 切全屏：关 → 开");
+                PlayerSettings.allowFullscreenSwitch = true;
+            }
+
+            AssetDatabase.SaveAssets();
         }
 
         // ── Android ───────────────────────────────────────────────────────────
@@ -192,11 +257,17 @@ namespace FloatingIsLand.EditorTools
 
         /// <summary>
         /// 把安卓侧非改不可的工程设置摆正，每一处都先说明再改。
-        /// 「非改不可」的判据是：不改就打不出能装/能上架的包。审美类的（图标、启动图、
-        /// 横竖屏）不在这里动——那是策划美术的决定，藏在打包流程里改只会让人找不着。
+        /// 「非改不可」的判据是：不改就打不出能装/能玩/能上架的包。纯审美类的（图标、启动图）
+        /// 不在这里动——那是策划美术的决定，藏在打包流程里改只会让人找不着。
+        ///
+        /// **横屏是例外，从审美挪进了这里**：本作已定为横屏游戏（UI 参考分辨率 1920×1080、
+        /// PC 端窗口 16:9、局内相机手势按横向布局调的手感），竖起来玩不是"另一种审美"而是坏的。
+        /// 它又恰好是最容易在换机器 / 重导工程后被悄悄改回默认的一项，所以钉在出包流程里每次强制摆正。
         /// </summary>
         private static void ApplyAndroidPlayerSettings(bool aab)
         {
+            ApplyLandscapeOrientation();
+
             string identifier = PlayerSettings.GetApplicationIdentifier(BuildTargetGroup.Android);
             if (!string.Equals(identifier, AndroidApplicationId, StringComparison.Ordinal))
             {
@@ -243,6 +314,37 @@ namespace FloatingIsLand.EditorTools
             AssetDatabase.SaveAssets();
         }
 
+        /// <summary>
+        /// 锁横屏（左右横都允许，竖屏两个方向都禁掉）。
+        ///
+        /// 用 AutoRotation + 只放行两个横向，而不是直接钉死 LandscapeLeft：钉死单一方向的话，
+        /// 玩家把手机转 180° 画面就上下颠倒，而这两个方向对本作没有任何区别。
+        /// 赋值顺序也不能反——必须先放行横屏再禁竖屏，中间一旦出现"四个方向全 false"
+        /// 的瞬间，Unity 会当成非法配置。
+        /// </summary>
+        private static void ApplyLandscapeOrientation()
+        {
+            if (PlayerSettings.defaultInterfaceOrientation != UIOrientation.AutoRotation)
+            {
+                Debug.Log($"[打包] 屏幕方向：{PlayerSettings.defaultInterfaceOrientation} → AutoRotation（仅横屏）");
+                PlayerSettings.defaultInterfaceOrientation = UIOrientation.AutoRotation;
+            }
+
+            if (!PlayerSettings.allowedAutorotateToLandscapeLeft || !PlayerSettings.allowedAutorotateToLandscapeRight)
+            {
+                Debug.Log("[打包] 放行横屏左 / 横屏右");
+                PlayerSettings.allowedAutorotateToLandscapeLeft = true;
+                PlayerSettings.allowedAutorotateToLandscapeRight = true;
+            }
+
+            if (PlayerSettings.allowedAutorotateToPortrait || PlayerSettings.allowedAutorotateToPortraitUpsideDown)
+            {
+                Debug.Log("[打包] 禁用竖屏（正 / 倒）：本作按 16:9 横屏布局，竖起来 UI 会挤成一团");
+                PlayerSettings.allowedAutorotateToPortrait = false;
+                PlayerSettings.allowedAutorotateToPortraitUpsideDown = false;
+            }
+        }
+
         // ── 公共环节 ──────────────────────────────────────────────────────────
 
         private static bool Run(string label, BuildPlayerOptions options)
@@ -264,14 +366,50 @@ namespace FloatingIsLand.EditorTools
             if (summary.result != BuildResult.Succeeded)
             {
                 Debug.LogError(
-                    $"[打包] {label} 失败（{summary.result}）：错误 {summary.totalErrors} 条，用时 {summary.totalTime}。" +
-                    "具体原因在上面的编译 / gradle 日志里。");
+                    $"[打包] {label} 失败（{summary.result}）：错误 {summary.totalErrors} 条，用时 {summary.totalTime}。\n" +
+                    DescribeFailures(report));
                 return false;
             }
 
             double megabytes = summary.totalSize / 1024.0 / 1024.0;
             Debug.Log($"[打包] {label} 完成：{options.locationPathName}（{megabytes:F1} MB，用时 {summary.totalTime}）");
             return true;
+        }
+
+        /// <summary>
+        /// 把 BuildReport 里的错误行摘出来，直接贴进这条 LogError。
+        /// 不这么做的话报错只会说"原因在上面的日志里"，而真正的原因（比如
+        /// "script class layout is incompatible between the editor and the player"）
+        /// 埋在几 GB 的 Editor.log 中间，每次都得去刨。
+        /// </summary>
+        private static string DescribeFailures(BuildReport report)
+        {
+            var lines = new List<string>();
+            BuildStep[] steps = report.steps;
+            for (int i = 0; i < steps.Length; i++)
+            {
+                BuildStepMessage[] messages = steps[i].messages;
+                for (int j = 0; j < messages.Length; j++)
+                {
+                    LogType type = messages[j].type;
+                    if (type != LogType.Error && type != LogType.Exception && type != LogType.Assert)
+                    {
+                        continue;
+                    }
+                    lines.Add($"  [{steps[i].name}] {messages[j].content.Trim()}");
+                    if (lines.Count >= 20)
+                    {
+                        lines.Add("  …（错误过多，其余见 Editor.log）");
+                        return string.Join("\n", lines);
+                    }
+                }
+            }
+
+            if (lines.Count == 0)
+            {
+                return "  BuildReport 里没有错误条目，具体原因看上面的编译 / gradle 日志。";
+            }
+            return string.Join("\n", lines);
         }
 
         /// <summary>Build Settings 里勾上的场景。顺序就是启动顺序，第 0 个是启动场景。</summary>

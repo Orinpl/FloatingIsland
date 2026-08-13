@@ -12,8 +12,9 @@ namespace FloatingIsLand.UI
     /// - **左下角计分区**：总分 / 金币 / 当前等级 + 「解锁下一组建筑」按钮；
     /// - **屏幕中下建筑列表**：当前手牌，点一张即进入摆放模式（再点一次取消）；
     /// - 顶部保留关数信息与占位「结束本局」按钮；
-    /// - **右下触屏工具条**（旋转 / 建造 / 取消）：只在触屏 + 摆放模式下出现，
+    /// - **浮在待摆建筑头顶的触屏工具条**（旋转 / 建造 / 取消）：只在触屏 + 摆放模式下出现，
     ///   补上手机没有的滚轮、左键和 Esc（见 <see cref="SetTouchControls"/>）。
+    ///   位置每帧跟着建筑走；指不到任何格子时才回落到屏幕右下角。
     ///
     /// 面板是哑视图：只暴露控件与 Set 方法，所有行为由适配器绑定
     /// （流程按钮 → FlowUIAdapter，建造相关 → BuildHudAdapter）。
@@ -375,6 +376,10 @@ namespace FloatingIsLand.UI
         // 整条工具条运行时现建，理由和上面的略缩图 / 形状图标一样——场景是 BootSceneBuilder
         // 生成的，往模板里加节点就得重跑那条带模态弹窗的生成流程，而这三个按钮没有任何
         // 需要美术在 Inspector 里调的引用。
+        //
+        // 工具条**跟着待摆建筑走，浮在它头顶**，不再钉在屏幕右下角。原因是手机屏幕小：
+        // 钉在角上的话，玩家的视线要在「楼在哪」和「按钮在哪」之间来回跳，而且拇指伸过去
+        // 的路上正好盖住刚摆好的楼。浮在楼头顶则是「看哪儿点哪儿」，也顺带避开了手指遮挡区。
 
         /// <summary>按钮尺寸（像素，参考分辨率 1920×1080）。够一根手指按，不用瞄。</summary>
         private static readonly Vector2 TouchButtonSize = new Vector2(150f, 92f);
@@ -382,8 +387,15 @@ namespace FloatingIsLand.UI
         private const float TouchBarMargin = 24f;
         private const float TouchBarGap = 12f;
 
-        /// <summary>工具条抬离屏幕底部的高度：要压在手牌条上方，不然会挡住手牌。</summary>
+        /// <summary>
+        /// 没有落点时工具条回落到的高度（抬离屏幕底部）：要压在手牌条上方，不然会挡住手牌。
+        /// 只在「摆放中但指不到任何格子」时用得上——那种情况下没有楼可以浮，
+        /// 但「取消」必须还够得着，否则玩家会被卡在摆放模式里出不来。
+        /// </summary>
         private const float TouchBarBottom = 190f;
+
+        /// <summary>工具条底边离建筑头顶锚点的额外像素间距。锚点本身已在世界空间里让开了飘分数字。</summary>
+        private const float TouchBarAnchorPadding = 8f;
 
         private const int TouchButtonFontSize = 26;
 
@@ -392,10 +404,17 @@ namespace FloatingIsLand.UI
         private Text _confirmLabel;
 
         /// <summary>
-        /// 显隐触屏工具条。<paramref name="canConfirm"/> = 当前落点合法（决定「建造」按钮灰不灰）。
-        /// 只在触屏模式且正在摆放时显示：鼠标玩家不需要它，摆放模式外也没有可确认的东西。
+        /// 显隐并摆放触屏工具条。只在触屏模式且正在摆放时显示：鼠标玩家不需要它，
+        /// 摆放模式外也没有可确认的东西。
         /// </summary>
-        public void SetTouchControls(bool visible, bool canConfirm, string confirmLabel)
+        /// <param name="canConfirm">当前落点合法（决定「建造」按钮灰不灰）。</param>
+        /// <param name="hasAnchor">
+        /// 有没有算出建筑头顶在屏幕上的位置。false 时（没落点，或楼被转到了相机背后）
+        /// 回落到屏幕右下角——宁可位置不理想，也不能让「取消」消失。
+        /// </param>
+        /// <param name="screenAnchor">建筑头顶的屏幕坐标（像素）。</param>
+        public void SetTouchControls(
+            bool visible, bool canConfirm, string confirmLabel, bool hasAnchor, Vector2 screenAnchor)
         {
             if (!visible)
             {
@@ -408,6 +427,7 @@ namespace FloatingIsLand.UI
 
             EnsureTouchBar();
             _touchBar.gameObject.SetActive(true);
+            PositionTouchBar(hasAnchor, screenAnchor);
             if (_confirmButton != null)
             {
                 _confirmButton.interactable = canConfirm;
@@ -416,6 +436,48 @@ namespace FloatingIsLand.UI
             {
                 _confirmLabel.text = confirmLabel;
             }
+        }
+
+        /// <summary>
+        /// 把工具条摆到建筑头顶，并保证整条都还在屏幕里。
+        ///
+        /// 坐标换算全部走「以面板矩形左下角为原点」：工具条锚点定在 (0,0)，于是
+        /// anchoredPosition 就是离左下角的偏移，与面板自身的 pivot 无关——
+        /// 面板是全屏拉伸的，但不该把它的 pivot 恰好是 (0.5,0.5) 这件事写进算式里。
+        ///
+        /// 限幅是必须的：楼可以被拖到屏幕边缘甚至画面外，工具条跟出去就点不着了。
+        /// 贴边时宁可让它压在楼旁边，也好过跟着飞出屏幕。
+        /// </summary>
+        private void PositionTouchBar(bool hasAnchor, Vector2 screenAnchor)
+        {
+            var panelRect = transform as RectTransform;
+            if (panelRect == null)
+            {
+                return;
+            }
+
+            Rect area = panelRect.rect;
+            Vector2 size = _touchBar.sizeDelta;
+            float halfWidth = size.x * 0.5f;
+
+            // Canvas 是 ScreenSpaceOverlay，所以取局部坐标时第三个参数（相机）必须传 null
+            Vector2 local;
+            Vector2 target;
+            if (hasAnchor
+                && RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    panelRect, screenAnchor, null, out local))
+            {
+                target = (local - area.min) + new Vector2(0f, TouchBarAnchorPadding);
+            }
+            else
+            {
+                // 回落到右下角，与改造前同一个位置
+                target = new Vector2(area.width - TouchBarMargin - halfWidth, TouchBarBottom);
+            }
+
+            target.x = Mathf.Clamp(target.x, TouchBarMargin + halfWidth, area.width - TouchBarMargin - halfWidth);
+            target.y = Mathf.Clamp(target.y, TouchBarMargin, area.height - TouchBarMargin - size.y);
+            _touchBar.anchoredPosition = target;
         }
 
         private void EnsureTouchBar()
@@ -428,10 +490,11 @@ namespace FloatingIsLand.UI
             var barGo = new GameObject("TouchControls", typeof(RectTransform));
             barGo.transform.SetParent(transform, false);
             _touchBar = (RectTransform)barGo.transform;
-            _touchBar.anchorMin = new Vector2(1f, 0f);
-            _touchBar.anchorMax = new Vector2(1f, 0f);
-            _touchBar.pivot = new Vector2(1f, 0f);
-            _touchBar.anchoredPosition = new Vector2(-TouchBarMargin, TouchBarBottom);
+            // 锚在面板左下角、自身 pivot 取底边中点：位置每帧由 PositionTouchBar 算，
+            // 底边中点让「浮在楼正上方」变成直接把投影点写进 anchoredPosition
+            _touchBar.anchorMin = Vector2.zero;
+            _touchBar.anchorMax = Vector2.zero;
+            _touchBar.pivot = new Vector2(0.5f, 0f);
             _touchBar.sizeDelta = new Vector2(
                 TouchButtonSize.x * 3f + TouchBarGap * 2f, TouchButtonSize.y);
 

@@ -286,7 +286,7 @@ MonoBehaviour:
   panUnitsPerPixel: 0.002
   minHeight: 1.5
   maxHeight: 80
-  touchPanScale: 2.2
+  touchPanScale: 1.2
   touchZoomUnitsPerPixel: 0.06
   touchTwistToYaw: 1
   touchPitchScale: 1.5

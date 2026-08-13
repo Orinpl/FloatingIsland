@@ -7,13 +7,18 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: farm_texture_diffuse
+    second: {fileID: 2100000, guid: b3df3a352b3d53a4580736143ddef9ee, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: model
     second: {fileID: 2100000, guid: 9740170ee1e495d40a8ea8da49463997, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: texture_diffuse
-    second: {fileID: 2100000, guid: 74922562ebf160a4ba44f1fbf2ae2584, type: 2}
+    second: {fileID: 2100000, guid: edda48add13608b4c84b8b2072336dd7, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

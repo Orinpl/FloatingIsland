@@ -47,8 +47,9 @@ namespace FloatingIsLand.GameInput
         [SerializeField] private float maxHeight = 80f;
 
         [Header("触屏")]
-        [Tooltip("单指拖平移相对中键拖的倍率。手指比鼠标粗、屏幕比显示器小，1:1 会觉得拖不动")]
-        [SerializeField] private float touchPanScale = 2.2f;
+        [Tooltip("单指拖平移相对中键拖的倍率。手指比鼠标粗、屏幕比显示器小，1:1 会觉得拖不动；" +
+                 "但倍率给高了在手机上又会「一划过半张图」，找不回刚才在看的地方")]
+        [SerializeField] private float touchPanScale = 1.2f;
 
         [Tooltip("双指捏合每像素间距变化沿视线推进的距离（米）")]
         [SerializeField] private float touchZoomUnitsPerPixel = 0.06f;
@@ -94,10 +95,14 @@ namespace FloatingIsLand.GameInput
         ///
         /// 缩放不看 <see cref="InputArbiter"/>：那条让位规则是给滚轮的（建造模式下滚轮改成转建筑），
         /// 而触屏转建筑走的是 HUD 按钮，双指捏合和它不抢同一个物理输入。
+        ///
+        /// 单指平移则**要**看仲裁：手指落在待摆建筑附近时这一次拖动归建筑
+        /// （见 <see cref="InputArbiter.PanConsumedByGameplay"/>）。只让出平移，
+        /// 捏合 / 双指转 / 双指俯仰照常——那些是双指手势，和拖建筑不冲突。
         /// </summary>
         private void StepTouch(ref Vector3 position, ref float yawDelta, ref float pitchDelta)
         {
-            Vector2 pan = PointerInput.PanDelta;
+            Vector2 pan = InputArbiter.PanConsumedByGameplay ? Vector2.zero : PointerInput.PanDelta;
             if (pan.sqrMagnitude > 0f)
             {
                 // 与中键拖同一口径：内容跟手，相机沿屏幕轴反向走；幅度随高度缩放

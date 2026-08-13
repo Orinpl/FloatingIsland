@@ -27,7 +27,8 @@ namespace FloatingIsLand.GameInput
     ///
     /// |            | PC              | 手机                    |
     /// |------------|-----------------|-------------------------|
-    /// | 移动视角   | WASD / 中键拖   | 单指拖                  |
+    /// | 移动视角   | WASD / 中键拖   | 单指拖（落点不在建筑上时） |
+    /// | 挪动待摆建筑 | 光标移动      | 从建筑上起手单指拖      |
     /// | 缩放       | 滚轮            | 双指捏合                |
     /// | 旋转视角   | 右键拖          | 双指转（偏航）/ 双指上下拖（俯仰） |
     /// | 指向格子   | 光标悬停        | 点一下（点到哪停在哪）  |
@@ -188,6 +189,57 @@ namespace FloatingIsLand.GameInput
         public static int TouchCount
         {
             get { Sample(); return _activeTouches.Count; }
+        }
+
+        /// <summary>
+        /// 单指刚落到屏幕上的那一帧。玩法层用它抢在第一个 <see cref="PanDelta"/> 出现之前
+        /// 决定这一次拖动归谁（详见 <see cref="TouchGesture.PressBegan"/>）。
+        /// </summary>
+        public static bool PressBeganThisFrame
+        {
+            get { Sample(); return _gesture.PressBegan; }
+        }
+
+        /// <summary>手指全部离开屏幕的那一帧。</summary>
+        public static bool PressEndedThisFrame
+        {
+            get { Sample(); return _gesture.PressEnded; }
+        }
+
+        /// <summary>主手指的当前屏幕位置（抬手那一帧是离开前的最后位置）。仅触屏有意义。</summary>
+        public static Vector2 PressPosition
+        {
+            get { Sample(); return _gesture.Position; }
+        }
+
+        /// <summary>这一帧屏幕上还有没有手指。</summary>
+        public static bool HasFinger
+        {
+            get { Sample(); return _gesture.HasFinger; }
+        }
+
+        /// <summary>屏幕 DPI，取不到时按 160 兜底。凡是「多少英寸算近」的判定都该走这里，别各自写死像素。</summary>
+        public static float ScreenDpi
+        {
+            get { return Screen.dpi > 1f ? Screen.dpi : FallbackDpi; }
+        }
+
+        /// <summary>
+        /// 由玩法层改写黏性悬停位置。
+        ///
+        /// 触屏的悬停本来只由「点一下」产生（见类注释），但拖动建筑时建筑要跟手，
+        /// 而下游（<c>IGridPresenter.TryGetHoveredCell</c>、摆放预览、地形高亮）统统是从这个位置
+        /// 反查格子的。与其在下游各开一条「拖动中改读别处」的岔路，不如让拖动方直接改写这一个源头，
+        /// 下游一行都不用动。
+        /// </summary>
+        public static void SetHover(Vector2 position)
+        {
+            // 先采样再写：否则本帧首次访问会在写入之后才跑 Sample，把刚设的位置盖掉
+            Sample();
+            _hoverPosition = position;
+            _hasHover = true;
+            // 位置变了，本帧缓存的「压没压在 UI 上」作废
+            _uiCheckedFrame = -1;
         }
 
         /// <summary>把黏性悬停清掉（退出摆放模式 / 场景卸载时调）。鼠标模式下调用无害：下一帧会重新采到光标位置。</summary>
@@ -421,11 +473,7 @@ namespace FloatingIsLand.GameInput
         /// <summary>点击位移阈值换算成像素。DPI 取不到时按 160 兜底，否则高分屏上手一抖就不算点击了。</summary>
         private static float TapSlopPixels
         {
-            get
-            {
-                float dpi = Screen.dpi > 1f ? Screen.dpi : FallbackDpi;
-                return TapSlopInches * dpi;
-            }
+            get { return TapSlopInches * ScreenDpi; }
         }
 
     }

@@ -7,8 +7,13 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: miningStation_texture_diffuse
+    second: {fileID: 2100000, guid: 7375caece66a1b04693ffa4fc15fddde, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: texture_diffuse
-    second: {fileID: 2100000, guid: 96449e2c651c8cb4eb471a42c6d63f88, type: 2}
+    second: {fileID: 2100000, guid: feec321f2fe4bda4aa5b69de16e90a65, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

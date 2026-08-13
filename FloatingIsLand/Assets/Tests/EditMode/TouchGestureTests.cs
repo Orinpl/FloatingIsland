@@ -188,6 +188,87 @@ namespace FloatingIsLand.Tests
         }
 
         [Test]
+        public void 手指落下那一帧报按下并给出位置()
+        {
+            TouchGestureTracker tracker = NewTracker();
+            var finger = new Vector2(400f, 300f);
+
+            TouchGesture down = tracker.Step(TouchFrame.One(finger, Vector2.zero, 0f));
+
+            Assert.IsTrue(down.PressBegan, "0 → 1 根手指就是一次按下");
+            Assert.IsTrue(down.HasFinger);
+            Assert.AreEqual(finger, down.Position);
+
+            TouchGesture hold = tracker.Step(TouchFrame.One(finger, Vector2.zero, 0.02f));
+            Assert.IsFalse(hold.PressBegan, "按下只在落指那一帧报一次，不是「按着就一直报」");
+        }
+
+        [Test]
+        public void 按下必定早于第一个平移量至少一帧()
+        {
+            // 这是「拖建筑」能抢在相机之前认领这次拖动的前提（见 InputArbiter.PanConsumedByGameplay）：
+            // 玩法层在落指帧就能定归属，而平移量要等累计位移过阈值才出现。
+            // 这条一旦破了，相机会先跟着手指动一帧再交接，表现为建筑拖起来时画面抖一下。
+            TouchGestureTracker tracker = NewTracker();
+            var finger = new Vector2(400f, 300f);
+
+            TouchGesture down = tracker.Step(TouchFrame.One(finger, Vector2.zero, 0f));
+            Assert.IsTrue(down.PressBegan);
+            Assert.AreEqual(Vector2.zero, down.Pan, "落指那一帧不可能已经有平移量");
+
+            // 一口气拖过阈值：即便如此，平移也只能在落指之后的帧里出现
+            TouchGesture moved = tracker.Step(
+                TouchFrame.One(finger + new Vector2(40f, 0f), new Vector2(40f, 0f), 0.02f));
+            Assert.IsFalse(moved.PressBegan);
+            Assert.AreNotEqual(Vector2.zero, moved.Pan);
+        }
+
+        [Test]
+        public void 抬手那一帧报抬起且位置是离开前的最后一点()
+        {
+            TouchGestureTracker tracker = NewTracker();
+            var finger = new Vector2(400f, 300f);
+            var moved = finger + new Vector2(40f, 0f);
+
+            tracker.Step(TouchFrame.One(finger, Vector2.zero, 0f));
+            tracker.Step(TouchFrame.One(moved, new Vector2(40f, 0f), 0.05f));
+            TouchGesture lift = tracker.Step(TouchFrame.None(0.1f));
+
+            Assert.IsTrue(lift.PressEnded, ">0 → 0 根手指就是一次抬起");
+            Assert.IsFalse(lift.HasFinger);
+            Assert.AreEqual(moved, lift.Position, "抬手帧屏幕上已经没有手指，位置得沿用离开前那一点");
+        }
+
+        [Test]
+        public void 两指同时落下不算按下()
+        {
+            // 0 → 2 是双指手势起手，不该被当成「单指按在了某栋楼上」而把这次拖动判给建筑
+            TouchGestureTracker tracker = NewTracker();
+            var a = new Vector2(400f, 300f);
+            var b = new Vector2(600f, 300f);
+
+            TouchGesture down = tracker.Step(TouchFrame.Two(a, Vector2.zero, b, Vector2.zero, 0f));
+
+            Assert.IsFalse(down.PressBegan);
+        }
+
+        [Test]
+        public void 抬起只在手指全部离开时报一次()
+        {
+            // 双指缩放里松开一根手指不算抬起——手势还在继续，这时候交还拖动归属会让操作断掉
+            TouchGestureTracker tracker = NewTracker();
+            var a = new Vector2(400f, 300f);
+            var b = new Vector2(600f, 300f);
+
+            tracker.Step(TouchFrame.Two(a, Vector2.zero, b, Vector2.zero, 0f));
+            TouchGesture oneLeft = tracker.Step(TouchFrame.One(a, Vector2.zero, 0.05f));
+            Assert.IsFalse(oneLeft.PressEnded, "还剩一根手指，手势没结束");
+
+            TouchGesture allGone = tracker.Step(TouchFrame.None(0.1f));
+            Assert.IsTrue(allGone.PressEnded);
+        }
+
+        [Test]
         public void 重置之后上一次手势不会漏进下一次()
         {
             TouchGestureTracker tracker = NewTracker();

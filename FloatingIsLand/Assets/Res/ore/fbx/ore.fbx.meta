@@ -12,8 +12,13 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: ore_texture_diffuse
+    second: {fileID: 2100000, guid: 50e987ad5244d504281f4c0e05de28e2, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: texture_diffuse
-    second: {fileID: 2100000, guid: 0451d5a1065825f4399c1a89de2b6f11, type: 2}
+    second: {fileID: 2100000, guid: 55c6bcc4915067749b832fa971dbe73c, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

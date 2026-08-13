@@ -19,6 +19,10 @@ namespace FloatingIsLand.View
     /// <see cref="BuildCommandBus"/> 传进来。落地、算分、预览全部还是同一份代码，
     /// 两端唯一的区别只有「怎么选中这一格」和「怎么说确认」。
     ///
+    /// 手指落在待摆建筑附近时还有第三种动作：**直接把楼拖着走**（<see cref="StepGhostDrag"/>）。
+    /// 这一次拖动归建筑，相机的单指平移让位；落在别处则照旧拖地图。松手不落地，
+    /// 而是等价于「点了第一下」——再点一下或点 HUD「建造」才真正落成，误建防线不因此变松。
+    ///
     /// 相机操作保持原有逻辑不变（WASD 平移、右键拖旋转、中键拖平移、Shift/Ctrl 升降）；
     /// 只有滚轮在建造模式下让位给建筑旋转——通过 <see cref="InputArbiter"/> 声明占用，
     /// 相机控制器读同一个标志位跳过缩放。
@@ -45,6 +49,11 @@ namespace FloatingIsLand.View
 
         [Tooltip("这一格自身就是障碍（虚空 / 已被占 / 压到元素 / 地形不符）时的颜色")]
         [SerializeField] private Color cellBlockedColor = new Color(1f, 0.15f, 0.15f, 0.62f);
+
+        [Header("触屏拖动建筑")]
+        [Tooltip("手指落点距建筑轮廓多少英寸以内算「抓住了这栋楼」。约一个指腹的余量，" +
+                 "太小抓不住、太大在建筑旁边想拖地图都拖不了")]
+        [SerializeField] private float touchGrabMarginInches = 0.16f;
 
         [Header("建筑虚影染色")]
         [Tooltip("可摆放时叠在原材质上的虚影染色")]
@@ -98,6 +107,23 @@ namespace FloatingIsLand.View
         private int _touchArmedX;
         private int _touchArmedZ;
         private int _touchArmedLayer;
+
+        // 触屏「抓着楼拖」的状态。手指落在待摆建筑附近时这一次拖动归建筑，相机的平移让位
+        // （见 InputArbiter.PanConsumedByGameplay）；落在别处则照旧拖地图。
+        private bool _draggingGhost;
+
+        /// <summary>这一次拖动真的挪过位置（过了点击阈值）。原地按一下不算，免得把点击吞成拖动。</summary>
+        private bool _ghostDragMoved;
+
+        /// <summary>抓取点到建筑屏幕中心的偏移。保住它，建筑才不会在落指瞬间跳到手指底下。</summary>
+        private Vector2 _ghostGrabOffset;
+
+        /// <summary>本帧刚拖完（抬手）。落点要等 UpdateHover 算完才准，所以先立旗子后处理。</summary>
+        private bool _dragEndedThisFrame;
+
+        /// <summary>当前 ghost 占地的世界中心与半径，用来判断手指算不算落在这栋楼上。随悬停更新。</summary>
+        private Vector3 _footprintCenter;
+        private float _footprintRadiusWorld;
 
         /// <summary>本帧 HUD 触屏工具条按了「建造」。按钮回调和 Update 不同步，先记下来到 HandleClicks 里统一处理。</summary>
         private bool _placeCommandPending;
@@ -164,6 +190,7 @@ namespace FloatingIsLand.View
             Unbind();
             // 新一局从干净的输入状态起手：上一局拖到一半的手势、点出来的黏性落点都不该带过来
             PointerInput.Reset();
+            EndGhostDrag();
             _session = session;
             if (_session != null)
             {
@@ -223,8 +250,9 @@ namespace FloatingIsLand.View
             BuildCommandBus.CancelRequested -= OnCancelCommand;
             _placeCommandPending = false;
 
-            // 失活时必须归还滚轮，否则相机永远缩放不了
+            // 失活时必须归还滚轮与单指平移，否则相机永远缩放不了 / 拖不动
             InputArbiter.ScrollConsumedByGameplay = false;
+            EndGhostDrag();
             HideTerrainOverlay();
             HideFootprint();
             HidePreviewOverlays();
@@ -346,6 +374,7 @@ namespace FloatingIsLand.View
                 HoverMessage = string.Empty;
                 _placeCommandPending = false;
                 DisarmTouch();
+                EndGhostDrag();
                 DestroyGhost();
                 HideTerrainOverlay();
                 HideFootprint();
@@ -356,10 +385,151 @@ namespace FloatingIsLand.View
 
             EnsureGhost(blueprint);
             HandleRotation();
+            // 拖动要在 UpdateHover 之前跑：它靠改写 PointerInput 的悬停位置让建筑跟手，
+            // 而 UpdateHover 正是从那个位置反查落点的
+            StepGhostDrag();
             UpdateHover(blueprint);
             UpdateTerrainFocus();
             PublishPreviewState();
+            // 抬手的收尾要在 UpdateHover 之后：此刻 _hoverX/Z 才是松手位置对应的格子
+            FinishGhostDrag();
             HandleClicks();
+        }
+
+        /// <summary>
+        /// 触屏：手指落在待摆建筑附近时，这一次拖动拖的是**建筑**而不是地图。
+        ///
+        /// 归属必须在**手指落下**那一帧就定死。手势层要等累计位移过了点击阈值才开始输出平移，
+        /// 落指与首个平移量之间隔着至少一帧，抢在这一帧认领，相机就绝不会先跟着动一下再交接——
+        /// 也因此不必去约束 BuildPlacementController 与 GameplayCameraController 谁先 Update。
+        ///
+        /// 只夺走单指平移这一个通道：双指捏合 / 转视角 / 俯仰照常归相机，玩家拖着楼的同时
+        /// 仍然能用另一只手调镜头。
+        /// </summary>
+        private void StepGhostDrag()
+        {
+            _dragEndedThisFrame = false;
+
+            if (!PointerInput.IsTouchMode)
+            {
+                EndGhostDrag();
+                return;
+            }
+
+            // 第二根手指落下 = 玩家改主意要调镜头了，立刻把这次拖动还回去
+            if (_draggingGhost && PointerInput.TouchCount >= 2)
+            {
+                EndGhostDrag();
+                return;
+            }
+
+            if (!_draggingGhost && PointerInput.PressBeganThisFrame)
+            {
+                Vector2 press = PointerInput.PressPosition;
+                Vector2 hover;
+                if (!PointerInput.IsOverUI(press)
+                    && PointerInput.TryGetHoverPosition(out hover)
+                    && IsPressOnGhost(press))
+                {
+                    _draggingGhost = true;
+                    _ghostDragMoved = false;
+                    // 偏移取「当前悬停点 - 手指落点」，不是「建筑几何中心 - 手指落点」：
+                    // 下游是拿悬停点反查落点格的，而偶数占地的几何中心与悬停格中心天然差半格，
+                    // 用几何中心算偏移的话，手指刚碰上去建筑就会自己挪一格。
+                    _ghostGrabOffset = hover - press;
+                    InputArbiter.PanConsumedByGameplay = true;
+                }
+            }
+
+            if (!_draggingGhost)
+            {
+                return;
+            }
+
+            // 平移量只在过了点击阈值后才有值，拿它当「真的拖过」的判据，口径与点击判定天然一致
+            if (PointerInput.PanDelta.sqrMagnitude > 0f)
+            {
+                _ghostDragMoved = true;
+            }
+
+            if (PointerInput.HasFinger)
+            {
+                PointerInput.SetHover(PointerInput.PressPosition + _ghostGrabOffset);
+            }
+
+            if (PointerInput.PressEndedThisFrame)
+            {
+                _dragEndedThisFrame = _ghostDragMoved;
+                EndGhostDrag();
+            }
+        }
+
+        /// <summary>
+        /// 拖完抬手的收尾：把落点当成二次确认的**第一下**，再点一下（或点 HUD「建造」）才落地。
+        ///
+        /// 不做成「松手即落地」是沿用原来的误建防线：手指刚离开屏幕的这一刻，
+        /// 范围环与邻居身上的加分才刚露出来，玩家还没看清这一摆值多少分。
+        /// 原地按一下不走这条路（<see cref="_ghostDragMoved"/> 为 false），
+        /// 否则「点一下建筑」会被吞成"已选好"，下一点直接建出去。
+        /// </summary>
+        private void FinishGhostDrag()
+        {
+            if (!_dragEndedThisFrame)
+            {
+                return;
+            }
+            _dragEndedThisFrame = false;
+
+            if (!_hasHover)
+            {
+                // 拖到了网格外（天空 / 虚空），当作撤销预选
+                DisarmTouch();
+                return;
+            }
+
+            _touchArmed = true;
+            _touchArmedX = _hoverX;
+            _touchArmedZ = _hoverZ;
+            _touchArmedLayer = _hoverLayer;
+        }
+
+        /// <summary>把拖动状态清干净，并把平移通道还给相机。漏了这一步相机会永远拖不动。</summary>
+        private void EndGhostDrag()
+        {
+            _draggingGhost = false;
+            _ghostDragMoved = false;
+            InputArbiter.PanConsumedByGameplay = false;
+        }
+
+        /// <summary>
+        /// 手指落点算不算「按在了待摆建筑上」。
+        ///
+        /// 判定半径不写死像素，而是把这栋楼的占地半径投影到屏幕再加一个指腹余量：
+        /// 写死的话，镜头拉远之后同一栋楼就抓不住了，凑近了又会把旁边小半屏都算成
+        /// 「在建筑附近」，想拖地图反而拖不动。
+        /// </summary>
+        private bool IsPressOnGhost(Vector2 screenPoint)
+        {
+            Camera camera = Camera.main;
+            if (!_hasHover || _ghost == null || camera == null)
+            {
+                return false;
+            }
+
+            Vector3 center = camera.WorldToScreenPoint(_footprintCenter);
+            if (center.z <= 0f)
+            {
+                // 落点在相机背后：WorldToScreenPoint 这时给的是镜像过的假坐标，不能拿来比距离
+                return false;
+            }
+
+            Vector3 edge = camera.WorldToScreenPoint(
+                _footprintCenter + camera.transform.right * _footprintRadiusWorld);
+
+            var screenCenter = new Vector2(center.x, center.y);
+            float footprintPixels = Vector2.Distance(screenCenter, new Vector2(edge.x, edge.y));
+            float grabPixels = footprintPixels + touchGrabMarginInches * PointerInput.ScreenDpi;
+            return Vector2.Distance(screenPoint, screenCenter) <= grabPixels;
         }
 
         /// <summary>
@@ -430,8 +600,11 @@ namespace FloatingIsLand.View
 
         private void UpdateHover(BuildingBlueprint blueprint)
         {
+            // 拖建筑途中不查 UI 遮挡：手指扫过 HUD 边缘时不该让整栋楼连同预览一起消失。
+            // 起手那一下已经确认过没压在 UI 上（见 StepGhostDrag），不会从按钮上"抓出"一栋楼。
             _hasHover = _debugPinned
-                        || (!IsPointerOverUI() && _presenter.TryGetHoveredCell(out _hoverX, out _hoverZ, out _hoverLayer));
+                        || ((_draggingGhost || !IsPointerOverUI())
+                            && _presenter.TryGetHoveredCell(out _hoverX, out _hoverZ, out _hoverLayer));
             if (!_hasHover)
             {
                 _hoverValid = false;
@@ -462,7 +635,7 @@ namespace FloatingIsLand.View
             blueprint.Footprint.GetCells(_anchorX, _anchorZ, _rotation, _previewCells);
             EnsureRangeRing().Show(_previewCells, _hoverLayer, blueprint.Radius, _presenter.Geometry);
 
-            _selfLabelAnchor = ComputeSelfLabelAnchor(_previewCells, _hoverLayer);
+            _selfLabelAnchor = ComputeGhostGeometry(_previewCells, _hoverLayer);
 
             UpdateScorePreview(blueprint, check);
 
@@ -665,13 +838,23 @@ namespace FloatingIsLand.View
             BuildPreviewState.HasTarget = _hasHover;
             BuildPreviewState.CanPlace = _hasHover && _hoverValid;
             BuildPreviewState.Message = HoverMessage;
+
+            // 工具条钉在飘分数字再往上一格的位置。多让开这一格是因为两者都在建筑正上方：
+            // _selfLabelAnchor 处画的是「预计得分 N」，按钮压上去就把它盖住了。
+            // 让开的量按格子边长给（世界单位），镜头推拉时间距才恒定。
+            BuildPreviewState.ToolbarAnchorWorld =
+                _selfLabelAnchor + Vector3.up * (_presenter.CellSize * 1.2f);
         }
 
         /// <summary>
-        /// 被摆建筑自己的飘字锚点：占地各格中心的均值再抬高约一栋楼。
-        /// 不取 ghost 包围盒——那要每帧扫 Renderer；几何锚点便宜且预览/落地口径天然一致。
+        /// 一趟遍历算出这栋楼的两样几何：**飘字锚点**（返回值）与**抓取判定用的中心 + 半径**
+        /// （写进 <see cref="_footprintCenter"/> / <see cref="_footprintRadiusWorld"/>）。
+        ///
+        /// 飘字锚点 = 占地各格中心的均值再抬高约一栋楼；
+        /// 抓取半径 = 中心到最远占地格中心的距离再加半格，也就是把整片占地圈进去。
+        /// 都不取 ghost 包围盒——那要每帧扫 Renderer；几何算法便宜，且与预览/落地口径天然一致。
         /// </summary>
-        private Vector3 ComputeSelfLabelAnchor(List<CellCoord> cells, int layer)
+        private Vector3 ComputeGhostGeometry(List<CellCoord> cells, int layer)
         {
             GridGeometry geometry = _presenter.Geometry;
             Vector3 sum = Vector3.zero;
@@ -680,6 +863,20 @@ namespace FloatingIsLand.View
                 sum += geometry.CellCenter(cells[i].X, cells[i].Z, layer);
             }
             Vector3 center = cells.Count > 0 ? sum / cells.Count : Vector3.zero;
+
+            float farthest = 0f;
+            for (int i = 0; i < cells.Count; i++)
+            {
+                float distance = Vector3.Distance(center, geometry.CellCenter(cells[i].X, cells[i].Z, layer));
+                if (distance > farthest)
+                {
+                    farthest = distance;
+                }
+            }
+
+            _footprintCenter = center;
+            _footprintRadiusWorld = farthest + geometry.CellSize * 0.5f;
+
             return center + Vector3.up * (geometry.CellSize * 1.6f);
         }
 

@@ -7,13 +7,18 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: granary_texture_diffuse
+    second: {fileID: 2100000, guid: a0f91296e76f6a846b7db8d48014aa54, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: model
     second: {fileID: 2100000, guid: b856a2d7dd957674f8cfec095e08467c, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: texture_diffuse
-    second: {fileID: 2100000, guid: 4307961e667083244bdad920bcd5fa6c, type: 2}
+    second: {fileID: 2100000, guid: d718e522323a2894998c208b4ec8bcfe, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

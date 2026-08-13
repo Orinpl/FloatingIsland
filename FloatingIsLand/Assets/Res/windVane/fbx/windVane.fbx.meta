@@ -13,7 +13,12 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: texture_diffuse
-    second: {fileID: 2100000, guid: 06dd9a6dcc1f4224baa11df8a73b6754, type: 2}
+    second: {fileID: 2100000, guid: c7e2f223a457f75419468416b95d2220, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: windVane_texture_diffuse
+    second: {fileID: 2100000, guid: 69b4a62bc9bf1d24584b6090bd65d57e, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

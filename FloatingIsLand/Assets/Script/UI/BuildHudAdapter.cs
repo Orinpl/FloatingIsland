@@ -89,7 +89,12 @@ namespace FloatingIsLand.UI
             }
 
             bool placing = _session != null && _session.IsBuildReady && _session.SelectedBlueprint != null;
-            _hud.SetTouchControls(placing && PointerInput.IsTouchMode, BuildPreviewState.CanPlace, "建造");
+            bool touchControls = placing && PointerInput.IsTouchMode;
+
+            // 初始化放在声明上：&& 短路时编译器无法跨局部 bool 追踪 out 赋值（CS0165）
+            Vector2 screenAnchor = Vector2.zero;
+            bool hasAnchor = touchControls && TryProjectToolbarAnchor(out screenAnchor);
+            _hud.SetTouchControls(touchControls, BuildPreviewState.CanPlace, "建造", hasAnchor, screenAnchor);
 
             if (!placing)
             {
@@ -111,6 +116,35 @@ namespace FloatingIsLand.UI
 
         /// <summary>上一帧写进提示栏的文本，用来避开每帧重建 Canvas。</summary>
         private string _liveHint;
+
+        /// <summary>
+        /// 把待摆建筑头顶的世界坐标投到屏幕上，供工具条定位。
+        ///
+        /// 投影放在 UI 层做，而不是让 <see cref="BuildPreviewState"/> 直接给屏幕坐标：
+        /// 那是 Game.App，不该认识 Camera（同一条理由让 InputArbiter 里也只有布尔量）。
+        ///
+        /// 落点在相机背后时返回 false——<c>WorldToScreenPoint</c> 这种时候给的是镜像过的假坐标，
+        /// 照着摆会让工具条鬼畜地跳到屏幕另一头。
+        /// </summary>
+        private static bool TryProjectToolbarAnchor(out Vector2 screenAnchor)
+        {
+            screenAnchor = Vector2.zero;
+
+            Camera camera = Camera.main;
+            if (camera == null || !BuildPreviewState.HasTarget)
+            {
+                return false;
+            }
+
+            Vector3 projected = camera.WorldToScreenPoint(BuildPreviewState.ToolbarAnchorWorld);
+            if (projected.z <= 0f)
+            {
+                return false;
+            }
+
+            screenAnchor = new Vector2(projected.x, projected.y);
+            return true;
+        }
 
         private void Subscribe()
         {
@@ -294,9 +328,11 @@ namespace FloatingIsLand.UI
 
             if (PointerInput.IsTouchMode)
             {
+                // 手机上按钮就浮在楼头顶，所以说「楼上方」而不是「右下角」；
+                // 拖动也得说，否则玩家只会一下下点，不会想到能直接把楼拖着走
                 return sail
-                    ? "风帆须建在风带上；点地面选落点，「旋转」切换左/右转向（看流线预览），再点同一格或按「建造」放下。"
-                    : "点地面选落点，再点同一格（或按「建造」）放下；「旋转」转 90°，「取消」退出。";
+                    ? "风帆须建在风带上；点地面选落点、或直接拖动风帆；楼上方「旋转」切换左/右转向（看流线预览），再点同一格或按「建造」放下。"
+                    : "点地面选落点，或按住楼直接拖；再点同一格（或按楼上方的「建造」）放下，「旋转」转 90°，「取消」退出。";
             }
             return sail
                 ? "风帆须建在风带上；滚轮切换左/右转向（看流线预览），左键放置，Esc 取消。"
