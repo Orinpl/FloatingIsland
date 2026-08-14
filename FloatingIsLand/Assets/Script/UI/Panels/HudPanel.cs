@@ -11,7 +11,8 @@ namespace FloatingIsLand.UI
     ///
     /// - **左下角计分区**：总分 / 金币 / 当前等级 + 「解锁下一组建筑」按钮；
     /// - **屏幕中下建筑列表**：当前手牌，点一张即进入摆放模式（再点一次取消）；
-    /// - 顶部保留关数信息与占位「结束本局」按钮；
+    /// - **屏幕中部选组区**：一组一排，排里直接摆出这组会给的建筑卡片（带略缩图）；
+    /// - **右上角**：关数信息、「结束本关」（带本关分数进度，达标后呼吸高亮）、「返回主界面」；
     /// - **浮在待摆建筑头顶的触屏工具条**（旋转 / 建造 / 取消）：只在触屏 + 摆放模式下出现，
     ///   补上手机没有的滚轮、左键和 Esc（见 <see cref="SetTouchControls"/>）。
     ///   位置每帧跟着建筑走；指不到任何格子时才回落到屏幕右下角。
@@ -48,23 +49,106 @@ namespace FloatingIsLand.UI
             }
         }
 
-        // 手牌卡片自上而下三段：略缩图 / 形状图标 / 名字。
-        // 尺寸在运行时写死到实例上，而不是改 BootSceneBuilder 的模板——
-        // 改模板要重跑场景生成菜单（带模态弹窗），为了排个版不值当。
-        private static readonly Vector2 HandItemSize = new Vector2(150f, 160f);
+        /// <summary>选组一排里的一格：一张卡片 + 这一组里给几个。</summary>
+        public readonly struct OfferItemView
+        {
+            public readonly HandItemView Item;
 
-        /// <summary>略缩图占位：左右各留 8px 边距，高度 76。宽高比要和 BuildingThumbnail 的输出接近，否则会拉伸。</summary>
-        private const float ThumbHeight = 76f;
-        private const float ThumbMargin = 8f;
-        private const float ThumbTop = 6f;
+            /// <summary>本组里这个变体的份数（&gt;1 时名字后面缀 ×N）。</summary>
+            public readonly int Count;
 
-        /// <summary>形状图标的最大占位（像素），按掩码长宽比等比缩放后放进去。</summary>
-        private static readonly Vector2 ShapeBox = new Vector2(60f, 32f);
+            public OfferItemView(HandItemView item, int count)
+            {
+                Item = item;
+                Count = count;
+            }
 
-        /// <summary>手牌按钮底部留给名字的高度（像素）。</summary>
-        private const float HandLabelHeight = 36f;
+            /// <summary>同一变体又出现一次。结构体是只读的，所以返回新值而不是自增。</summary>
+            public OfferItemView WithOneMore()
+            {
+                return new OfferItemView(Item, Count + 1);
+            }
+        }
 
-        private const int HandLabelFontSize = 20;
+        /// <summary>待选建筑组的显示数据：组名 + 选中它会进手牌的那批建筑。</summary>
+        public readonly struct OfferView
+        {
+            /// <summary>主题名（BuildingGroup.NameCn），一排的标题。</summary>
+            public readonly string NameCn;
+
+            public readonly IReadOnlyList<OfferItemView> Items;
+
+            public OfferView(string nameCn, IReadOnlyList<OfferItemView> items)
+            {
+                NameCn = nameCn;
+                Items = items;
+            }
+        }
+
+        /// <summary>
+        /// 一张建筑卡片的排版。卡片自上而下三段：略缩图 / 形状图标 / 名字——
+        /// 三样东西各答一个问题（长什么样 / 占几格 / 叫什么）。
+        ///
+        /// 手牌和「建筑组二选一」用的是同一种卡片，只是后者一排要塞下整组建筑所以小一圈，
+        /// 于是把尺寸抽成参数，而不是把画法复制两份。
+        ///
+        /// 尺寸在运行时写死到实例上，而不是改 BootSceneBuilder 的模板——
+        /// 改模板要重跑场景生成菜单（带模态弹窗），为了排个版不值当。
+        /// </summary>
+        private readonly struct CardLayout
+        {
+            /// <summary>卡片整体尺寸（像素，参考分辨率 1920×1080）。</summary>
+            public readonly Vector2 Size;
+
+            /// <summary>略缩图高度；宽度 = 卡片宽 − <see cref="ThumbMargin"/>×2。宽高比要和 BuildingThumbnail 的输出接近，否则会拉伸。</summary>
+            public readonly float ThumbHeight;
+            public readonly float ThumbMargin;
+            public readonly float ThumbTop;
+
+            /// <summary>形状图标的最大占位，按掩码长宽比等比缩放后放进去。</summary>
+            public readonly Vector2 ShapeBox;
+
+            /// <summary>卡片底部留给名字的高度。</summary>
+            public readonly float LabelHeight;
+            public readonly int LabelFontSize;
+
+            public CardLayout(
+                Vector2 size, float thumbHeight, float thumbMargin, float thumbTop,
+                Vector2 shapeBox, float labelHeight, int labelFontSize)
+            {
+                Size = size;
+                ThumbHeight = thumbHeight;
+                ThumbMargin = thumbMargin;
+                ThumbTop = thumbTop;
+                ShapeBox = shapeBox;
+                LabelHeight = labelHeight;
+                LabelFontSize = labelFontSize;
+            }
+        }
+
+        /// <summary>手牌卡片：玩家整局都在点的东西，画得最大。</summary>
+        private static readonly CardLayout HandCard = new CardLayout(
+            new Vector2(150f, 160f), 76f, 8f, 6f, new Vector2(60f, 32f), 36f, 20);
+
+        /// <summary>选组卡片：一排要横着放下整组（可能六七个），比手牌小一圈。</summary>
+        private static readonly CardLayout OfferCard = new CardLayout(
+            new Vector2(124f, 142f), 64f, 6f, 5f, new Vector2(44f, 22f), 40f, 16);
+
+        /// <summary>选组一排的尺寸。一排 = 一组，玩家横着扫一眼就知道这组给什么。</summary>
+        private static readonly Vector2 OfferRowSize = new Vector2(1080f, 200f);
+
+        /// <summary>排与排的间距，要和 BootSceneBuilder 里 VerticalLayoutGroup.spacing 对上。</summary>
+        private const float OfferRowSpacing = 14f;
+
+        /// <summary>一排顶部留给组名的高度。</summary>
+        private const float OfferTitleHeight = 42f;
+        private const int OfferTitleFontSize = 26;
+
+        /// <summary>选组卡片之间的横向间距。</summary>
+        private const float OfferCardGap = 8f;
+
+        /// <summary>卡片区离一排四边的内边距。左右留白让木牌的收口端头露出来，别被卡片压住。</summary>
+        private const float OfferCardsPadding = 22f;
 
         [Header("顶部：关卡信息")]
         public Text runInfoText;
@@ -108,6 +192,9 @@ namespace FloatingIsLand.UI
         /// <summary>触屏工具条：退出摆放模式。手机没有 Esc。</summary>
         public event Action CancelClicked;
 
+        /// <summary>点了右上角「返回主界面」并完成二次确认（放弃本局）。</summary>
+        public event Action HomeConfirmed;
+
         public void SetRunInfo(string info)
         {
             if (runInfoText != null)
@@ -116,12 +203,33 @@ namespace FloatingIsLand.UI
             }
         }
 
-        /// <summary>刷新右上角「收官」按钮：达通关分后它才是「进入下一关」，否则是「提前结束」。</summary>
-        public void SetEndRunButton(string label)
+        /// <summary>
+        /// 刷新右上角「收官」按钮。两行：
+        /// 第一行是这一下点下去会发生什么（达通关分后才是「进入下一关」，否则是提前认输），
+        /// 第二行是本关分数进度「当前 / 通关线」——玩家不用再去左下角对着计分区自己算还差多少。
+        ///
+        /// 达标后按钮开始呼吸高亮（见 <see cref="UpdateEndRunPulse"/>）：这时候「可以走了」是
+        /// 玩家最需要知道的一件事，而右上角平时没人看，光换文案推不动。
+        /// <paramref name="clearScore"/> &lt;= 0（还没装载完地图）时只写第一行。
+        /// </summary>
+        public void SetEndRunButton(string label, int totalScore, int clearScore, bool cleared)
         {
+            EnsureTopRightButtons();
+
             if (endRunButtonLabel != null)
             {
-                endRunButtonLabel.text = label;
+                endRunButtonLabel.text = clearScore > 0
+                    ? $"{label}\n{totalScore} / {clearScore} 分{(cleared ? " ✔" : string.Empty)}"
+                    : label;
+            }
+
+            if (_endRunHighlight != cleared)
+            {
+                _endRunHighlight = cleared;
+                if (!cleared)
+                {
+                    ResetEndRunTint();
+                }
             }
         }
 
@@ -173,19 +281,23 @@ namespace FloatingIsLand.UI
                     continue;
                 }
 
-                HandItemView view = items[i];
-                ApplyHandItemSize(item);
-                ApplyThumbnail(item, view);
-                ApplyShapeIcon(item, view);
-                SetItemLabel(item, view.NameCn, HandLabelFontSize, HandLabelHeight);
+                ApplyCardSize((RectTransform)item.transform, item.GetComponent<LayoutElement>(), HandCard.Size);
+                ApplyCard(item.transform, items[i], HandCard, 1);
                 SetItemTint(item, i == selectedIndex);
             }
         }
 
-        /// <summary>刷新建筑组二选一；传空列表即隐藏该区域。</summary>
-        public void SetOffers(IReadOnlyList<string> labels)
+        /// <summary>
+        /// 刷新建筑组二选一；传空列表即隐藏该区域。
+        ///
+        /// 一组一排，排里直接把「选了会进手牌的那些建筑」摆成卡片。
+        /// 早先这里是一行文字（「【市民中心区】市民中心 居民区 方形×2 …」），
+        /// 但玩家在这一步要判断的是「这组能不能摆得下、好不好连片」——那是形状和体量的问题，
+        /// 名字堆成一行读起来像配表，看完还是不知道拿到手是什么。
+        /// </summary>
+        public void SetOffers(IReadOnlyList<OfferView> offers)
         {
-            int count = labels != null ? labels.Count : 0;
+            int count = offers != null ? offers.Count : 0;
             EnsureItems(_offerItems, offerRoot, offerItemTemplate, count, OfferClicked);
 
             for (int i = 0; i < _offerItems.Count; i++)
@@ -198,13 +310,110 @@ namespace FloatingIsLand.UI
                     continue;
                 }
 
-                SetItemLabel(item, labels[i], 0, 0f);
-                SetItemTint(item, false);
+                ApplyOfferRow(item, offers[i]);
             }
 
-            if (offerRoot != null)
+            if (offerRoot == null)
             {
-                offerRoot.gameObject.SetActive(count > 0);
+                return;
+            }
+
+            offerRoot.gameObject.SetActive(count > 0);
+            if (count > 0)
+            {
+                // 整块居中显示，所以高度得跟着排数走，否则两排会从模板那 120 高的框里溢出去
+                offerRoot.sizeDelta = new Vector2(
+                    OfferRowSize.x, count * OfferRowSize.y + (count - 1) * OfferRowSpacing);
+            }
+        }
+
+        /// <summary>把一排画成「组名 + 一横排建筑卡片」。整排都是按钮，点哪儿都算选中这一组。</summary>
+        private static void ApplyOfferRow(Button row, OfferView view)
+        {
+            ApplyCardSize((RectTransform)row.transform, row.GetComponent<LayoutElement>(), OfferRowSize);
+            SetItemTint(row, false);
+
+            // 组名压到顶部一条：主题名放最前，二选一的意义是「选一条路线」，
+            // 光看建筑清单玩家得自己去脑补这组想干什么
+            Text title = FindChildText(row.transform, "Text");
+            if (title != null)
+            {
+                title.text = view.NameCn;
+                title.fontSize = OfferTitleFontSize;
+                title.alignment = TextAnchor.MiddleCenter;
+                RectTransform titleRt = title.rectTransform;
+                titleRt.anchorMin = new Vector2(0f, 1f);
+                titleRt.anchorMax = new Vector2(1f, 1f);
+                titleRt.pivot = new Vector2(0.5f, 1f);
+                titleRt.sizeDelta = new Vector2(-OfferCardsPadding * 2f, OfferTitleHeight);
+                titleRt.anchoredPosition = new Vector2(0f, -6f);
+            }
+
+            RectTransform cards = EnsureCardsRow(row.transform);
+            int count = view.Items != null ? view.Items.Count : 0;
+            EnsureOfferCards(cards, count);
+
+            for (int i = 0; i < cards.childCount; i++)
+            {
+                Transform card = cards.GetChild(i);
+                bool visible = i < count;
+                card.gameObject.SetActive(visible);
+                if (!visible)
+                {
+                    continue;
+                }
+
+                OfferItemView entry = view.Items[i];
+                ApplyCard(card, entry.Item, OfferCard, entry.Count);
+            }
+        }
+
+        /// <summary>一排里装卡片的横条（组名下方那块）。按需现建，理由同略缩图：不为排版重跑场景生成。</summary>
+        private static RectTransform EnsureCardsRow(Transform row)
+        {
+            Transform found = row.Find("Cards");
+            if (found != null)
+            {
+                return (RectTransform)found;
+            }
+
+            var go = new GameObject("Cards", typeof(RectTransform));
+            go.transform.SetParent(row, false);
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = new Vector2(OfferCardsPadding, OfferCardsPadding * 0.5f);
+            rt.offsetMax = new Vector2(-OfferCardsPadding, -OfferTitleHeight);
+
+            var layout = go.AddComponent<HorizontalLayoutGroup>();
+            layout.spacing = OfferCardGap;
+            layout.childAlignment = TextAnchor.MiddleCenter;
+            layout.childForceExpandWidth = false;
+            layout.childForceExpandHeight = false;
+            return rt;
+        }
+
+        /// <summary>把卡片横条补足到 count 张。卡片本身不是按钮——点击要落到整排上。</summary>
+        private static void EnsureOfferCards(RectTransform cards, int count)
+        {
+            while (cards.childCount < count)
+            {
+                var go = new GameObject("Card", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+                go.transform.SetParent(cards, false);
+
+                var image = go.GetComponent<Image>();
+                Sprite sprite = UISkin.Get(UIStyle.Card);
+                if (sprite != null)
+                {
+                    image.sprite = sprite;
+                    image.type = Image.Type.Sliced;
+                }
+                image.color = Color.white;
+                image.raycastTarget = false;
+
+                var layout = go.AddComponent<LayoutElement>();
+                layout.preferredWidth = OfferCard.Size.x;
+                layout.preferredHeight = OfferCard.Size.y;
             }
         }
 
@@ -265,34 +474,33 @@ namespace FloatingIsLand.UI
             }
         }
 
-        /// <summary>
-        /// 写条目文字。<paramref name="bandHeight"/> &gt; 0 时把文字压到按钮底部的固定高度条带里，
-        /// 上面腾出来的空间留给形状图标；传 0 则维持模板的整块居中。
-        /// </summary>
-        private static void SetItemLabel(Button item, string text, int fontSize, float bandHeight)
+        /// <summary>画一张卡片：略缩图 / 形状图标 / 名字三段。<paramref name="count"/> &gt; 1 时名字后面缀 ×N。</summary>
+        private static void ApplyCard(Transform card, HandItemView view, CardLayout layout, int count)
         {
-            var label = item.GetComponentInChildren<Text>(true);
+            ApplyThumbnail(card, view, layout);
+            ApplyShapeIcon(card, view, layout);
+            SetCardLabel(card, count > 1 ? $"{view.NameCn} ×{count}" : view.NameCn, layout);
+        }
+
+        /// <summary>
+        /// 写卡片底部的名字。文字压到固定高度的条带里，上面腾出来的空间留给略缩图和形状图标。
+        /// </summary>
+        private static void SetCardLabel(Transform card, string text, CardLayout layout)
+        {
+            Text label = EnsureCardLabel(card);
             if (label == null)
             {
                 return;
             }
 
             label.text = text;
-            if (fontSize > 0)
-            {
-                label.fontSize = fontSize;
-            }
-
-            if (bandHeight <= 0f)
-            {
-                return;
-            }
+            label.fontSize = layout.LabelFontSize;
 
             RectTransform rt = label.rectTransform;
             rt.anchorMin = new Vector2(0f, 0f);
             rt.anchorMax = new Vector2(1f, 0f);
             rt.pivot = new Vector2(0.5f, 0f);
-            rt.sizeDelta = new Vector2(-8f, bandHeight);
+            rt.sizeDelta = new Vector2(-8f, layout.LabelHeight);
             rt.anchoredPosition = new Vector2(0f, 4f);
             label.alignment = TextAnchor.MiddleCenter;
             label.horizontalOverflow = HorizontalWrapMode.Wrap;
@@ -300,32 +508,55 @@ namespace FloatingIsLand.UI
         }
 
         /// <summary>
-        /// 把条目撑到手牌卡片的尺寸。模板是 BootSceneBuilder 生成的小方块，
-        /// 塞不下「略缩图 + 形状 + 名字」三段，所以在实例上改（模板不动，改模板要重跑场景生成菜单）。
+        /// 取卡片上的名字节点。手牌卡片是按钮模板克隆的，字在 "Text"；
+        /// 选组卡片是现建的，第一次画时补一个 "Label"。
         /// </summary>
-        private static void ApplyHandItemSize(Button item)
+        private static Text EnsureCardLabel(Transform card)
         {
-            var rt = (RectTransform)item.transform;
-            if (rt.sizeDelta != HandItemSize)
+            Text existing = FindChildText(card, "Text");
+            if (existing != null)
             {
-                rt.sizeDelta = HandItemSize;
+                return existing;
+            }
+            existing = FindChildText(card, "Label");
+            if (existing != null)
+            {
+                return existing;
+            }
+            return CreateLabel(card, "Label", OfferCard.LabelFontSize, UIStyle.Card);
+        }
+
+        private static Text FindChildText(Transform parent, string childName)
+        {
+            Transform found = parent.Find(childName);
+            return found != null ? found.GetComponent<Text>() : null;
+        }
+
+        /// <summary>
+        /// 把条目撑到目标尺寸。模板是 BootSceneBuilder 生成的小方块，塞不下卡片的三段内容，
+        /// 所以在实例上改（模板不动，改模板要重跑场景生成菜单）。
+        /// </summary>
+        private static void ApplyCardSize(RectTransform rt, LayoutElement layout, Vector2 size)
+        {
+            if (rt.sizeDelta != size)
+            {
+                rt.sizeDelta = size;
             }
 
-            // HorizontalLayoutGroup 认的是 LayoutElement，不改这个的话卡片会被排回模板尺寸
-            var layout = item.GetComponent<LayoutElement>();
+            // 布局组认的是 LayoutElement，不改这个的话卡片会被排回模板尺寸
             if (layout != null)
             {
-                layout.preferredWidth = HandItemSize.x;
-                layout.preferredHeight = HandItemSize.y;
+                layout.preferredWidth = size.x;
+                layout.preferredHeight = size.y;
             }
         }
 
         /// <summary>顶部的建筑略缩图。模型缺失（白模阶段）时整块收起，下面两段照常显示。</summary>
-        private static void ApplyThumbnail(Button item, HandItemView view)
+        private static void ApplyThumbnail(Transform card, HandItemView view, CardLayout layout)
         {
             Texture texture = BuildingThumbnail.Get(view.Key, view.PrefabPath);
 
-            RawImage thumb = EnsureRawImage(item, "Thumb", texture != null);
+            RawImage thumb = EnsureRawImage(card, "Thumb", texture != null);
             if (thumb == null)
             {
                 return;
@@ -344,19 +575,19 @@ namespace FloatingIsLand.UI
             rt.anchorMin = new Vector2(0f, 1f);
             rt.anchorMax = new Vector2(1f, 1f);
             rt.pivot = new Vector2(0.5f, 1f);
-            rt.sizeDelta = new Vector2(-ThumbMargin * 2f, ThumbHeight);
-            rt.anchoredPosition = new Vector2(0f, -ThumbTop);
+            rt.sizeDelta = new Vector2(-layout.ThumbMargin * 2f, layout.ThumbHeight);
+            rt.anchoredPosition = new Vector2(0f, -layout.ThumbTop);
         }
 
         /// <summary>
         /// 略缩图下方的形状图标。模板是编辑器生成的（BootSceneBuilder），没有这些节点，
         /// 所以按需现建——避免为了排个版就得重跑一遍场景生成菜单。
         /// </summary>
-        private static void ApplyShapeIcon(Button item, HandItemView view)
+        private static void ApplyShapeIcon(Transform card, HandItemView view, CardLayout layout)
         {
             Texture2D texture = FootprintIcon.Get(view.Key, view.Shape);
 
-            RawImage icon = EnsureRawImage(item, "Shape", texture != null);
+            RawImage icon = EnsureRawImage(card, "Shape", texture != null);
             if (icon == null)
             {
                 return;
@@ -375,12 +606,12 @@ namespace FloatingIsLand.UI
             rt.anchorMin = new Vector2(0.5f, 1f);
             rt.anchorMax = new Vector2(0.5f, 1f);
             rt.pivot = new Vector2(0.5f, 1f);
-            rt.anchoredPosition = new Vector2(0f, -(ThumbTop + ThumbHeight + 6f));
+            rt.anchoredPosition = new Vector2(0f, -(layout.ThumbTop + layout.ThumbHeight + 6f));
 
             // 等比缩放塞进 ShapeBox：占地越大画得越小，玩家一眼能比出 6×6 船坞和 1×1 农田
             int cols = view.Shape.Columns;
             int rows = view.Shape.Rows;
-            float scale = Mathf.Min(ShapeBox.x / cols, ShapeBox.y / rows);
+            float scale = Mathf.Min(layout.ShapeBox.x / cols, layout.ShapeBox.y / rows);
             rt.sizeDelta = new Vector2(cols * scale, rows * scale);
         }
 
@@ -541,20 +772,8 @@ namespace FloatingIsLand.UI
             rt.sizeDelta = TouchButtonSize;
             rt.anchoredPosition = new Vector2(-slotFromRight * (TouchButtonSize.x + TouchBarGap), 0f);
 
-            var textGo = new GameObject("Label", typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
-            textGo.transform.SetParent(go.transform, false);
-            var textRt = (RectTransform)textGo.transform;
-            textRt.anchorMin = Vector2.zero;
-            textRt.anchorMax = Vector2.one;
-            textRt.offsetMin = Vector2.zero;
-            textRt.offsetMax = Vector2.zero;
-
-            labelText = textGo.GetComponent<Text>();
+            labelText = CreateLabel(go.transform, "Label", TouchButtonFontSize, style);
             labelText.text = label;
-            labelText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            labelText.fontSize = TouchButtonFontSize;
-            labelText.alignment = TextAnchor.MiddleCenter;
-            labelText.raycastTarget = false; // 点击要落到按钮上，字不能挡
 
             Button button = go.GetComponent<Button>();
             // 工具条是运行时现建的，赶不上 UIManager.Awake 那趟统一刷皮，自己套一次
@@ -562,10 +781,35 @@ namespace FloatingIsLand.UI
             return button;
         }
 
-        /// <summary>取（必要时现建）条目下的一个 RawImage 子节点。没内容可显示又还没建过时返回 null。</summary>
-        private static RawImage EnsureRawImage(Button item, string childName, bool createIfMissing)
+        /// <summary>
+        /// 铺满父节点的文字节点。运行时现建的按钮 / 卡片都用它，
+        /// 省得每处再手搓一遍字体、锚点和 raycastTarget。
+        /// </summary>
+        private static Text CreateLabel(Transform parent, string name, int fontSize, UIStyle style)
         {
-            Transform found = item.transform.Find(childName);
+            var go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
+            go.transform.SetParent(parent, false);
+
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+
+            Text text = go.GetComponent<Text>();
+            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            text.fontSize = fontSize;
+            text.color = UISkin.TextColor(style);
+            text.alignment = TextAnchor.MiddleCenter;
+            text.raycastTarget = false; // 点击要落到按钮上，字不能挡
+            UISkin.ApplyText(text); // 现建的节点赶不上 UIManager.Awake 那趟统一刷字重
+            return text;
+        }
+
+        /// <summary>取（必要时现建）卡片下的一个 RawImage 子节点。没内容可显示又还没建过时返回 null。</summary>
+        private static RawImage EnsureRawImage(Transform card, string childName, bool createIfMissing)
+        {
+            Transform found = card.Find(childName);
             if (found != null)
             {
                 return found.GetComponent<RawImage>();
@@ -576,10 +820,151 @@ namespace FloatingIsLand.UI
             }
 
             var go = new GameObject(childName, typeof(RectTransform), typeof(RawImage));
-            go.transform.SetParent(item.transform, false);
+            go.transform.SetParent(card, false);
             var image = go.GetComponent<RawImage>();
             image.raycastTarget = false; // 点击要落到按钮上，图不能挡
             return image;
+        }
+
+        // ── 右上角：结束本关 / 返回主界面 ────────────────────────────────────
+        //
+        // 两个按钮竖着排在右上角。「结束本关」自带本关分数进度，达标后呼吸高亮；
+        // 「返回主界面」等于放弃本局，所以走两下确认。
+        // 和触屏工具条一样运行时现建（场景由 BootSceneBuilder 生成，加节点要重跑那条带模态弹窗的流程）。
+
+        /// <summary>「结束本关」要显示两行（动作 + 分数进度），比场景里那个通用按钮高一截。</summary>
+        private static readonly Vector2 EndRunButtonSize = new Vector2(320f, 88f);
+        private static readonly Vector2 HomeButtonSize = new Vector2(320f, 56f);
+        private const float TopRightGap = 10f;
+        private const int EndRunFontSize = 22;
+        private const int HomeFontSize = 24;
+
+        /// <summary>达标后「结束本关」的呼吸高亮色，和手牌选中同一支暖金。</summary>
+        private static readonly Color EndRunHighlight = new Color(1f, 0.82f, 0.36f, 1f);
+
+        /// <summary>呼吸一个来回的秒数。慢到不烦人，又快到不会被当成静止。</summary>
+        private const float EndRunPulsePeriod = 1.2f;
+
+        /// <summary>「返回主界面」二次确认的等待时长（秒）。超时自动退回，不会把按钮永远卡在确认态。</summary>
+        private const float HomeConfirmWindow = 3f;
+
+        private Button _homeButton;
+        private Text _homeLabel;
+        private Image _endRunImage;
+        private bool _endRunHighlight;
+
+        /// <summary>&gt; 0 表示正等第二下确认，值是确认窗口的截止时刻（<c>Time.unscaledTime</c> 口径）。</summary>
+        private float _homeConfirmUntil;
+
+        private void Update()
+        {
+            UpdateEndRunPulse();
+            UpdateHomeConfirm();
+        }
+
+        private void OnDisable()
+        {
+            // 离开局内时把两个按钮恢复原状：下次进来不该还停在「确认放弃？」或高亮上
+            _homeConfirmUntil = 0f;
+            SetHomeLabel(false);
+            ResetEndRunTint();
+        }
+
+        private void EnsureTopRightButtons()
+        {
+            if (_homeButton != null || endRunButton == null)
+            {
+                return;
+            }
+
+            var endRt = (RectTransform)endRunButton.transform;
+            endRt.sizeDelta = EndRunButtonSize;
+            _endRunImage = endRunButton.GetComponent<Image>();
+            if (endRunButtonLabel != null)
+            {
+                endRunButtonLabel.fontSize = EndRunFontSize;
+                endRunButtonLabel.verticalOverflow = VerticalWrapMode.Overflow;
+            }
+
+            // 名字取 MenuButton：UISkin 按名字派皮，和结算面板那个「回主界面」共用同一支浅木条
+            var go = new GameObject("MenuButton", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button));
+            go.transform.SetParent(endRt.parent, false);
+
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = endRt.anchorMin;
+            rt.anchorMax = endRt.anchorMax;
+            rt.pivot = endRt.pivot;
+            rt.sizeDelta = HomeButtonSize;
+            // 贴在「结束本关」正下方：位置跟着它算，省得两处各写一遍右上角的边距
+            rt.anchoredPosition = endRt.anchoredPosition - new Vector2(0f, EndRunButtonSize.y + TopRightGap);
+
+            _homeLabel = CreateLabel(go.transform, "Text", HomeFontSize, UIStyle.Secondary);
+            _homeButton = go.GetComponent<Button>();
+            _homeButton.onClick.AddListener(OnHomeClicked);
+            UISkin.ApplyButton(_homeButton, UIStyle.Secondary);
+            SetHomeLabel(false);
+        }
+
+        /// <summary>
+        /// 「返回主界面」= 放弃本局，分数不结算。误触代价太大，所以要点两下：
+        /// 第一下把按钮自己变成确认提示（而不是弹一个盖住画面的对话框），第二下才真走。
+        /// </summary>
+        private void OnHomeClicked()
+        {
+            if (_homeConfirmUntil > 0f && Time.unscaledTime < _homeConfirmUntil)
+            {
+                _homeConfirmUntil = 0f;
+                SetHomeLabel(false);
+                Action handler = HomeConfirmed;
+                if (handler != null)
+                {
+                    handler();
+                }
+                return;
+            }
+
+            _homeConfirmUntil = Time.unscaledTime + HomeConfirmWindow;
+            SetHomeLabel(true);
+        }
+
+        private void UpdateHomeConfirm()
+        {
+            if (_homeConfirmUntil <= 0f || Time.unscaledTime < _homeConfirmUntil)
+            {
+                return;
+            }
+            _homeConfirmUntil = 0f;
+            SetHomeLabel(false);
+        }
+
+        private void SetHomeLabel(bool confirming)
+        {
+            if (_homeLabel == null)
+            {
+                return;
+            }
+            _homeLabel.text = confirming ? "再点一次放弃本局" : "返回主界面";
+        }
+
+        /// <summary>达通关分后让按钮呼吸。用 unscaledTime：局内暂停时它也该继续闪。</summary>
+        private void UpdateEndRunPulse()
+        {
+            if (!_endRunHighlight || _endRunImage == null)
+            {
+                return;
+            }
+
+            float t = Mathf.PingPong(Time.unscaledTime / (EndRunPulsePeriod * 0.5f), 1f);
+            _endRunImage.color = Color.Lerp(Color.white, EndRunHighlight, t);
+        }
+
+        /// <summary>停止呼吸并还原底色。白色是 UISkin 的约定底色——木牌是靠贴图上色的，染色会把木头染歪。</summary>
+        private void ResetEndRunTint()
+        {
+            if (_endRunImage != null)
+            {
+                _endRunImage.color = Color.white;
+            }
         }
     }
 }

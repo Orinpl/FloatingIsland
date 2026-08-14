@@ -69,6 +69,8 @@ namespace FloatingIsLand.UI
 
             HudPanel hud = _ui.Get<HudPanel>();
             hud.endRunButton.onClick.AddListener(_flow.EndCurrentRun);
+            // 面板自己做完二次确认才抛这个事件（放弃本局不结算，误触代价太大）
+            hud.HomeConfirmed += _flow.ReturnToMainMenu;
 
             SettlementPanel settlement = _ui.Get<SettlementPanel>();
             settlement.nextRunButton.onClick.AddListener(_flow.NextRun);

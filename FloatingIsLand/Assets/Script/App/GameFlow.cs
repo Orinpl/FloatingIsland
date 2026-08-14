@@ -97,10 +97,16 @@ namespace FloatingIsLand.App
             ChangeState(GameStateId.Loading);
         }
 
-        /// <summary>结算面板点"回主界面"：卸载 Main 后回 MainMenu。</summary>
+        /// <summary>
+        /// 点"回主界面"：卸载 Main 后回 MainMenu。
+        ///
+        /// 结算面板和局内 HUD 都能进来。局内点等于**放弃本局**：不结算、不上榜，
+        /// 所以误触的代价由 UI 侧的二次确认兜住（见 HudPanel 右上角那个按钮），
+        /// 流程这边只管把会话丢掉、场景卸干净。
+        /// </summary>
         public void ReturnToMainMenu()
         {
-            if (CurrentStateId != GameStateId.Settlement)
+            if (CurrentStateId != GameStateId.Settlement && CurrentStateId != GameStateId.Gameplay)
             {
                 return;
             }

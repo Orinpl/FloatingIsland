@@ -14,9 +14,9 @@ namespace FloatingIsLand.UI
         private const string CreditsContent =
             "北极  —  开发\n\n" +
             "Dawncxzz  —  TA\n\n" +
-            "-H工H工H-  —  美术原画\n\n" +
+            "Ci Vinda  —  美术原画\n\n" +
             "星辉  —  地编\n\n" +
-            "Windows98  —  音效";
+            "TOFUUU  —  音效";
 
         private void Awake()
         {

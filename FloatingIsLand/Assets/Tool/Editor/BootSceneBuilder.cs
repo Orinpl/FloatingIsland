@@ -241,12 +241,20 @@ namespace FloatingIsLand.EditorTools
 
         private static void BuildMainMenuPanel(Transform uiRoot)
         {
+            // 不放文字标题：背景视频/封面右下自带「风脉城 WINDVEIN」logo，再叠一行字是重复信息
             MainMenuPanel panel = CreatePanel<MainMenuPanel>(uiRoot, "MainMenuPanel", PanelDark);
-            CreateText(panel.transform, "Title", "浮空风岛", 64, new Vector2(0f, 200f), new Vector2(800f, 100f));
-            panel.startButton = CreateButton(panel.transform, "StartButton", "开始游戏", new Vector2(0f, 20f), new Vector2(320f, 72f));
-            panel.leaderboardButton = CreateButton(panel.transform, "LeaderboardButton", "排行榜", new Vector2(0f, -70f), new Vector2(320f, 72f));
-            panel.creditsButton = CreateButton(panel.transform, "CreditsButton", "开发者名单", new Vector2(0f, -160f), new Vector2(320f, 72f));
-            panel.quitButton = CreateButton(panel.transform, "QuitButton", "退出游戏", new Vector2(0f, -250f), new Vector2(320f, 72f));
+            panel.startButton = CreateMenuButton(panel.transform, "StartButton", "开始游戏", 150f);
+            panel.leaderboardButton = CreateMenuButton(panel.transform, "LeaderboardButton", "排行榜", 25f);
+            panel.creditsButton = CreateMenuButton(panel.transform, "CreditsButton", "开发者名单", -100f);
+            panel.quitButton = CreateMenuButton(panel.transform, "QuitButton", "退出游戏", -225f);
+        }
+
+        /// <summary>主界面大按钮：比通用按钮（320×72/28 号字）大一圈，背景是整幅主视觉，按钮太小压不住画面。</summary>
+        private static Button CreateMenuButton(Transform parent, string name, string label, float y)
+        {
+            Button button = CreateButton(parent, name, label, new Vector2(0f, y), new Vector2(440f, 96f));
+            button.GetComponentInChildren<Text>(true).fontSize = 36;
+            return button;
         }
 
         /// <summary>开发者名单面板：主界面进入的静态展示页（名单内容在 CreditsPanel 代码里，这里只搭布局）。</summary>

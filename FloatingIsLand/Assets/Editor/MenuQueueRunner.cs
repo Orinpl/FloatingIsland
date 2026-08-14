@@ -44,6 +44,12 @@ public static class MenuQueueRunner
         {
             return;
         }
+        // Play 模式下按住不动：场景类菜单（OpenScene/SaveScene）会抛异常且被菜单层吞掉，
+        // 队列白白烧掉还误报 ok。等退出 Play 再执行，队列文件不丢。
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+        {
+            return;
+        }
         if (!File.Exists(QueueFile))
         {
             return;

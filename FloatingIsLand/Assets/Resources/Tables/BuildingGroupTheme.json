@@ -69,7 +69,7 @@
     "minLevel": 1,
     "maxLevel": 20,
     "weight": 5,
-    "maxPerRun": 3,
+    "maxPerRun": 1,
     "members": [
       "citizenCenter_01:1:1:1",
       "residence_01:5:1:3",

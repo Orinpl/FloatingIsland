@@ -23,7 +23,7 @@ namespace FloatingIsLand.UI
         private HudPanel _hud;
         private GameSession _session;
         private readonly List<HudPanel.HandItemView> _handItems = new List<HudPanel.HandItemView>();
-        private readonly List<string> _offerLabels = new List<string>();
+        private readonly List<HudPanel.OfferView> _offers = new List<HudPanel.OfferView>();
 
         private void Start()
         {
@@ -219,6 +219,7 @@ namespace FloatingIsLand.UI
             if (_session == null || !_session.IsBuildReady)
             {
                 _hud.SetScoreboard(0, 0, false, 0, 0, "等待地图装载", false);
+                _hud.SetEndRunButton("提前结束", 0, 0, false);
                 _hud.SetHand(null, -1);
                 _hud.SetOffers(null);
                 _hud.SetHint(string.Empty);
@@ -230,19 +231,13 @@ namespace FloatingIsLand.UI
             _handItems.Clear();
             for (int i = 0; i < run.Hand.Count; i++)
             {
-                string variantId = run.Hand[i];
-                BuildingBlueprint blueprint = _session.Rules.GetBlueprintOrNull(variantId);
-                _handItems.Add(new HudPanel.HandItemView(
-                    variantId,
-                    blueprint != null ? blueprint.NameCn : variantId,
-                    blueprint != null ? blueprint.Footprint : null,
-                    blueprint != null ? blueprint.PrefabPath : null));
+                _handItems.Add(Describe(run.Hand[i]));
             }
 
-            _offerLabels.Clear();
+            _offers.Clear();
             for (int g = 0; g < run.Offers.Count; g++)
             {
-                _offerLabels.Add(DescribeGroup(run.Offers[g]));
+                _offers.Add(DescribeGroup(run.Offers[g]));
             }
 
             bool lastGroup = run.IsLastGroup;
@@ -274,21 +269,22 @@ namespace FloatingIsLand.UI
             _hud.SetScoreboard(
                 run.TotalScore, run.ClearScore, run.IsStageCleared,
                 run.Level, run.TotalLevels, buttonLabel, interactable);
-            _hud.SetEndRunButton(EndRunLabel(run));
+            _hud.SetEndRunButton(EndRunLabel(run), run.TotalScore, run.ClearScore, run.IsStageCleared);
             _hud.SetHand(_handItems, _session.SelectedHandIndex);
-            _hud.SetOffers(_offerLabels);
+            _hud.SetOffers(_offers);
             _hud.SetHint(BuildHint(run));
         }
 
         /// <summary>
         /// 达通关分后这个按钮才是「进入下一关」；没达标时点它等于提前认输，
         /// 所以标签要把后果说清楚，不能都叫「结束本局」。
+        /// 分数进度那一行由面板自己补（见 <see cref="HudPanel.SetEndRunButton"/>）。
         /// </summary>
         private string EndRunLabel(BuildRunState run)
         {
             if (!run.IsStageCleared)
             {
-                return "提前结束（不再继续）";
+                return "提前结束（认输）";
             }
             return _session.IsFinalStage ? "通关收官 · 上榜" : "进入下一关";
         }
@@ -297,7 +293,7 @@ namespace FloatingIsLand.UI
         {
             if (_session.HasPendingOffers)
             {
-                return "选择一组建筑（点中间的组按钮）。";
+                return "选择一组建筑：点屏幕中间任意一排，那排里的建筑就全部进手牌。";
             }
             if (run.IsStageCleared && run.Hand.Count == 0)
             {
@@ -339,32 +335,44 @@ namespace FloatingIsLand.UI
                 : "滚轮旋转，左键放置（放完退出摆放模式），Esc 取消。";
         }
 
-        private string DescribeGroup(BuildingGroup group)
+        /// <summary>把一个变体翻译成卡片显示数据。配表查不到就退回变体 Id，至少别显示成空白。</summary>
+        private HudPanel.HandItemView Describe(string variantId)
         {
-            var counts = new Dictionary<string, int>();
-            var order = new List<string>();
+            BuildingBlueprint blueprint = _session.Rules.GetBlueprintOrNull(variantId);
+            return new HudPanel.HandItemView(
+                variantId,
+                blueprint != null ? blueprint.NameCn : variantId,
+                blueprint != null ? blueprint.Footprint : null,
+                blueprint != null ? blueprint.PrefabPath : null);
+        }
+
+        /// <summary>
+        /// 把一组待选建筑翻译成一排卡片。
+        ///
+        /// 按**变体 Id** 合并重复而不是按显示名：两个不同变体可能重名（同一栋楼的不同朝向/配色），
+        /// 按名字合并会把它们并成一张卡，玩家点进去才发现拿到的形状不是看到的那个。
+        /// 顺序按配方声明顺序，同一变体聚在第一次出现的位置。
+        /// </summary>
+        private HudPanel.OfferView DescribeGroup(BuildingGroup group)
+        {
+            var items = new List<HudPanel.OfferItemView>();
+            var slotById = new Dictionary<string, int>(System.StringComparer.Ordinal);
+
             for (int i = 0; i < group.VariantIds.Count; i++)
             {
-                BuildingBlueprint blueprint = _session.Rules.GetBlueprintOrNull(group.VariantIds[i]);
-                string name = blueprint != null ? blueprint.NameCn : group.VariantIds[i];
-                if (!counts.ContainsKey(name))
+                string variantId = group.VariantIds[i];
+                int slot;
+                if (slotById.TryGetValue(variantId, out slot))
                 {
-                    counts[name] = 0;
-                    order.Add(name);
+                    items[slot] = items[slot].WithOneMore();
+                    continue;
                 }
-                counts[name]++;
+
+                slotById[variantId] = items.Count;
+                items.Add(new HudPanel.OfferItemView(Describe(variantId), 1));
             }
 
-            var parts = new List<string>(order.Count);
-            for (int i = 0; i < order.Count; i++)
-            {
-                string name = order[i];
-                parts.Add(counts[name] > 1 ? $"{name}×{counts[name]}" : name);
-            }
-
-            string detail = string.Join("  ", parts);
-            // 主题名放最前：二选一的意义是「选一条路线」，光看建筑清单玩家得自己去脑补这组想干什么
-            return string.IsNullOrEmpty(group.NameCn) ? detail : $"【{group.NameCn}】{detail}";
+            return new HudPanel.OfferView(group.NameCn, items);
         }
     }
 }
