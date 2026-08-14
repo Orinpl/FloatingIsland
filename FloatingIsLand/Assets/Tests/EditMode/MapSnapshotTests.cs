@@ -162,5 +162,75 @@ namespace FloatingIsLand.Tests
             Assert.Throws<InvalidOperationException>(() => MapJson.Load("stage_9",
                 "{\"stageId\":1,\"width\":4,\"length\":4,\"layerCount\":1,\"cells\":[{\"x\":9,\"z\":0,\"layer\":0,\"e\":\"island\"}]}"));
         }
+
+        // ---------- 风源手工参数（地图编辑器授权，f>0 = 授权标志） ----------
+
+        [Test]
+        public void 风源手工参数存读一轮后保持()
+        {
+            var original = new MapSnapshot(1, 16, 16, 1, new List<MapCell>(), new[]
+            {
+                // 授权的手工风 + 没授权的随机风混在一张图里
+                new MapElementPlacement("windSource", 3, 4, 0, Rotation.Deg0, 2, 4, 18),
+                new MapElementPlacement("windSource", 8, 8, 0, Rotation.Deg0),
+                new MapElementPlacement("ore", 10, 10, 0, Rotation.Deg90),
+            });
+
+            MapSnapshot loaded = MapJson.Load("test", MapJson.Save(original));
+
+            Assert.AreEqual(3, loaded.Elements.Count);
+            MapElementPlacement authored = loaded.Elements[0];
+            Assert.IsTrue(authored.HasWindParams, "授权风源的手工参数在存读后丢了");
+            Assert.AreEqual(2, authored.WindDir);
+            Assert.AreEqual(4, authored.WindForce);
+            Assert.AreEqual(18, authored.WindLength);
+
+            Assert.IsFalse(loaded.Elements[1].HasWindParams, "未授权风源不该带手工参数");
+            Assert.IsFalse(loaded.Elements[2].HasWindParams);
+            Assert.AreEqual(Rotation.Deg90, loaded.Elements[2].Rotation);
+        }
+
+        [Test]
+        public void 无手工参数的元素json里不落风字段()
+        {
+            var map = new MapSnapshot(1, 8, 8, 1, new List<MapCell>(), new[]
+            {
+                new MapElementPlacement("ore", 1, 1, 0, Rotation.Deg0),
+            });
+
+            string json = MapJson.Save(map);
+            StringAssert.DoesNotContain("\"f\"", json, "非风元素的 JSON 不该带风字段");
+            StringAssert.DoesNotContain("\"len\"", json);
+        }
+
+        [Test]
+        public void 老地图不带风字段可以直接读()
+        {
+            MapSnapshot loaded = MapJson.Load("stage_old",
+                "{\"stageId\":1,\"width\":4,\"length\":4,\"layerCount\":1,\"cells\":[]," +
+                "\"elements\":[{\"x\":1,\"z\":1,\"layer\":0,\"e\":\"windSource\",\"r\":0}]}");
+
+            Assert.AreEqual(1, loaded.Elements.Count);
+            Assert.IsFalse(loaded.Elements[0].HasWindParams);
+        }
+
+        [Test]
+        public void 非法风参数读取时抛异常()
+        {
+            // 有风力却没风长
+            Assert.Throws<InvalidOperationException>(() => MapJson.Load("stage_9",
+                "{\"stageId\":1,\"width\":4,\"length\":4,\"layerCount\":1,\"cells\":[]," +
+                "\"elements\":[{\"x\":1,\"z\":1,\"layer\":0,\"e\":\"windSource\",\"r\":0,\"f\":3}]}"));
+
+            // 风向超出八向
+            Assert.Throws<InvalidOperationException>(() => MapJson.Load("stage_9",
+                "{\"stageId\":1,\"width\":4,\"length\":4,\"layerCount\":1,\"cells\":[]," +
+                "\"elements\":[{\"x\":1,\"z\":1,\"layer\":0,\"e\":\"windSource\",\"r\":0,\"d\":8,\"f\":3,\"len\":10}]}"));
+
+            // 负风力
+            Assert.Throws<InvalidOperationException>(() => MapJson.Load("stage_9",
+                "{\"stageId\":1,\"width\":4,\"length\":4,\"layerCount\":1,\"cells\":[]," +
+                "\"elements\":[{\"x\":1,\"z\":1,\"layer\":0,\"e\":\"windSource\",\"r\":0,\"f\":-1}]}"));
+        }
     }
 }

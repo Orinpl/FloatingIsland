@@ -19,8 +19,8 @@ namespace FloatingIsLand.ViewEGB.EditorTools
         private const string MainScenePath = "Assets/Scenes/Main.unity";
         private const string RootName = "GridSystems";
 
-        private const string ManagersPrefabPath = "Assets/SoulGames/Easy Grid Builder Pro 2/Prefabs/Grid Managers.prefab";
-        private const string GridPrefabPath = "Assets/SoulGames/Easy Grid Builder Pro 2/Prefabs/EGB Pro 2 Grid XZ.prefab";
+        internal const string ManagersPrefabPath = "Assets/SoulGames/Easy Grid Builder Pro 2/Prefabs/Grid Managers.prefab";
+        internal const string GridPrefabPath = "Assets/SoulGames/Easy Grid Builder Pro 2/Prefabs/EGB Pro 2 Grid XZ.prefab";
 
         // 骨架默认值：只覆盖尺寸与层数；cellSize / verticalGridHeight 沿用 prefab 预配值（2 / 2，
         // 即层高折算系数 k=1 格——正式数值定下后与领域层同步改，GRID_INTEGRATION.md §3）
@@ -33,7 +33,7 @@ namespace FloatingIsLand.ViewEGB.EditorTools
 
         // EGB 网格 prefab 出厂在 Layer 31（工程未命名层）；Grid Managers prefab 出厂 mask 却是 Nothing，
         // 导致 GridManager 鼠标射线永远检测不到网格（GridManager.cs:214）——接线时必须把 mask 指到该层。
-        private const int GridSystemLayer = 31;
+        internal const int GridSystemLayer = 31;
 
         [MenuItem("Tools/框架/给 Main 场景接入 EGB 网格", false, 2)]
         public static void Setup()
@@ -101,7 +101,7 @@ namespace FloatingIsLand.ViewEGB.EditorTools
                 Debug.LogError("[网格] " + GridPrefabPath + " 上找不到 EasyGridBuilderPro 组件（插件版本变了？）。", gridGo);
                 return;
             }
-            OverrideGridSize(grid);
+            ConfigureGrid(grid, DefaultWidth, DefaultLength, DefaultLayerCount);
 
             var presenter = root.AddComponent<EGBGridPresenter>();
             SetSerializedReference(presenter, "gridSystem", grid);
@@ -141,15 +141,16 @@ namespace FloatingIsLand.ViewEGB.EditorTools
                       $"{DefaultWidth}×{DefaultLength}×{DefaultLayerCount}层 + Presenter + TerrainOverlay + World + 摆放控制 + MapBootstrap，" +
                       $"射线检测层已对齐 Layer {GridSystemLayer}。" +
                       "EGB 自带网格面片已关闭——网格由 TerrainOverlayRenderer 按已刷地块绘制，没刷过的格子不显示。" +
-                      "先用 Tools → 地图 → 地形刷子 刷一张并保存，再 Play 进 Main。");
+                      "地图编辑请走独立场景：Tools → 地图 → 打开地图编辑场景（Main 只作为游戏加载的场景）。");
         }
 
-        private static void OverrideGridSize(EasyGridBuilderPro grid)
+        /// <summary>覆盖网格尺寸 + 关掉插件自带面片 + 修正显示配色。Main 场景与地图编辑场景共用这一份。</summary>
+        internal static void ConfigureGrid(EasyGridBuilderPro grid, int width, int length, int layerCount)
         {
             var so = new SerializedObject(grid);
-            SetInt(so, "gridWidth", DefaultWidth);
-            SetInt(so, "gridLength", DefaultLength);
-            SetInt(so, "verticalGridsCount", DefaultLayerCount);
+            SetInt(so, "gridWidth", width);
+            SetInt(so, "gridLength", length);
+            SetInt(so, "verticalGridsCount", layerCount);
 
             // 关掉插件自带的 Object Grid 面片：本项目要求"没刷过的地块不显示"，而 EGB 每个垂直层只有
             // 一整块面片、无逐格显隐 API（alphaMask 是跟随光标的单一遮罩，EasyGridBuilderPro.cs:85-91）。
@@ -189,7 +190,7 @@ namespace FloatingIsLand.ViewEGB.EditorTools
             p.boolValue = value;
         }
 
-        private static void SetSerializedInt(Component target, string field, int value)
+        internal static void SetSerializedInt(Component target, string field, int value)
         {
             var so = new SerializedObject(target);
             SetInt(so, field, value);
@@ -211,7 +212,7 @@ namespace FloatingIsLand.ViewEGB.EditorTools
         }
 
         /// <summary>Layer 31 在本工程未命名；补上名字，让 Inspector 里 mask/Layer 可读。已有名字则不动。</summary>
-        private static void EnsureGridLayerNamed()
+        internal static void EnsureGridLayerNamed()
         {
             Object[] assets = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset");
             if (assets == null || assets.Length == 0)

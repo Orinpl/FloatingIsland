@@ -16,7 +16,7 @@ namespace FloatingIsLand.View
     /// 不用「每格一个 Quad GameObject」（GridCellHighlighter 那种）：那个类只有 2 个 quad 才成立，
     /// 上千格会直接拖垮编辑器和运行时。
     ///
-    /// [ExecuteAlways]：编辑器刷子（ViewEGB/Editor/MapPainterWindow）直接驱动本组件做落笔预览——
+    /// [ExecuteAlways]：地图编辑器（ViewEGB/Editor/MapEditorWindow）直接驱动本组件做落笔预览——
     /// 预览与运行时是同一段代码、同一个 Mesh，从机制上杜绝"编辑器看着对、跑起来不一样"。
     /// </summary>
     [ExecuteAlways]

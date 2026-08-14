@@ -92,8 +92,10 @@ namespace FloatingIsLand.Domain.Wind
         // ---------- 风源展开 ----------
 
         /// <summary>
-        /// 每个 windSource 元素展开一股：方向八向随机，强度/长度取 WindConfig 区间。
+        /// 每个 windSource 元素展开一股：地图编辑器授权过手工参数（<see cref="MapElementPlacement.HasWindParams"/>）
+        /// 的直接用手工的朝向/强度/长度；没授权的方向八向随机，强度/长度取 WindConfig 区间。
         /// 顺序按元素落位序，随机流独立加盐——保证「同种子同风」且与散布逻辑互不干扰。
+        /// 随机数对每个风源都照常抽满三个：把某个风源改成手工参数不会影响其余随机风源的结果。
         /// </summary>
         private static List<WindSeed> BuildSeeds(BuildBoard board, int seed)
         {
@@ -112,6 +114,15 @@ namespace FloatingIsLand.Domain.Wind
                 var dir = (Dir8)random.NextInt(0, 8);
                 int force = random.NextInt(rules.InitialWindLevelMin, rules.InitialWindLevelMax + 1);
                 int length = random.NextInt(rules.InitialWindLengthMin, rules.InitialWindLengthMax + 1);
+
+                MapElementPlacement placement;
+                if (TryFindPlacement(board.Map, element, out placement) && placement.HasWindParams)
+                {
+                    dir = (Dir8)placement.WindDir;
+                    force = placement.WindForce;
+                    length = placement.WindLength;
+                }
+
                 if (force <= 0 || length <= 0)
                 {
                     continue;
@@ -119,6 +130,26 @@ namespace FloatingIsLand.Domain.Wind
                 seeds.Add(new WindSeed(element.Cells[0], element.Layer, dir, force, length));
             }
             return seeds;
+        }
+
+        /// <summary>
+        /// 反查该已落位元素对应的地图元素记录（手工风参数存在 MapSnapshot 上，
+        /// <see cref="PlacedElement"/> 是运行时展开视图，不重复携带）。按锚点格 + Id 匹配。
+        /// </summary>
+        private static bool TryFindPlacement(MapSnapshot map, PlacedElement element, out MapElementPlacement placement)
+        {
+            for (int i = 0; i < map.Elements.Count; i++)
+            {
+                MapElementPlacement candidate = map.Elements[i];
+                if (candidate.X == element.X && candidate.Z == element.Z && candidate.Layer == element.Layer
+                    && string.Equals(candidate.ElementId, element.Def.ElementId, StringComparison.Ordinal))
+                {
+                    placement = candidate;
+                    return true;
+                }
+            }
+            placement = default(MapElementPlacement);
+            return false;
         }
 
         // ---------- IWindField（转发到当前场） ----------

@@ -1,3 +1,4 @@
+using FloatingIsLand.Domain.Map;
 using FloatingIsLand.GameInput;
 using FloatingIsLand.View;
 using SoulGames.EasyGridBuilderPro;
@@ -30,9 +31,14 @@ namespace FloatingIsLand.ViewEGB
             get { return gridSystem.GetGridLength(); }
         }
 
+        /// <summary>当前局内地图；<see cref="BindTerrain"/> 绑定，用于悬停的层归属与层数。</summary>
+        private MapSnapshot _terrain;
+
         public int LayerCount
         {
-            get { return gridSystem.GetVerticalGridsCount(); }
+            // 快照的层数是正本——EGB 的 verticalGridsCount 只是场景骨架配置（恒为 1），
+            // 多层地图的层高/层数全走 GridGeometry，不依赖插件的垂直格子列表
+            get { return _terrain != null ? _terrain.LayerCount : gridSystem.GetVerticalGridsCount(); }
         }
 
         public float CellSize
@@ -83,23 +89,28 @@ namespace FloatingIsLand.ViewEGB
             gridSystem.SetGridWidthAndLength(width, length, true);
         }
 
+        public void BindTerrain(MapSnapshot snapshot)
+        {
+            _terrain = snapshot;
+        }
+
+        /// <summary>
+        /// 坐标换算走 <see cref="GridGeometry"/> 而不是 EGB 的 GetCellWorldPosition/GetCellPosition：
+        /// 那两个 API 要索引运行时才建的 gridList[layer]，而场景网格只配了 1 个垂直层——
+        /// 多层地图取 layer ≥ 1 会越界。GridGeometry 精确复刻了 EGB 的公式（见其类注释），任意层可用。
+        /// </summary>
         public Vector3 CellToWorld(int x, int z, int layer)
         {
-            return gridSystem.GetCellWorldPosition(new Vector2Int(x, z), layer);
+            return Geometry.CellCorner(x, z, layer);
         }
 
         public bool WorldToCell(Vector3 worldPosition, int layer, out int x, out int z)
         {
-            Vector2Int cell = gridSystem.GetCellPosition(worldPosition, layer);
-            x = cell.x;
-            z = cell.y;
-            return gridSystem.IsWithinGridBounds(cell, layer);
+            return Geometry.WorldToCell(worldPosition, layer, out x, out z);
         }
 
         public bool TryGetHoveredCell(out int x, out int z, out int layer)
         {
-            // 骨架版只探测第 0 层平面。TODO(M1)：接入地形数据后，从最高层往低层找第一个"该格在该层有地形"的层，
-            // 高台碰撞体挡低层的行为届时一并处理（GRID_INTEGRATION.md §3）。
             x = 0;
             z = 0;
             layer = 0;
@@ -114,13 +125,26 @@ namespace FloatingIsLand.ViewEGB
             }
 
             Ray ray = camera.ScreenPointToRay(screenPoint);
-            var plane = new Plane(Vector3.up, new Vector3(0f, gridSystem.transform.position.y, 0f));
-            if (!plane.Raycast(ray, out float distance))
+            GridGeometry geometry = Geometry;
+
+            // 从最高层往低层找第一个「该格在该层有地形」的层：高台优先被指到（GRID_INTEGRATION §3）。
+            // 第 0 层不要求有地形——虚空格照样返回，是否可建交给摆放校验与高亮反馈（骨架版行为不变）。
+            if (_terrain != null)
             {
-                return false;
+                for (int probe = _terrain.LayerCount - 1; probe >= 1; probe--)
+                {
+                    int hx, hz;
+                    if (geometry.RaycastCell(ray, probe, out hx, out hz) && _terrain.IsPainted(hx, hz, probe))
+                    {
+                        x = hx;
+                        z = hz;
+                        layer = probe;
+                        return true;
+                    }
+                }
             }
 
-            return WorldToCell(ray.GetPoint(distance), 0, out x, out z);
+            return geometry.RaycastCell(ray, 0, out x, out z);
         }
     }
 }

@@ -77,6 +77,8 @@ namespace FloatingIsLand.View
 
             // 先按快照尺寸建格，再取 Geometry——BuildGrid 会改变网格原点
             _presenter.BuildGrid(snapshot.Width, snapshot.Length);
+            // 把地图交给 presenter：悬停从最高层往低层归属、LayerCount 以快照为准（多层建造靠这个）
+            _presenter.BindTerrain(snapshot);
             Snapshot = snapshot;
             terrainOverlay.Rebuild(snapshot, _presenter.Geometry);
 
@@ -206,7 +208,7 @@ namespace FloatingIsLand.View
             }
 
             string message = $"[地图] 第 {stageId} 关还没有地图（Resources/{UnityMapLoader.ResourcePath(stageId)}.json 不存在）。" +
-                             "用 Tools → 地图 → 地形刷子 刷一张并保存。";
+                             "用 Tools → 地图 → 地图编辑器 刷一张并保存。";
             if (errorWhenMapMissing)
             {
                 Debug.LogError(message, this);

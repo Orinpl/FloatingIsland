@@ -13,7 +13,7 @@ namespace FloatingIsLand.ViewEGB.EditorTools
     /// <summary>
     /// 按关卡岛屿模型的实际轮廓自动描摹地形，并散布地图元素，直接产出 Resources/Maps/stage_{id}.json。
     ///
-    /// 手刷（<see cref="MapPainterWindow"/>）适合精修，但一整座岛逐格刷不现实，而且刷出来的轮廓
+    /// 手刷（<see cref="MapEditorWindow"/>）适合精修，但一整座岛逐格刷不现实，而且刷出来的轮廓
     /// 和岛屿模型对不齐——玩家会看到建筑悬空或陷进山体。这里改成用模型本身当权威轮廓：
     ///
     ///   1. 按 Stage.islandCellSpan 把岛屿缩放居中（与运行时 WorldRenderer 完全同一套对位算法）；
@@ -26,6 +26,9 @@ namespace FloatingIsLand.ViewEGB.EditorTools
     ///   6. 存盘。
     ///
     /// 结果是确定性的：同一个种子 + 同一个模型 → 同一张图。
+    ///
+    /// 注意：本工具**整图重写** stage_{id}.json——在地图编辑器里手工精修的地形和授权的风参数
+    /// 都会被覆盖。先自动生成、再手工精修，顺序别反。
     /// </summary>
     public static class MapAutoBuilder
     {

@@ -7,18 +7,23 @@ namespace FloatingIsLand.Config
 {
     /// <summary>
     /// 地图地形层 JSON ↔ <see cref="MapSnapshot"/>。机制与 <see cref="TableJson"/> 一致（Newtonsoft），
-    /// 但地图不是配表：正本是 Resources/Maps/*.json 本身，由编辑器刷子
-    /// （Assets/Script/ViewEGB/Editor/MapPainterWindow）写出，不经 Excel 转表。
+    /// 但地图不是配表：正本是 Resources/Maps/*.json 本身，由地图编辑器
+    /// （Assets/Script/ViewEGB/Editor/MapEditorWindow）写出，不经 Excel 转表。
     ///
     /// 格式（稀疏，只列刷过的格子）：
     /// <code>
     /// { "stageId": 1, "width": 32, "length": 32, "layerCount": 1,
     ///   "cells":    [ { "x": 12, "z": 30, "layer": 0, "e": "greenField" } ],
-    ///   "elements": [ { "x": 14, "z": 16, "layer": 0, "e": "anchor", "r": 0 } ] }
+    ///   "elements": [ { "x": 14, "z": 16, "layer": 0, "e": "anchor", "r": 0 },
+    ///                 { "x": 20, "z": 8, "layer": 0, "e": "windSource", "r": 0,
+    ///                   "d": 2, "f": 3, "len": 18 } ] }
     /// </code>
     /// cells 是逐格的地形层，elements 是带占地形状的地图元素（巨型风车/锚点/矿藏/风源），
     /// 两者分开存：地形是区域属性，元素要有个体身份才能做锚点归属与收益递减（§12.8）。
     /// elements 缺失按空处理，老地图文件可以直接读。
+    ///
+    /// d/f/len 是风源的手工风参数（d=Dir8 风向 0~7，f=风力，len=风长），只有地图编辑器
+    /// 授权过的风源才有（f&gt;0 即授权标志）；缺失 = 运行时按局种子随机（老地图/自动散布的口径）。
     ///
     /// 存盘时按 (layer, z, x) 排序，保证同一张图两次保存字节一致——否则 git diff 全是噪音。
     /// </summary>
@@ -30,7 +35,7 @@ namespace FloatingIsLand.Config
             if (string.IsNullOrWhiteSpace(json))
             {
                 throw new InvalidOperationException(
-                    $"地图 [{mapName}] 的 JSON 内容为 null/空（文件缺失或为空？用 Tools → 地图 → 地形刷子 刷一张并保存）。");
+                    $"地图 [{mapName}] 的 JSON 内容为 null/空（文件缺失或为空？用 Tools → 地图 → 地图编辑器 刷一张并保存）。");
             }
 
             MapDto dto;
@@ -76,7 +81,25 @@ namespace FloatingIsLand.Config
                     throw new InvalidOperationException(
                         $"地图 [{mapName}] 第 {i} 个元素 [{e.e}] 的朝向 {e.r} 非法（应为 0~3，即 0°/90°/180°/270°）。");
                 }
-                elements.Add(new MapElementPlacement(e.e, e.x, e.z, e.layer, (Rotation)e.r));
+                if (e.f < 0)
+                {
+                    throw new InvalidOperationException(
+                        $"地图 [{mapName}] 第 {i} 个元素 [{e.e}] 的风力 {e.f} 非法（应 ≥ 0；0 = 无手工风参数）。");
+                }
+                if (e.f > 0)
+                {
+                    if (e.d < 0 || e.d > 7)
+                    {
+                        throw new InvalidOperationException(
+                            $"地图 [{mapName}] 第 {i} 个元素 [{e.e}] 的风向 {e.d} 非法（应为 0~7，Dir8 八向）。");
+                    }
+                    if (e.len <= 0)
+                    {
+                        throw new InvalidOperationException(
+                            $"地图 [{mapName}] 第 {i} 个元素 [{e.e}] 带手工风力 {e.f} 却没有正的风长（len={e.len}）。");
+                    }
+                }
+                elements.Add(new MapElementPlacement(e.e, e.x, e.z, e.layer, (Rotation)e.r, e.d, e.f, e.len));
             }
 
             try
@@ -128,6 +151,9 @@ namespace FloatingIsLand.Config
                     layer = element.Layer,
                     e = element.ElementId,
                     r = (int)element.Rotation,
+                    d = element.WindDir,
+                    f = element.WindForce,
+                    len = element.WindLength,
                 };
             }
 
@@ -182,6 +208,20 @@ namespace FloatingIsLand.Config
             public string e;
             /// <summary>朝向 0~3（0°/90°/180°/270°）。</summary>
             public int r;
+
+            // ---- 风源手工参数（DefaultValueHandling.Ignore：0 不落盘，非风源元素的 JSON 保持干净） ----
+
+            /// <summary>手工风向 0~7（Dir8）。仅 f &gt; 0 时有意义。</summary>
+            [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+            public int d;
+
+            /// <summary>手工风力；&gt; 0 = 已授权，0 = 运行时随机。</summary>
+            [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+            public int f;
+
+            /// <summary>手工风长（格）。仅 f &gt; 0 时有意义。</summary>
+            [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+            public int len;
         }
     }
 }

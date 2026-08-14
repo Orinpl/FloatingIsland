@@ -1,3 +1,4 @@
+using FloatingIsLand.Domain.Map;
 using UnityEngine;
 
 namespace FloatingIsLand.View
@@ -14,6 +15,14 @@ namespace FloatingIsLand.View
     {
         /// <summary>按尺寸重建网格表现（骨架版由实现的 Inspector 默认值驱动；M1 起改为地图快照驱动）。</summary>
         void BuildGrid(int width, int length);
+
+        /// <summary>
+        /// 绑定当前局内地图（MapBootstrap 装载完成后调用）。绑定后：
+        /// <see cref="LayerCount"/> 以快照层数为准（不再受插件垂直层配置限制）；
+        /// <see cref="TryGetHoveredCell"/> 从最高层往低层找第一个「该格在该层有地形」的层做悬停归属
+        /// （GRID_INTEGRATION §3）。传 null 解绑，回到只探第 0 层的骨架行为。
+        /// </summary>
+        void BindTerrain(MapSnapshot snapshot);
 
         /// <summary>
         /// 实现内部已初始化完毕、可以安全调用 BuildGrid 与坐标转换。
@@ -43,7 +52,9 @@ namespace FloatingIsLand.View
         bool WorldToCell(Vector3 worldPosition, int layer, out int x, out int z);
 
         /// <summary>
-        /// 指针当前指着的格子；不在网格上返回 false。骨架版只探测第 0 层，M1 接入地形数据后按层归属扩展。
+        /// 指针当前指着的格子；不在网格上返回 false。
+        /// 已 <see cref="BindTerrain"/> 时从最高层往低层找第一个有地形的层（高台优先被指到），
+        /// 都没有地形则落回第 0 层平面；未绑定保持只探第 0 层的骨架行为。
         ///
         /// 「指针指着哪」由 <c>PointerInput</c> 统一给：PC 是光标位置，手机是最近一次点击的位置
         /// （触屏没有悬停，见 Docs/PROJECT_BUILD.md §11.1）。所以调用方两端共用同一条路径，不必分平台。
