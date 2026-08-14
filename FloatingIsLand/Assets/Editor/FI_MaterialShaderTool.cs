@@ -363,8 +363,12 @@ namespace FloatingIsLand.EditorTools
             return result;
         }
 
-        /// <summary>Is this shader one the project authored, as opposed to a built-in or package one?</summary>
-        private static bool IsAuthoredShader(Shader shader)
+        /// <summary>
+        /// Is this shader one the project authored, as opposed to a built-in or package one?
+        /// Shared with <see cref="ResMaterialShaderWatcher"/> so the import-time guard and the
+        /// menus cannot drift apart on what counts as an acceptable shader.
+        /// </summary>
+        internal static bool IsAuthoredShader(Shader shader)
         {
             if (shader == null)
             {
