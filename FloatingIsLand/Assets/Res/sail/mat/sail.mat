@@ -8,11 +8,12 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: sail
-  m_Shader: {fileID: 4800000, guid: 9907824432747eb4bb14437ac0cce0a4, type: 3}
+  m_Shader: {fileID: 4800000, guid: 6a3a5a44de374ef2b756f4f0e15ad0cc, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _IBL_USE_BUILTIN
+  - _NORMALMAP
   - _SMOOTH_NORMAL_OFF
   m_InvalidKeywords: []
   m_LightmapFlags: 4
@@ -73,6 +74,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SailMaskTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _ShadowRampTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -85,7 +90,7 @@ Material:
     m_Floats:
     - _BaseGroup: 1
     - _BumpScale: 1
-    - _Cull: 2
+    - _Cull: 0
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
@@ -104,7 +109,7 @@ Material:
     - _MatCapIntensity: 0.5
     - _Metallic: 0
     - _Mode: 0
-    - _NormalMapGroup: 0
+    - _NormalMapGroup: 1
     - _OcclusionStrength: 1
     - _OutlineColorMix: 0.2
     - _OutlineGroup: 0
@@ -118,6 +123,22 @@ Material:
     - _RimPower: 3
     - _RimShadowMask: 0.5
     - _RimSmoothness: 0.1
+    - _SailClothAmplitude: 0.015
+    - _SailClothFrequency: 2.5
+    - _SailFlutterAmplitude: 0.004
+    - _SailFlutterScale: 4
+    - _SailFlutterSpeed: 8
+    - _SailMaskEnd: 1
+    - _SailMaskInvert: 0
+    - _SailMaskMode: 3
+    - _SailMaskStart: 0.08
+    - _SailMaskStrength: 1
+    - _SailMaxDisplacement: 10
+    - _SailNormalPush: 0
+    - _SailSwayAmplitude: 0.035
+    - _SailWaveScale: 0.8
+    - _SailWaveSpeed: 1.2
+    - _SailWindPush: 1
     - _Shadow2ndBorderPosition: -0.282
     - _Shadow2ndBorderRange: 0.274
     - _ShadowBorderPosition: -0.605
@@ -131,10 +152,11 @@ Material:
     - _SpecularHighlights: 1
     - _SpecularIntensity: 0.5
     - _SpecularPower: 64
-    - _SpecularSmoothness: 0.326
+    - _SpecularSmoothness: 0.05
     - _SrcBlend: 1
     - _UVSec: 0
     - _UseShadowRamp: 0
+    - _WindGroup: 1
     - _ZWrite: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
@@ -144,6 +166,7 @@ Material:
     - _OutlineColor: {r: 0.19999996, g: 0.14999998, b: 0.24999997, a: 1}
     - _RimColor: {r: 0.7, g: 0.85, b: 1, a: 1}
     - _RimCustomOffset: {r: 0, g: 0, b: 0, a: 0}
+    - _SailObjectScale: {r: 1, g: 1, b: 1, a: 1}
     - _Shadow2ndColor: {r: 0.6037736, g: 0.6037736, b: 0.6037736, a: 1}
     - _ShadowColor: {r: 0.6132076, g: 0.6132076, b: 0.6132076, a: 1}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}

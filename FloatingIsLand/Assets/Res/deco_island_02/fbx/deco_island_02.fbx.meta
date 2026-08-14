@@ -8,7 +8,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: deco_island_02_texture_diffuse
-    second: {fileID: 2100000, guid: 8ba10d52b913b8c488450e07d6b77017, type: 2}
+    second: {fileID: 2100000, guid: d68c13433b8d43247b6bf22d72e7498d, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

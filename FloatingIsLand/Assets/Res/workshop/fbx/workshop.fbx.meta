@@ -18,7 +18,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: workshop_texture_diffuse
-    second: {fileID: 2100000, guid: cba56a4f33732f742821425f30139d5e, type: 2}
+    second: {fileID: 2100000, guid: 1fb524f541fb291438faa04b5e7c5557, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

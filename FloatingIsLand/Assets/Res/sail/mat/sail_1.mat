@@ -13,6 +13,7 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _IBL_USE_BUILTIN
+  - _NORMALMAP
   - _SMOOTH_NORMAL_OFF
   m_InvalidKeywords: []
   m_LightmapFlags: 4
@@ -58,7 +59,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
-        m_Texture: {fileID: 2800000, guid: e7686dccde89ffc44ac0532e498718f0, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
@@ -91,7 +92,7 @@ Material:
     - _DstBlend: 0
     - _EmissionGroup: 0
     - _GlossMapScale: 1
-    - _Glossiness: 0.2
+    - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _IBLBlendMode: 0
     - _IBLGroup: 0
@@ -104,7 +105,7 @@ Material:
     - _MatCapIntensity: 0.5
     - _Metallic: 0
     - _Mode: 0
-    - _NormalMapGroup: 0
+    - _NormalMapGroup: 1
     - _OcclusionStrength: 1
     - _OutlineColorMix: 0.2
     - _OutlineGroup: 0
@@ -131,7 +132,7 @@ Material:
     - _SpecularHighlights: 1
     - _SpecularIntensity: 0.5
     - _SpecularPower: 64
-    - _SpecularSmoothness: 0.326
+    - _SpecularSmoothness: 0.05
     - _SrcBlend: 1
     - _UVSec: 0
     - _UseShadowRamp: 0
