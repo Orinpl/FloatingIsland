@@ -2592,9 +2592,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ba3c2059a8b27247bd5c6760b6fdda2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  titleText: {fileID: 0}
   summaryText: {fileID: 34832170}
   nextRunButton: {fileID: 701637817}
   menuButton: {fileID: 2023954917}
+  submitRoot: {fileID: 0}
+  nameInput: {fileID: 0}
+  submitButton: {fileID: 0}
+  submitResultText: {fileID: 0}
 --- !u!114 &1646203531
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3029,6 +3034,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   startButton: {fileID: 1095734202}
+  leaderboardButton: {fileID: 0}
   quitButton: {fileID: 1000364413}
 --- !u!114 &2030991736
 MonoBehaviour:
@@ -3205,8 +3211,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   runInfoText: {fileID: 580303448}
   endRunButton: {fileID: 324439362}
+  endRunButtonLabel: {fileID: 0}
   scoreText: {fileID: 835720234}
-  goldText: {fileID: 714603374}
+  clearProgressText: {fileID: 0}
   levelText: {fileID: 394104249}
   nextGroupButton: {fileID: 405441106}
   nextGroupButtonLabel: {fileID: 1458157218}
