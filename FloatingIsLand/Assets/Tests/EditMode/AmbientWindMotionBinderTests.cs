@@ -7,11 +7,11 @@ namespace FloatingIsLand.Tests
     public sealed class AmbientWindMotionBinderTests
     {
         [Test]
-        public void WindmillMotionIsAddedOnlyToBladeNode()
+        public void WindmillIsNotTouchedByBinder()
         {
             var root = new GameObject("giantWindmill");
             var body = new GameObject("Body");
-            var blade = new GameObject("BladePivot");
+            var blade = new GameObject("giantWindmill_blade");
             body.transform.SetParent(root.transform, false);
             blade.transform.SetParent(root.transform, false);
 
@@ -19,9 +19,11 @@ namespace FloatingIsLand.Tests
             {
                 AmbientWindMotionBinder.Apply(root, "Prefab/Element/giantWindmill");
 
-                Assert.IsNull(root.GetComponent<WindmillBladeRotator>(), "Windmill root should not rotate.");
-                Assert.IsNull(body.GetComponent<WindmillBladeRotator>(), "Non-blade nodes should not rotate.");
-                Assert.IsNotNull(blade.GetComponent<WindmillBladeRotator>(), "Blade node should receive the rotator.");
+                Assert.AreEqual(
+                    0,
+                    root.GetComponentsInChildren<MonoBehaviour>(true).Length,
+                    "Blade rotation is authored into the prefab now; adding it again at spawn " +
+                    "time would double the rotation.");
             }
             finally
             {
@@ -30,18 +32,23 @@ namespace FloatingIsLand.Tests
         }
 
         [Test]
-        public void SailPrefabDoesNotReceiveTransformShakeComponent()
+        public void SailClothReceivesScaleBinderOnlyOnTheClothNode()
         {
             var root = new GameObject("sail_01");
-            var cloth = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            cloth.name = "SailCloth";
+            var mast = new GameObject("mast");
+            var cloth = new GameObject("sail_cloth");
+            mast.transform.SetParent(root.transform, false);
             cloth.transform.SetParent(root.transform, false);
 
             try
             {
                 AmbientWindMotionBinder.Apply(root, "Prefab/Building/sail_01");
 
-                Assert.AreEqual(0, root.GetComponentsInChildren<MonoBehaviour>(true).Length);
+                Assert.IsNotNull(
+                    cloth.GetComponent<SailWindObjectScaleBinder>(),
+                    "Cloth should get the scale binder that feeds FI/Sail Wind.");
+                Assert.IsNull(root.GetComponent<SailWindObjectScaleBinder>(), "Root should stay clean.");
+                Assert.IsNull(mast.GetComponent<SailWindObjectScaleBinder>(), "Mast should stay clean.");
             }
             finally
             {
@@ -50,46 +57,97 @@ namespace FloatingIsLand.Tests
         }
 
         [Test]
-        public void RealWindmillPrefabReceivesBladeRotator()
+        public void SailBindingIsIdempotent()
         {
-            GameObject prefab = Resources.Load<GameObject>("Prefab/Element/giantWindmill");
-            Assert.IsNotNull(prefab, "Missing Resources/Prefab/Element/giantWindmill.prefab");
+            var root = new GameObject("sail_01");
+            var cloth = new GameObject("sail_cloth");
+            cloth.transform.SetParent(root.transform, false);
 
-            GameObject instance = Object.Instantiate(prefab);
             try
             {
-                AmbientWindMotionBinder.Apply(instance, "Prefab/Element/giantWindmill");
+                AmbientWindMotionBinder.Apply(root, "Prefab/Building/sail_01");
+                AmbientWindMotionBinder.Apply(root, "Prefab/Building/sail_01");
 
-                Assert.IsNotNull(
-                    instance.GetComponentInChildren<WindmillBladeRotator>(true),
-                    "Real windmill prefab should expose a blade-like node for rotation.");
+                Assert.AreEqual(
+                    1,
+                    root.GetComponentsInChildren<SailWindObjectScaleBinder>(true).Length,
+                    "Re-applying must not stack duplicate binders.");
             }
             finally
             {
-                Object.DestroyImmediate(instance);
+                Object.DestroyImmediate(root);
             }
         }
 
         [Test]
-        public void RealSailPrefabStaysShaderDriven()
+        public void RealWindmillPrefabsCarryAnAuthoredBladeRotator()
+        {
+            string[] prefabs = { "Prefab/Element/giantWindmill", "Prefab/Building/windmill_01" };
+            foreach (string path in prefabs)
+            {
+                GameObject prefab = Resources.Load<GameObject>(path);
+                Assert.IsNotNull(prefab, $"Missing Resources/{path}.prefab");
+
+                WindmillBladeRotator rotator = prefab.GetComponentInChildren<WindmillBladeRotator>(true);
+                Assert.IsNotNull(rotator, $"{path} should carry a blade rotator authored in the prefab.");
+                Assert.AreNotSame(
+                    prefab.transform,
+                    rotator.transform,
+                    $"{path}: the rotator belongs on the blade node, not the root.");
+                Assert.Greater(rotator.Rpm, 0f, $"{path}: blades should turn.");
+            }
+        }
+
+        [Test]
+        public void RealSailClothUsesSailWindShader()
         {
             GameObject prefab = Resources.Load<GameObject>("Prefab/Building/sail_01");
             Assert.IsNotNull(prefab, "Missing Resources/Prefab/Building/sail_01.prefab");
 
-            GameObject instance = Object.Instantiate(prefab);
-            try
-            {
-                AmbientWindMotionBinder.Apply(instance, "Prefab/Building/sail_01");
+            Transform cloth = FindDeep(prefab.transform, "sail_cloth");
+            Assert.IsNotNull(cloth, "sail_01 should expose a sail_cloth node.");
 
-                Assert.AreEqual(
-                    0,
-                    instance.GetComponentsInChildren<MonoBehaviour>(true).Length,
-                    "Sail wind motion should be shader-driven, not component-driven.");
-            }
-            finally
+            var renderer = cloth.GetComponent<Renderer>();
+            Assert.IsNotNull(renderer, "sail_cloth should have a renderer.");
+            Assert.AreEqual(
+                "FI/Sail Wind",
+                renderer.sharedMaterial.shader.name,
+                "The cloth is what the wind shader is supposed to displace.");
+        }
+
+        /// <summary>
+        /// FI/Sail Wind takes its wind UV from uv2. Without that channel the mask evaluates to a
+        /// constant zero and the cloth stays perfectly rigid — which looks like the shader simply
+        /// not working, so guard the channel rather than the symptom.
+        /// </summary>
+        [Test]
+        public void RealSailClothMeshHasUv2ForTheWindShader()
+        {
+            GameObject prefab = Resources.Load<GameObject>("Prefab/Building/sail_01");
+            Assert.IsNotNull(prefab, "Missing Resources/Prefab/Building/sail_01.prefab");
+
+            Transform cloth = FindDeep(prefab.transform, "sail_cloth");
+            Assert.IsNotNull(cloth, "sail_01 should expose a sail_cloth node.");
+
+            Mesh mesh = cloth.GetComponent<MeshFilter>().sharedMesh;
+            Assert.IsNotNull(mesh, "sail_cloth should have a mesh.");
+            Assert.AreEqual(
+                mesh.vertexCount,
+                mesh.uv2.Length,
+                "sail_cloth needs a uv2 channel or FI/Sail Wind cannot displace it.");
+        }
+
+        private static Transform FindDeep(Transform root, string name)
+        {
+            foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
             {
-                Object.DestroyImmediate(instance);
+                if (t.name == name)
+                {
+                    return t;
+                }
             }
+
+            return null;
         }
     }
 }

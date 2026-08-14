@@ -15,7 +15,11 @@ namespace FloatingIsLand.View.Environment
         [SerializeField] private Vector3 referenceScale = new Vector3(100f, 100f, 100f);
         [SerializeField] private Vector3 sentScaleMultiplier = Vector3.one;
 
-        private readonly MaterialPropertyBlock _propertyBlock = new MaterialPropertyBlock();
+        // Built lazily, never in a field initializer: MaterialPropertyBlock is native-backed and
+        // Unity throws "CreateImpl is not allowed to be called from a MonoBehaviour constructor"
+        // if it is constructed while the component itself is being constructed — which is exactly
+        // what happens on AddComponent.
+        private MaterialPropertyBlock _propertyBlock;
         private Renderer[] _renderers;
         private Vector3 _lastScale = new Vector3(float.NaN, float.NaN, float.NaN);
         private Vector3 _lastReferenceScale = new Vector3(float.NaN, float.NaN, float.NaN);
@@ -55,6 +59,11 @@ namespace FloatingIsLand.View.Environment
             if (_renderers == null || _renderers.Length == 0)
             {
                 RefreshRenderers();
+            }
+
+            if (_propertyBlock == null)
+            {
+                _propertyBlock = new MaterialPropertyBlock();
             }
 
             Vector3 scale = transform.lossyScale;

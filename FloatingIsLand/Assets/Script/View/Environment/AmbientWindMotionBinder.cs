@@ -4,22 +4,28 @@ using UnityEngine;
 namespace FloatingIsLand.View.Environment
 {
     /// <summary>
-    /// Adds small ambient motion to known wind-related prefabs after they are instantiated.
-    /// Sail cloth wind is shader-driven through GlobalWindFieldController, so this binder
-    /// intentionally does not add per-sail motion scripts.
+    /// Wires up wind-related behaviour that a prefab cannot carry on its own after it is
+    /// instantiated.
+    ///
+    /// Windmills are deliberately NOT handled here. Their blades are separate nodes in the FBX
+    /// now, so <see cref="WindmillBladeRotator"/> is authored straight onto the blade node in the
+    /// prefab (see the editor menu Tools/FI/Rig Wind Prefabs). Adding it again at spawn time
+    /// would double up the rotation.
+    ///
+    /// The sail still needs a runtime step: its cloth is displaced by the FI/Sail Wind shader,
+    /// which has to be told how big the sail actually is. That scale is only known once the
+    /// instance has been placed and scaled, so <see cref="SailWindObjectScaleBinder"/> is
+    /// attached here rather than baked into the prefab.
     /// </summary>
     public static class AmbientWindMotionBinder
     {
-        private const string GiantWindmillPath = "Prefab/Element/giantWindmill";
+        private const string SailPath = "Prefab/Building/sail_01";
 
-        private static readonly string[] BladeNameHints =
+        private static readonly string[] ClothNameHints =
         {
-            "blade",
-            "blades",
-            "fan",
-            "rotor",
-            "propeller",
-            "wheel",
+            "cloth",
+            "canvas",
+            "fabric",
         };
 
         public static void Apply(GameObject instance, string prefabPath)
@@ -29,30 +35,30 @@ namespace FloatingIsLand.View.Environment
                 return;
             }
 
-            if (string.Equals(prefabPath, GiantWindmillPath, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(prefabPath, SailPath, StringComparison.OrdinalIgnoreCase))
             {
-                ApplyWindmill(instance);
+                ApplySail(instance);
             }
         }
 
-        private static void ApplyWindmill(GameObject instance)
+        private static void ApplySail(GameObject instance)
         {
-            if (instance.GetComponentInChildren<WindmillBladeRotator>(true) != null)
+            if (instance.GetComponentInChildren<SailWindObjectScaleBinder>(true) != null)
             {
                 return;
             }
 
-            Transform blade = FindByNameHints(instance.transform, BladeNameHints);
-            if (blade == null)
+            Transform cloth = FindByNameHints(instance.transform, ClothNameHints);
+            if (cloth == null)
             {
                 Debug.LogWarning(
-                    $"[View] {instance.name} has no blade node. Windmill blade rotation was skipped. Rename the blade node to include blade/fan/rotor.",
+                    $"[View] {instance.name} has no cloth node. Sail wind scale was not bound. " +
+                    "Rename the cloth node to include cloth/canvas/fabric.",
                     instance);
                 return;
             }
 
-            var rotator = blade.gameObject.AddComponent<WindmillBladeRotator>();
-            rotator.Rpm = 45f;
+            cloth.gameObject.AddComponent<SailWindObjectScaleBinder>();
         }
 
         private static Transform FindByNameHints(Transform root, string[] hints)
