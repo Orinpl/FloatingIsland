@@ -61,6 +61,7 @@ namespace FloatingIsLand.UI
 
                 // 退一步
                 { "LeaderboardButton", UIStyle.Secondary },
+                { "CreditsButton", UIStyle.Secondary },
                 { "QuitButton", UIStyle.Secondary },
                 { "BackButton", UIStyle.Secondary },
                 { "EndRunButton", UIStyle.Secondary },

@@ -99,6 +99,7 @@ namespace FloatingIsLand.EditorTools
 
             BuildMainMenuPanel(uiRoot.transform);
             BuildLeaderboardPanel(uiRoot.transform);
+            BuildCreditsPanel(uiRoot.transform);
             BuildLoadingPanel(uiRoot.transform);
             BuildHudPanel(uiRoot.transform);
             BuildSettlementPanel(uiRoot.transform);
@@ -226,6 +227,7 @@ namespace FloatingIsLand.EditorTools
 
             BuildMainMenuPanel(uiRootGo.transform);
             BuildLeaderboardPanel(uiRootGo.transform);
+            BuildCreditsPanel(uiRootGo.transform);
             BuildLoadingPanel(uiRootGo.transform);
             BuildHudPanel(uiRootGo.transform);
             BuildSettlementPanel(uiRootGo.transform);
@@ -243,7 +245,18 @@ namespace FloatingIsLand.EditorTools
             CreateText(panel.transform, "Title", "浮空风岛", 64, new Vector2(0f, 200f), new Vector2(800f, 100f));
             panel.startButton = CreateButton(panel.transform, "StartButton", "开始游戏", new Vector2(0f, 20f), new Vector2(320f, 72f));
             panel.leaderboardButton = CreateButton(panel.transform, "LeaderboardButton", "排行榜", new Vector2(0f, -70f), new Vector2(320f, 72f));
-            panel.quitButton = CreateButton(panel.transform, "QuitButton", "退出游戏", new Vector2(0f, -160f), new Vector2(320f, 72f));
+            panel.creditsButton = CreateButton(panel.transform, "CreditsButton", "开发者名单", new Vector2(0f, -160f), new Vector2(320f, 72f));
+            panel.quitButton = CreateButton(panel.transform, "QuitButton", "退出游戏", new Vector2(0f, -250f), new Vector2(320f, 72f));
+        }
+
+        /// <summary>开发者名单面板：主界面进入的静态展示页（名单内容在 CreditsPanel 代码里，这里只搭布局）。</summary>
+        private static void BuildCreditsPanel(Transform uiRoot)
+        {
+            CreditsPanel panel = CreatePanel<CreditsPanel>(uiRoot, "CreditsPanel", PanelDark);
+            CreateText(panel.transform, "Title", "开发者名单", 52, new Vector2(0f, 400f), new Vector2(800f, 80f));
+            panel.listText = CreateText(panel.transform, "List", "", 32, new Vector2(0f, 20f), new Vector2(1000f, 560f));
+            panel.backButton = CreateButton(panel.transform, "BackButton", "返回", new Vector2(0f, -420f), new Vector2(300f, 70f));
+            panel.gameObject.SetActive(false);
         }
 
         /// <summary>排行榜面板：本地榜单只读展示（左对齐、不换行，名次/昵称/分数三列才对得齐）。</summary>

@@ -51,6 +51,7 @@ namespace FloatingIsLand.App
             _states.Add(GameStateId.Boot, new BootState(this));
             _states.Add(GameStateId.MainMenu, new MainMenuState());
             _states.Add(GameStateId.Leaderboard, new LeaderboardState());
+            _states.Add(GameStateId.Credits, new CreditsState());
             _states.Add(GameStateId.Loading, new LoadingState(this));
             _states.Add(GameStateId.Gameplay, new GameplayState(this));
             _states.Add(GameStateId.Settlement, new SettlementState());
@@ -145,6 +146,26 @@ namespace FloatingIsLand.App
             ChangeState(GameStateId.MainMenu);
         }
 
+        /// <summary>主界面点"开发者名单"。</summary>
+        public void ShowCredits()
+        {
+            if (CurrentStateId != GameStateId.MainMenu)
+            {
+                return;
+            }
+            ChangeState(GameStateId.Credits);
+        }
+
+        /// <summary>开发者名单点"返回"。</summary>
+        public void CloseCredits()
+        {
+            if (CurrentStateId != GameStateId.Credits)
+            {
+                return;
+            }
+            ChangeState(GameStateId.MainMenu);
+        }
+
         /// <summary>主界面点"退出游戏"。</summary>
         public void QuitGame()
         {
@@ -195,6 +216,7 @@ namespace FloatingIsLand.App
             {
                 case GameStateId.MainMenu:
                 case GameStateId.Leaderboard:
+                case GameStateId.Credits:
                     Bgm.Play(Bgm.MainMenu);
                     break;
                 case GameStateId.Gameplay:

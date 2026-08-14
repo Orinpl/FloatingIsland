@@ -50,10 +50,21 @@ namespace FloatingIsLand.UI
                 menu.leaderboardButton.onClick.AddListener(_flow.ShowLeaderboard);
             }
 
+            if (menu.creditsButton != null)
+            {
+                menu.creditsButton.onClick.AddListener(_flow.ShowCredits);
+            }
+
             LeaderboardPanel leaderboard = _ui.Get<LeaderboardPanel>();
             if (leaderboard.backButton != null)
             {
                 leaderboard.backButton.onClick.AddListener(_flow.CloseLeaderboard);
+            }
+
+            CreditsPanel credits = _ui.Get<CreditsPanel>();
+            if (credits.backButton != null)
+            {
+                credits.backButton.onClick.AddListener(_flow.CloseCredits);
             }
 
             HudPanel hud = _ui.Get<HudPanel>();
@@ -94,6 +105,9 @@ namespace FloatingIsLand.UI
                 case GameStateId.Leaderboard:
                     // 刚打完的那局高亮出来，玩家不用自己在榜里找
                     _ui.ShowOnly<LeaderboardPanel>().Refresh(_flow.LastSubmittedRank);
+                    break;
+                case GameStateId.Credits:
+                    _ui.ShowOnly<CreditsPanel>();
                     break;
                 case GameStateId.Loading:
                 {

@@ -12,6 +12,9 @@ namespace FloatingIsLand.App
         /// <summary>排行榜展示（从主界面进入，出口只有返回主界面）。</summary>
         Leaderboard,
 
+        /// <summary>开发者名单展示（从主界面进入，出口只有返回主界面）。</summary>
+        Credits,
+
         /// <summary>进入一局前的加载：重载 Main 场景 + 地图生成 + 会话构建。</summary>
         Loading,
 
