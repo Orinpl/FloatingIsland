@@ -96,6 +96,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: sail
       objectReference: {fileID: 0}
+    - target: {fileID: 1395548286078814037, guid: 286e79faededf0f4691850cfe6f28199, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 723fed4d5fef88d44a97bf88793a7ee0, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
