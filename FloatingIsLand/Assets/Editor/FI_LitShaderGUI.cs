@@ -108,6 +108,7 @@ public class FI_LitShaderGUI : ShaderGUI
 
             editor.RangeProperty(Find("_ShadowReceive"), "接收阴影强度");
             editor.RangeProperty(Find("_ShadowEnvStrength"), "环境光影响阴影");
+            editor.RangeProperty(Find("_AdditionalLightIntensity"), "额外光强度");
         });
     }
 

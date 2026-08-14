@@ -3,6 +3,11 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/AmbientOcclusion.hlsl"
 
+// Values are published from the active FI skybox material before each camera renders.
+half4 _FI_GlobalHeightFogColor;
+float4 _FI_GlobalHeightFogParams;   // x: enabled, y: density, z: base height, w: height falloff
+float4 _FI_GlobalHeightFogDistance; // x: start distance, y: maximum opacity
+
 TEXTURE2D(_MainTex);
 SAMPLER(sampler_MainTex);
 TEXTURE2D(_BumpMap);
@@ -40,6 +45,7 @@ float _Shadow2ndBorderPosition;
 float _UseShadowRamp;
 float _ShadowReceive;
 float _ShadowEnvStrength;
+float _AdditionalLightIntensity;
 
 half4 _SpecularColor;
 float _SpecularPower;
@@ -98,6 +104,41 @@ float3 FI_SafeNormalize(float3 value)
     return normalize(value + 1e-5);
 }
 
+float FI_GlobalHeightFogFactor(float3 positionWS)
+{
+    float3 cameraToPosition = positionWS - GetCameraPositionWS();
+    float viewDistance = length(cameraToPosition);
+    float fogDistance = max(viewDistance - max(_FI_GlobalHeightFogDistance.x, 0.0), 0.0);
+    float heightFalloff = max(_FI_GlobalHeightFogParams.w, 0.01);
+
+    // Analytically average exponential density along the view ray. This avoids
+    // vertex-height banding and lets a high camera still see dense haze below it.
+    float cameraDensity = exp2(clamp(
+        (_FI_GlobalHeightFogParams.z - GetCameraPositionWS().y) / heightFalloff,
+        -20.0,
+        20.0));
+    float scaledHeightDelta = clamp(
+        (positionWS.y - GetCameraPositionWS().y) * 0.69314718 / heightFalloff,
+        -20.0,
+        20.0);
+    float averageHeightDensity = cameraDensity;
+    if (abs(scaledHeightDelta) > 0.001)
+    {
+        averageHeightDensity *= (1.0 - exp(-scaledHeightDelta)) / scaledHeightDelta;
+    }
+
+    float opticalDepth = fogDistance * max(_FI_GlobalHeightFogParams.y, 0.0) *
+        max(averageHeightDensity, 0.0);
+    float fogFactor = 1.0 - exp2(-opticalDepth * 1.44269504);
+    return saturate(fogFactor * saturate(_FI_GlobalHeightFogParams.x)) *
+        saturate(_FI_GlobalHeightFogDistance.y);
+}
+
+half3 FI_ApplyGlobalHeightFog(half3 color, float3 positionWS)
+{
+    return lerp(color, _FI_GlobalHeightFogColor.rgb, FI_GlobalHeightFogFactor(positionWS));
+}
+
 float3 FI_NormalWS(float2 uv, float3 normalWS, float3 tangentWS, float3 bitangentWS)
 {
     normalWS = FI_SafeNormalize(normalWS);
@@ -138,6 +179,32 @@ half3 FI_BlendMode(half3 baseColor, half3 blendColor, float mode, float intensit
     return lerp(baseColor, blendColor, saturate(intensity));
 }
 
+half3 FI_AdditionalLightContribution(
+    Light light,
+    half3 albedo,
+    float3 normalWS,
+    float3 viewDirWS,
+    float specularMask,
+    half directAmbientOcclusion)
+{
+    float receivedShadow = lerp(1.0, saturate(light.shadowAttenuation), saturate(_ShadowReceive));
+    float attenuation = light.distanceAttenuation * receivedShadow * directAmbientOcclusion;
+    float3 lightDirWS = FI_SafeNormalize(light.direction);
+    float halfLambert = dot(normalWS, lightDirWS) * 0.5 + 0.5;
+    float toonDiffuse = FI_ShadowStep(halfLambert, _ShadowBorderPosition, _ShadowBorderRange);
+    half3 contribution = albedo * light.color * attenuation * toonDiffuse;
+
+#if defined(_SPECULAR)
+    float3 halfDir = FI_SafeNormalize(lightDirWS + viewDirWS);
+    float specTerm = pow(saturate(dot(normalWS, halfDir)), _SpecularPower);
+    specTerm = smoothstep(0.5 - _SpecularSmoothness, 0.5 + _SpecularSmoothness, specTerm);
+    contribution += specTerm * _SpecularColor.rgb * light.color * attenuation *
+        _SpecularIntensity * specularMask;
+#endif
+
+    return contribution * _AdditionalLightIntensity;
+}
+
 half4 FI_ToonFragment(
     float2 uv,
     float3 positionWS,
@@ -146,7 +213,8 @@ half4 FI_ToonFragment(
     float3 bitangentWS,
     float3 viewDirWS,
     float4 shadowCoord,
-    float4 positionCS)
+    float4 positionCS,
+    half3 vertexLighting)
 {
     half4 mainTex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
     half4 baseColor = mainTex * _Color;
@@ -183,12 +251,40 @@ half4 FI_ToonFragment(
     baseColor.rgb += ambient * _ShadowEnvStrength * mainTex.rgb;
     baseColor.rgb *= lerp(half3(1, 1, 1), lightColor, 0.5);
 
+    float specMask = 1.0;
 #if defined(_SPECULAR)
-    float specMask = SAMPLE_TEXTURE2D(_SpecularMask, sampler_SpecularMask, uv).r;
+    specMask = SAMPLE_TEXTURE2D(_SpecularMask, sampler_SpecularMask, uv).r;
     float3 halfDir = FI_SafeNormalize(lightDirWS + viewDirWS);
     float specTerm = pow(saturate(dot(normalWS, halfDir)), _SpecularPower);
     specTerm = smoothstep(0.5 - _SpecularSmoothness, 0.5 + _SpecularSmoothness, specTerm);
     baseColor.rgb += specTerm * _SpecularColor.rgb * _SpecularIntensity * receivedShadow * specMask;
+#endif
+
+#if defined(_ADDITIONAL_LIGHTS)
+    half3 albedo = mainTex.rgb * _Color.rgb;
+    half4 additionalLightShadowMask = unity_ProbesOcclusion;
+    uint pixelLightCount = GetAdditionalLightsCount();
+
+#if USE_FORWARD_PLUS
+    InputData inputData = (InputData)0;
+    inputData.positionWS = positionWS;
+    inputData.normalizedScreenSpaceUV = normalizedScreenSpaceUV;
+    for (uint lightIndex = 0u; lightIndex < min(URP_FP_DIRECTIONAL_LIGHTS_COUNT, MAX_VISIBLE_LIGHTS); ++lightIndex)
+    {
+        FORWARD_PLUS_SUBTRACTIVE_LIGHT_CHECK
+        Light additionalLight = GetAdditionalLight(lightIndex, positionWS, additionalLightShadowMask);
+        baseColor.rgb += FI_AdditionalLightContribution(
+            additionalLight, albedo, normalWS, viewDirWS, specMask, aoFactor.directAmbientOcclusion);
+    }
+#endif
+
+    LIGHT_LOOP_BEGIN(pixelLightCount)
+        Light additionalLight = GetAdditionalLight(lightIndex, positionWS, additionalLightShadowMask);
+        baseColor.rgb += FI_AdditionalLightContribution(
+            additionalLight, albedo, normalWS, viewDirWS, specMask, aoFactor.directAmbientOcclusion);
+    LIGHT_LOOP_END
+#elif defined(_ADDITIONAL_LIGHTS_VERTEX)
+    baseColor.rgb += mainTex.rgb * _Color.rgb * vertexLighting * _AdditionalLightIntensity;
 #endif
 
 #if defined(_RIMLIGHT)

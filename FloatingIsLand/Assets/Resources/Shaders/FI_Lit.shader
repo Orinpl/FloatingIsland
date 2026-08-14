@@ -21,6 +21,7 @@ Shader "FI_Lit"
         _ShadowRampTex ("Shadow Ramp", 2D) = "white" {}
         _ShadowReceive ("Receive Shadow Strength", Range(0, 1)) = 0.5
         _ShadowEnvStrength ("Environment Light in Shadow", Range(0, 1)) = 0.2
+        _AdditionalLightIntensity ("Additional Light Intensity", Range(0, 2)) = 1
 
         _SpecularGroup ("Specular", Float) = 0
         _SpecularColor ("Specular Color", Color) = (1, 1, 1, 1)
@@ -118,10 +119,14 @@ Shader "FI_Lit"
             #pragma multi_compile_instancing
             #pragma multi_compile_fog
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
+            #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
             #pragma multi_compile_fragment _ _REFLECTION_PROBE_BLENDING
             #pragma multi_compile_fragment _ _REFLECTION_PROBE_BOX_PROJECTION
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #pragma multi_compile _ _FORWARD_PLUS
             #pragma shader_feature_local _NORMALMAP
             #pragma shader_feature_local _SPECULAR
             #pragma shader_feature_local _RIMLIGHT
@@ -142,6 +147,7 @@ Shader "FI_Lit"
                 float3 viewDirWS : TEXCOORD5;
                 float4 shadowCoord : TEXCOORD6;
                 half fogFactor : TEXCOORD7;
+                half3 vertexLighting : TEXCOORD8;
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
@@ -164,6 +170,7 @@ Shader "FI_Lit"
                 output.viewDirWS = GetWorldSpaceViewDir(positionInput.positionWS);
                 output.shadowCoord = GetShadowCoord(positionInput);
                 output.fogFactor = ComputeFogFactor(positionInput.positionCS.z);
+                output.vertexLighting = VertexLighting(positionInput.positionWS, normalInput.normalWS);
                 return output;
             }
 
@@ -178,8 +185,10 @@ Shader "FI_Lit"
                     input.bitangentWS,
                     input.viewDirWS,
                     input.shadowCoord,
-                    input.positionCS);
+                    input.positionCS,
+                    input.vertexLighting);
                 color.rgb = MixFog(color.rgb, input.fogFactor);
+                color.rgb = FI_ApplyGlobalHeightFog(color.rgb, input.positionWS);
                 return color;
             }
             ENDHLSL
@@ -206,7 +215,8 @@ Shader "FI_Lit"
             {
                 float4 positionCS : SV_POSITION;
                 float2 uv : TEXCOORD0;
-                half fogFactor : TEXCOORD1;
+                float3 positionWS : TEXCOORD1;
+                half fogFactor : TEXCOORD2;
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
@@ -227,6 +237,7 @@ Shader "FI_Lit"
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 output.uv = TRANSFORM_TEX(input.uv, _MainTex);
+                output.positionWS = TransformObjectToWorld(input.positionOS.xyz);
 
 #if defined(_OUTLINE)
                 float4 positionCS = TransformObjectToHClip(input.positionOS.xyz);
@@ -258,7 +269,8 @@ Shader "FI_Lit"
 #if defined(_OUTLINE)
                 half3 mainColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv).rgb * _Color.rgb;
                 half3 color = lerp(_OutlineColor.rgb, mainColor, _OutlineColorMix);
-                return half4(MixFog(color, input.fogFactor), 1);
+                color = MixFog(color, input.fogFactor);
+                return half4(FI_ApplyGlobalHeightFog(color, input.positionWS), 1);
 #else
                 discard;
                 return 0;
