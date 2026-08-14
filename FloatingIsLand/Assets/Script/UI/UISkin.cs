@@ -139,6 +139,12 @@ namespace FloatingIsLand.UI
                 return;
             }
 
+            // 点击音也在套皮这个唯一入口统一补挂：静态树、运行时工具条、待克隆的列表模板都会路过这里
+            if (button.GetComponent<UIButtonSound>() == null)
+            {
+                button.gameObject.AddComponent<UIButtonSound>();
+            }
+
             var image = button.GetComponent<Image>();
             if (image != null && ApplySprite(image, style))
             {

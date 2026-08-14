@@ -179,8 +179,28 @@ namespace FloatingIsLand.App
             _current?.Exit();
             _current = _states[id];
             CurrentStateId = id;
+            ApplyBgm(id);
             StateEntered?.Invoke(id);
             _current.Enter();
+        }
+
+        /// <summary>
+        /// BGM 跟状态走：主界面曲盖 MainMenu / Leaderboard，局内曲盖 Gameplay；
+        /// Boot / Loading / Settlement 不切——Loading 延续菜单曲到进局那刻，结算浮在局内场景上延续局内曲。
+        /// 同曲目重复请求在 <see cref="Bgm"/> 内部是空操作，下一关的 Loading → Gameplay 不会重头播。
+        /// </summary>
+        private static void ApplyBgm(GameStateId id)
+        {
+            switch (id)
+            {
+                case GameStateId.MainMenu:
+                case GameStateId.Leaderboard:
+                    Bgm.Play(Bgm.MainMenu);
+                    break;
+                case GameStateId.Gameplay:
+                    Bgm.Play(Bgm.Gameplay);
+                    break;
+            }
         }
 
         internal void RaiseBootFailed(string message)

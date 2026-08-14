@@ -718,6 +718,7 @@ namespace FloatingIsLand.View
             {
                 // 落地余晖：同一批高亮再留一会儿。落地这一刻正是「按范围内的邻居算分」的时刻，
                 // 高亮多停一拍，玩家才看得清这一下的分是靠谁拿的
+                Sfx.Play(Sfx.BuildPlace);
                 EnsureScoreHighlight().PlayPlaced(breakdown, _selfLabelAnchor);
                 if (_pendingWindAwards != null)
                 {

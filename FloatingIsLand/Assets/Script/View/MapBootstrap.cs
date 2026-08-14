@@ -38,6 +38,7 @@ namespace FloatingIsLand.View
 
         private IGridPresenter _presenter;
         private WindFieldView _windFieldView;
+        private WindShaderFieldBinder _windShaderBinder;
 
         /// <summary>当前局内地图；未装载完成时为 null。领域层规则校验后续从这里取地形。</summary>
         public MapSnapshot Snapshot { get; private set; }
@@ -139,6 +140,16 @@ namespace FloatingIsLand.View
                 _windFieldView = windGo.AddComponent<WindFieldView>();
             }
             _windFieldView.Bind(session, _presenter.Geometry);
+
+            // 帆布 shader 风：把玩法风场烘成 3D 贴图喂给 GlobalWindFieldController，
+            // 帆布的飘动方向/幅度才和头顶的风路流线一致（否则是脱节的默认噪声假风）
+            if (_windShaderBinder == null)
+            {
+                var shaderWindGo = new GameObject("WindShaderFieldBinder");
+                shaderWindGo.transform.SetParent(transform, false);
+                _windShaderBinder = shaderWindGo.AddComponent<WindShaderFieldBinder>();
+            }
+            _windShaderBinder.Bind(session, _presenter.Geometry, snapshot.LayerCount);
 
             if (placementController != null)
             {
