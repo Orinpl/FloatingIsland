@@ -1,31 +1,52 @@
 #ifndef FI_LIT_CORE_INCLUDED
 #define FI_LIT_CORE_INCLUDED
 
-sampler2D _MainTex;
-float4 _MainTex_ST;
-fixed4 _Color;
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/AmbientOcclusion.hlsl"
 
-sampler2D _BumpMap;
+TEXTURE2D(_MainTex);
+SAMPLER(sampler_MainTex);
+TEXTURE2D(_BumpMap);
+SAMPLER(sampler_BumpMap);
+TEXTURE2D(_ShadowRampTex);
+SAMPLER(sampler_ShadowRampTex);
+TEXTURE2D(_SpecularMask);
+SAMPLER(sampler_SpecularMask);
+TEXTURE2D(_MatCapTex);
+SAMPLER(sampler_MatCapTex);
+TEXTURECUBE(_IBLCubemap);
+SAMPLER(sampler_IBLCubemap);
+TEXTURE2D(_EmissionMap);
+SAMPLER(sampler_EmissionMap);
+TEXTURE2D(_OutlineWidthMask);
+SAMPLER(sampler_OutlineWidthMask);
+
+#if defined(FI_SAIL_WIND)
+TEXTURE2D(_SailMaskTex);
+SAMPLER(sampler_SailMaskTex);
+#endif
+
+CBUFFER_START(UnityPerMaterial)
+float4 _MainTex_ST;
+half4 _Color;
+
 float _BumpScale;
 
-fixed4 _ShadowColor;
-fixed4 _Shadow2ndColor;
+half4 _ShadowColor;
+half4 _Shadow2ndColor;
 float _ShadowBorderRange;
 float _ShadowBorderPosition;
 float _Shadow2ndBorderRange;
 float _Shadow2ndBorderPosition;
 float _UseShadowRamp;
-sampler2D _ShadowRampTex;
 float _ShadowReceive;
 float _ShadowEnvStrength;
 
-fixed4 _SpecularColor;
+half4 _SpecularColor;
 float _SpecularPower;
 float _SpecularIntensity;
 float _SpecularSmoothness;
-sampler2D _SpecularMask;
 
-fixed4 _RimColor;
+half4 _RimColor;
 float _RimPower;
 float _RimIntensity;
 float _RimSmoothness;
@@ -33,27 +54,44 @@ float _RimLightDirOffset;
 float4 _RimCustomOffset;
 float _RimShadowMask;
 
-sampler2D _MatCapTex;
-fixed4 _MatCapColor;
+half4 _MatCapColor;
 float _MatCapIntensity;
 float _MatCapBlendMode;
 
-samplerCUBE _IBLCubemap;
-fixed4 _IBLColor;
+half4 _IBLColor;
 float _IBLIntensity;
 float _IBLRoughness;
 float _IBLMetallic;
 float _IBLBlendMode;
 float _IBLUseBuiltin;
 
-sampler2D _EmissionMap;
-fixed4 _EmissionColor;
+half4 _EmissionColor;
 
-fixed4 _OutlineColor;
+half4 _OutlineColor;
 float _OutlineWidth;
-sampler2D _OutlineWidthMask;
 float _OutlineColorMix;
 float _OutlineZOffset;
+
+#if defined(FI_SAIL_WIND)
+float _SailSwayAmplitude;
+float _SailWaveSpeed;
+float _SailWaveScale;
+float _SailClothAmplitude;
+float _SailClothFrequency;
+float _SailFlutterAmplitude;
+float _SailFlutterSpeed;
+float _SailFlutterScale;
+float _SailWindPush;
+float _SailNormalPush;
+float _SailMaxDisplacement;
+float4 _SailObjectScale;
+float _SailMaskMode;
+float _SailMaskInvert;
+float _SailMaskStart;
+float _SailMaskEnd;
+float _SailMaskStrength;
+#endif
+CBUFFER_END
 
 float3 FI_SafeNormalize(float3 value)
 {
@@ -64,9 +102,9 @@ float3 FI_NormalWS(float2 uv, float3 normalWS, float3 tangentWS, float3 bitangen
 {
     normalWS = FI_SafeNormalize(normalWS);
 #if defined(_NORMALMAP)
-    float3 normalTS = UnpackNormal(tex2D(_BumpMap, uv));
-    normalTS.xy *= _BumpScale;
-    normalTS.z = sqrt(saturate(1.0 - dot(normalTS.xy, normalTS.xy)));
+    float3 normalTS = UnpackNormalScale(
+        SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uv),
+        _BumpScale);
     float3x3 tbn = float3x3(
         FI_SafeNormalize(tangentWS),
         FI_SafeNormalize(bitangentWS),
@@ -82,7 +120,7 @@ float FI_ShadowStep(float halfLambert, float position, float range)
     return saturate((halfLambert - border + range * 0.5) / max(range, 0.001));
 }
 
-float3 FI_BlendMode(float3 baseColor, float3 blendColor, float mode, float intensity)
+half3 FI_BlendMode(half3 baseColor, half3 blendColor, float mode, float intensity)
 {
     blendColor *= intensity;
     if (mode < 0.5)
@@ -100,45 +138,53 @@ float3 FI_BlendMode(float3 baseColor, float3 blendColor, float mode, float inten
     return lerp(baseColor, blendColor, saturate(intensity));
 }
 
-fixed4 FI_ToonFragment(
+half4 FI_ToonFragment(
     float2 uv,
     float3 positionWS,
     float3 normalWS,
     float3 tangentWS,
     float3 bitangentWS,
     float3 viewDirWS,
-    float shadowAttenuation)
+    float4 shadowCoord,
+    float4 positionCS)
 {
-    fixed4 mainTex = tex2D(_MainTex, uv);
-    fixed4 baseColor = mainTex * _Color;
+    half4 mainTex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
+    half4 baseColor = mainTex * _Color;
 
     normalWS = FI_NormalWS(uv, normalWS, tangentWS, bitangentWS);
     viewDirWS = FI_SafeNormalize(viewDirWS);
 
-    float3 lightDirWS = FI_SafeNormalize(_WorldSpaceLightPos0.xyz);
-    float3 lightColor = _LightColor0.rgb;
+    float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(positionCS);
+    AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV);
+
+    Light mainLight = GetMainLight(shadowCoord);
+    float3 lightDirWS = FI_SafeNormalize(mainLight.direction);
+    half3 lightColor = mainLight.color * mainLight.distanceAttenuation * aoFactor.directAmbientOcclusion;
     float halfLambert = dot(normalWS, lightDirWS) * 0.5 + 0.5;
-    float receivedShadow = lerp(1.0, saturate(shadowAttenuation), saturate(_ShadowReceive));
+    float receivedShadow = lerp(1.0, saturate(mainLight.shadowAttenuation), saturate(_ShadowReceive));
     halfLambert *= receivedShadow;
 
     float shadow1 = FI_ShadowStep(halfLambert, _ShadowBorderPosition, _ShadowBorderRange);
     float shadow2 = FI_ShadowStep(halfLambert, _Shadow2ndBorderPosition, _Shadow2ndBorderRange);
 
 #if defined(_USE_SHADOW_RAMP)
-    fixed3 rampColor = tex2D(_ShadowRampTex, float2(saturate(halfLambert), 0.5)).rgb;
+    half3 rampColor = SAMPLE_TEXTURE2D(
+        _ShadowRampTex,
+        sampler_ShadowRampTex,
+        float2(saturate(halfLambert), 0.5)).rgb;
     baseColor.rgb *= rampColor;
 #else
-    fixed3 shadow2nd = lerp(_Shadow2ndColor.rgb * baseColor.rgb, baseColor.rgb, shadow2);
-    fixed3 shadow1st = lerp(_ShadowColor.rgb * baseColor.rgb, baseColor.rgb, shadow1);
+    half3 shadow2nd = lerp(_Shadow2ndColor.rgb * baseColor.rgb, baseColor.rgb, shadow2);
+    half3 shadow1st = lerp(_ShadowColor.rgb * baseColor.rgb, baseColor.rgb, shadow1);
     baseColor.rgb = min(shadow1st, shadow2nd);
 #endif
 
-    fixed3 ambient = ShadeSH9(float4(normalWS, 1.0));
+    half3 ambient = SampleSH(normalWS) * aoFactor.indirectAmbientOcclusion;
     baseColor.rgb += ambient * _ShadowEnvStrength * mainTex.rgb;
-    baseColor.rgb *= lerp(fixed3(1, 1, 1), lightColor, 0.5);
+    baseColor.rgb *= lerp(half3(1, 1, 1), lightColor, 0.5);
 
 #if defined(_SPECULAR)
-    float specMask = tex2D(_SpecularMask, uv).r;
+    float specMask = SAMPLE_TEXTURE2D(_SpecularMask, sampler_SpecularMask, uv).r;
     float3 halfDir = FI_SafeNormalize(lightDirWS + viewDirWS);
     float specTerm = pow(saturate(dot(normalWS, halfDir)), _SpecularPower);
     specTerm = smoothstep(0.5 - _SpecularSmoothness, 0.5 + _SpecularSmoothness, specTerm);
@@ -154,36 +200,35 @@ fixed4 FI_ToonFragment(
 #endif
 
 #if defined(_MATCAP)
-    float3 viewNormal = mul((float3x3)UNITY_MATRIX_V, normalWS);
+    float3 viewNormal = mul((float3x3)GetWorldToViewMatrix(), normalWS);
     float2 matCapUV = viewNormal.xy * 0.5 + 0.5;
-    fixed3 matCap = tex2D(_MatCapTex, matCapUV).rgb * _MatCapColor.rgb;
+    half3 matCap = SAMPLE_TEXTURE2D(_MatCapTex, sampler_MatCapTex, matCapUV).rgb * _MatCapColor.rgb;
     baseColor.rgb = FI_BlendMode(baseColor.rgb, matCap, _MatCapBlendMode, _MatCapIntensity);
 #endif
 
 #if defined(_IBL)
     float3 reflectDir = reflect(-viewDirWS, normalWS);
-    float mipLevel = saturate(_IBLRoughness) * 6.0;
-    fixed3 ibl = fixed3(0, 0, 0);
+    half3 ibl;
     if (_IBLUseBuiltin > 0.5)
     {
-        fixed4 encoded = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectDir, mipLevel);
-        ibl = DecodeHDR(encoded, unity_SpecCube0_HDR);
+        ibl = GlossyEnvironmentReflection(reflectDir, positionWS, saturate(_IBLRoughness), 1.0);
     }
     else
     {
-        ibl = texCUBElod(_IBLCubemap, float4(reflectDir, mipLevel)).rgb;
+        float mipLevel = saturate(_IBLRoughness) * 6.0;
+        ibl = SAMPLE_TEXTURECUBE_LOD(_IBLCubemap, sampler_IBLCubemap, reflectDir, mipLevel).rgb;
     }
-    ibl *= _IBLColor.rgb;
+    ibl *= _IBLColor.rgb * aoFactor.indirectAmbientOcclusion;
     ibl = lerp(ibl, ibl * mainTex.rgb * _Color.rgb, saturate(_IBLMetallic));
     baseColor.rgb = FI_BlendMode(baseColor.rgb, ibl, _IBLBlendMode, _IBLIntensity);
 #endif
 
 #if defined(_EMISSION)
-    fixed4 emission = tex2D(_EmissionMap, uv);
+    half4 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, uv);
     baseColor.rgb += emission.rgb * _EmissionColor.rgb;
 #endif
 
-    return fixed4(baseColor.rgb, baseColor.a);
+    return half4(baseColor.rgb, baseColor.a);
 }
 
 #endif
