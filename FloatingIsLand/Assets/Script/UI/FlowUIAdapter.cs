@@ -81,8 +81,13 @@ namespace FloatingIsLand.UI
             switch (state)
             {
                 case GameStateId.Boot:
-                    _ui.ShowOnly<LoadingPanel>().SetMessage("初始化中…");
+                {
+                    // 启动动画只在这一处放：同一块 LoadingPanel 还要服务进关加载。
+                    LoadingPanel boot = _ui.ShowOnly<LoadingPanel>();
+                    boot.SetBackgroundVisible(true);
+                    boot.SetMessage("初始化中…");
                     break;
+                }
                 case GameStateId.MainMenu:
                     _ui.ShowOnly<MainMenuPanel>();
                     break;
@@ -91,8 +96,12 @@ namespace FloatingIsLand.UI
                     _ui.ShowOnly<LeaderboardPanel>().Refresh(_flow.LastSubmittedRank);
                     break;
                 case GameStateId.Loading:
-                    _ui.ShowOnly<LoadingPanel>().SetMessage($"第 {_flow.CurrentRun.StageId} 关 加载中…");
+                {
+                    LoadingPanel loading = _ui.ShowOnly<LoadingPanel>();
+                    loading.SetBackgroundVisible(false);
+                    loading.SetMessage($"第 {_flow.CurrentRun.StageId} 关 加载中…");
                     break;
+                }
                 case GameStateId.Gameplay:
                     _ui.ShowOnly<HudPanel>().SetRunInfo(BuildRunInfo());
                     break;

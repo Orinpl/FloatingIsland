@@ -11,8 +11,9 @@ namespace FloatingIsLand.UI
 
         private void Awake()
         {
-            // 开场封面 + 循环背景视频。面板本身仍是哑视图：背景只是自己的皮，不碰任何流程。
-            MainMenuBackground.AttachTo(gameObject);
+            // 开场封面 + 循环背景视频，用的是宣传图（风脉城主视觉）那一版，与启动页同一素材。
+            // 面板本身仍是哑视图：背景只是自己的皮，不碰任何流程。
+            PanelVideoBackground.AttachTo(gameObject, "UI/splash_cover", "Video/splash_windvein");
         }
     }
 }
