@@ -27,14 +27,19 @@ namespace FloatingIsLand.GameInput
     ///
     /// |            | PC              | 手机                    |
     /// |------------|-----------------|-------------------------|
-    /// | 移动视角   | WASD / 中键拖   | 单指拖（落点不在建筑上时） |
-    /// | 挪动待摆建筑 | 光标移动      | 从建筑上起手单指拖      |
-    /// | 缩放       | 滚轮            | 双指捏合                |
-    /// | 旋转视角   | 右键拖          | 双指转（偏航）/ 双指上下拖（俯仰） |
+    /// | 移动视角   | WASD / 中键拖   | 单指拖（非建造模式）/ 双指并拢同向划（建造模式） |
+    /// | 挪动待摆建筑 | 光标移动      | 单指拖（建造模式下单指只归建筑） |
+    /// | 缩放       | 滚轮            | 双指外拉 / 内缩         |
+    /// | 自由转视角 | 右键拖          | 双指拖（非建造模式，等同右键拖） |
+    /// | 绕建筑转视角 | 右键拖        | 双指反向划（建造模式；左上右下 = 建筑看着顺时针转） |
+    /// | 拉高拉低镜头 | Shift / Ctrl  | 双指张开半屏后同向上下划（建造模式） |
     /// | 指向格子   | 光标悬停        | 点一下（点到哪停在哪）  |
     /// | 落地       | 左键            | 再点同一格 / 点「建造」 |
     /// | 转 90°     | 滚轮            | 点「旋转」              |
     /// | 取消       | Esc             | 点「取消」              |
+    ///
+    /// 三种双指手势是**互斥**的（见 <see cref="GameInput.TwoFingerMode"/>）：起手时先攒够位移
+    /// 分清意图，之后锁死在那一条通道上，不会边转视角边悄悄拉近。
     ///
     /// 触屏没有「悬停」这回事，所以这里把它定义成**黏性的**：手指点过哪一格，指针就停在哪，
     /// 直到下次点击或 <see cref="ClearHover"/>。摆放预览（范围环 / 辉光 / 飘分）因此在手指抬起后
@@ -44,6 +49,9 @@ namespace FloatingIsLand.GameInput
     {
         /// <summary>点击判定：手指累计位移超过这个英寸数就算拖动，不再算点击。约等于 Android 的 touch slop。</summary>
         private const float TapSlopInches = 0.06f;
+
+        /// <summary>双指手势三选一的判定门槛（英寸）。约 2mm——比点击阈值大一点，够滤掉起手时的抖动。</summary>
+        private const float TwoFingerModeSlopInches = 0.075f;
 
         /// <summary>取不到屏幕 DPI 时的兜底值（Unity 在部分设备/编辑器下返回 0）。</summary>
         private const float FallbackDpi = 160f;
@@ -167,22 +175,37 @@ namespace FloatingIsLand.GameInput
             get { Sample(); return _gesture.Pan; }
         }
 
-        /// <summary>双指捏合的间距变化（像素/帧，张开为正）。</summary>
+        /// <summary>双指捏合的间距变化（像素/帧，张开为正）。仅 <see cref="TwoFingerMode"/> 为 Pinch 时有值。</summary>
         public static float PinchDelta
         {
             get { Sample(); return _gesture.PinchDelta; }
         }
 
-        /// <summary>双指相对旋转角（度/帧，逆时针为正）。</summary>
+        /// <summary>双指相对旋转角（度/帧，逆时针为正）。仅 <see cref="TwoFingerMode"/> 为 Twist 时有值。</summary>
         public static float TwistDegrees
         {
             get { Sample(); return _gesture.TwistDegrees; }
         }
 
-        /// <summary>双指同向拖动的中点位移（像素/帧）。</summary>
+        /// <summary>双指同向拖动的中点位移（像素/帧）。仅 <see cref="TwoFingerMode"/> 为 Drag 时有值。</summary>
         public static Vector2 TwoFingerDrag
         {
             get { Sample(); return _gesture.TwoFingerDrag; }
+        }
+
+        /// <summary>本次双指手势被归成了哪一类（缩放 / 绕转 / 同向拖，三选一）。</summary>
+        public static TwoFingerMode TwoFingerMode
+        {
+            get { Sample(); return _gesture.Mode; }
+        }
+
+        /// <summary>
+        /// 分类锁定那一刻的两指间距（像素）。建造模式下靠它把「同向拖」再分成滑屏与升降：
+        /// 并在一起是一只手的小动作，张到半屏开外是两只手的大动作。
+        /// </summary>
+        public static float TwoFingerSpread
+        {
+            get { Sample(); return _gesture.Spread; }
         }
 
         /// <summary>当前按在屏幕上的手指数。0 = 没手指（或不是触屏）。</summary>
@@ -387,6 +410,7 @@ namespace FloatingIsLand.GameInput
         private static void SampleTouch()
         {
             _gestures.TapSlopPixels = TapSlopPixels;
+            _gestures.TwoFingerModeSlopPixels = TwoFingerModeSlopPixels;
             _gesture = _gestures.Step(BuildFrame());
 
             if (!_gesture.Tap)
@@ -474,6 +498,12 @@ namespace FloatingIsLand.GameInput
         private static float TapSlopPixels
         {
             get { return TapSlopInches * ScreenDpi; }
+        }
+
+        /// <summary>双指三选一的判定门槛换算成像素。同样按 DPI 折算，理由与点击阈值一致。</summary>
+        private static float TwoFingerModeSlopPixels
+        {
+            get { return TwoFingerModeSlopInches * ScreenDpi; }
         }
 
     }

@@ -44,20 +44,52 @@ namespace FloatingIsLand.GameInput
         }
     }
 
+    /// <summary>
+    /// 双指手势的归类。三者互斥：一次双指手势从头到尾只走一条通道。
+    ///
+    /// 不互斥的话三个量会同时出：玩家想转视角，结果转的同时镜头还在悄悄升高、悄悄拉近，
+    /// 因为人手不可能画出纯粹的旋转。互斥之后每个手势的结果都是可预期的。
+    /// </summary>
+    public enum TwoFingerMode
+    {
+        /// <summary>还分不清玩家想干什么（位移没到门槛）。这一帧三个通道都不出量。</summary>
+        None = 0,
+
+        /// <summary>往外拉 / 往里缩：缩放。</summary>
+        Pinch = 1,
+
+        /// <summary>两指反向划（左上右下那种）：绕支点转视角。</summary>
+        Twist = 2,
+
+        /// <summary>两指同向划：横向滑屏、纵向拉高拉低镜头。</summary>
+        Drag = 3,
+    }
+
     /// <summary>一帧解析出的手势量。全部是「相对上一帧的增量」，直接乘系数用。</summary>
     public readonly struct TouchGesture
     {
         /// <summary>单指拖动位移（像素）。过了点击阈值才有值，否则点一下画面也会跟着抖。</summary>
         public readonly Vector2 Pan;
 
-        /// <summary>双指间距变化（像素，张开为正）。</summary>
+        /// <summary>双指间距变化（像素，张开为正）。只在 <see cref="Mode"/> 为 Pinch 时有值。</summary>
         public readonly float PinchDelta;
 
-        /// <summary>双指连线的转角变化（度，逆时针为正）。</summary>
+        /// <summary>双指连线的转角变化（度，逆时针为正）。只在 <see cref="Mode"/> 为 Twist 时有值。</summary>
         public readonly float TwistDegrees;
 
-        /// <summary>双指中点位移（像素）。</summary>
+        /// <summary>双指中点位移（像素）。只在 <see cref="Mode"/> 为 Drag 时有值。</summary>
         public readonly Vector2 TwoFingerDrag;
+
+        /// <summary>本次双指手势被归成了哪一类。三条通道互斥，同一时刻只有一条出量。</summary>
+        public readonly TwoFingerMode Mode;
+
+        /// <summary>
+        /// 分类锁定那一刻两指相距多少像素；<see cref="Mode"/> 为 None 时是 0。
+        ///
+        /// 取锁定时的快照而不是每帧现算：调用方拿它分流「两指靠得近 = 滑屏 / 张得开 = 升降」，
+        /// 现算的话手在滑动过程中稍微张合一点，行为就会在两者之间来回跳。
+        /// </summary>
+        public readonly float Spread;
 
         /// <summary>本帧完成了一次点击。</summary>
         public readonly bool Tap;
@@ -85,13 +117,15 @@ namespace FloatingIsLand.GameInput
         public readonly bool HasFinger;
 
         public TouchGesture(Vector2 pan, float pinchDelta, float twistDegrees, Vector2 twoFingerDrag,
-            bool tap, Vector2 tapPosition,
+            TwoFingerMode mode, float spread, bool tap, Vector2 tapPosition,
             bool pressBegan, bool pressEnded, Vector2 position, bool hasFinger)
         {
             Pan = pan;
             PinchDelta = pinchDelta;
             TwistDegrees = twistDegrees;
             TwoFingerDrag = twoFingerDrag;
+            Mode = mode;
+            Spread = spread;
             Tap = tap;
             TapPosition = tapPosition;
             PressBegan = pressBegan;
@@ -114,7 +148,8 @@ namespace FloatingIsLand.GameInput
     ///   累计位移而不是首尾直线距离——手指画个圈回到原点，那不是点击。
     /// - **平移** = 单指且已经超过点击阈值。超过之后就一直算拖动，不会因为手停下来又变回点击。
     /// - **捏合 / 转 / 双指拖** = 恰好在有两根及以上手指的帧里输出；第一帧只记基准不出量，
-    ///   否则第二根手指刚落下的瞬间会窜出一个巨大的假捏合。
+    ///   否则第二根手指刚落下的瞬间会窜出一个巨大的假捏合。三者**互斥**，见
+    ///   <see cref="TwoFingerMode"/>：一次双指手势起手时先攒够位移分清意图，之后就锁死在那条通道上。
     /// </summary>
     public sealed class TouchGestureTracker
     {
@@ -123,6 +158,14 @@ namespace FloatingIsLand.GameInput
 
         /// <summary>按住超过这么久再抬手算长按，不算点击。</summary>
         public float TapMaxSeconds = 0.6f;
+
+        /// <summary>
+        /// 双指三选一的判定门槛（像素）。三条通道各自累计到这个量，最大的那条胜出并锁定。
+        /// 由调用方按屏幕 DPI 折算。
+        ///
+        /// 给得太小会在起手的抖动里瞎猜（想缩放却判成了转），太大则手势有明显的迟滞感。
+        /// </summary>
+        public float TwoFingerModeSlopPixels = 12f;
 
         private int _prevCount;
         private bool _gestureActive;
@@ -135,6 +178,17 @@ namespace FloatingIsLand.GameInput
         private float _prevPinchDistance = -1f;
         private float _prevPinchAngle;
 
+        /// <summary>本次双指手势锁定的通道；None = 还没分清。手指少于两根时清空。</summary>
+        private TwoFingerMode _twoFingerMode;
+
+        /// <summary>锁定那一刻的两指间距（像素）。</summary>
+        private float _twoFingerSpread;
+
+        // 三条通道各自的累计位移，全部折算成像素后才能横向比大小。
+        private float _accPinch;
+        private float _accTwist;
+        private float _accDrag;
+
         /// <summary>回到没有任何手势在进行的状态。场景切换 / 输入模式切换时调。</summary>
         public void Reset()
         {
@@ -143,6 +197,16 @@ namespace FloatingIsLand.GameInput
             _travel = 0f;
             _multiFinger = false;
             _prevPinchDistance = -1f;
+            ResetTwoFinger();
+        }
+
+        private void ResetTwoFinger()
+        {
+            _twoFingerMode = TwoFingerMode.None;
+            _twoFingerSpread = 0f;
+            _accPinch = 0f;
+            _accTwist = 0f;
+            _accDrag = 0f;
         }
 
         public TouchGesture Step(TouchFrame frame)
@@ -191,9 +255,30 @@ namespace FloatingIsLand.GameInput
 
                 if (_prevPinchDistance >= 0f)
                 {
-                    pinch = distance - _prevPinchDistance;
-                    twist = Mathf.DeltaAngle(_prevPinchAngle, angle);
-                    twoFingerDrag = (frame.Delta0 + frame.Delta1) * 0.5f;
+                    // 中点位移 / 间距变化 / 连线转角 是双指运动的一组正交分解，先各算各的
+                    float rawPinch = distance - _prevPinchDistance;
+                    float rawTwist = Mathf.DeltaAngle(_prevPinchAngle, angle);
+                    Vector2 rawDrag = (frame.Delta0 + frame.Delta1) * 0.5f;
+
+                    if (_twoFingerMode == TwoFingerMode.None)
+                    {
+                        ClassifyTwoFinger(rawPinch, rawTwist, rawDrag, distance);
+                    }
+
+                    // 锁定之后只放行胜出的那一条：手画不出纯粹的旋转，不掐掉另外两条的话
+                    // 「转视角」会连带把镜头拉近、升高
+                    switch (_twoFingerMode)
+                    {
+                        case TwoFingerMode.Pinch:
+                            pinch = rawPinch;
+                            break;
+                        case TwoFingerMode.Twist:
+                            twist = rawTwist;
+                            break;
+                        case TwoFingerMode.Drag:
+                            twoFingerDrag = rawDrag;
+                            break;
+                    }
                 }
                 _prevPinchDistance = distance;
                 _prevPinchAngle = angle;
@@ -201,6 +286,8 @@ namespace FloatingIsLand.GameInput
             else
             {
                 _prevPinchDistance = -1f;
+                // 松掉一根手指就重新分类：剩下的这根再配上新落下的一根是另一次手势了
+                ResetTwoFinger();
             }
 
             // 手指全抬起：这一次算不算点击
@@ -217,8 +304,45 @@ namespace FloatingIsLand.GameInput
 
             _prevCount = count;
             return new TouchGesture(
-                pan, pinch, twist, twoFingerDrag, tap, tapPosition,
+                pan, pinch, twist, twoFingerDrag, _twoFingerMode, _twoFingerSpread, tap, tapPosition,
                 pressBegan, pressEnded, _lastPosition, count > 0);
+        }
+
+        /// <summary>
+        /// 攒够位移之后判定这次双指手势是三类中的哪一类，判完就锁死到手指抬起。
+        ///
+        /// 三条通道的原始单位不一样（像素 / 像素 / 度），直接比大小没有意义。
+        /// 转角按**两指连线的半径**折成弧长再比：同样转 5°，两指张得越开，手指实际划过的
+        /// 距离就越长、意图也越明确，弧长恰好表达了这件事。
+        /// </summary>
+        private void ClassifyTwoFinger(float rawPinch, float rawTwist, Vector2 rawDrag, float distance)
+        {
+            _accPinch += Mathf.Abs(rawPinch);
+            _accTwist += Mathf.Abs(rawTwist) * Mathf.Deg2Rad * (distance * 0.5f);
+            _accDrag += rawDrag.magnitude;
+
+            float best = Mathf.Max(_accPinch, Mathf.Max(_accTwist, _accDrag));
+            if (best < TwoFingerModeSlopPixels)
+            {
+                return;
+            }
+
+            if (best <= _accPinch)
+            {
+                _twoFingerMode = TwoFingerMode.Pinch;
+            }
+            else if (best <= _accTwist)
+            {
+                _twoFingerMode = TwoFingerMode.Twist;
+            }
+            else
+            {
+                _twoFingerMode = TwoFingerMode.Drag;
+            }
+
+            // 快照两指间距：调用方据此分流「靠得近 = 滑屏 / 张得开 = 升降」，
+            // 定死在锁定这一刻，滑动途中手再张合也不会改判
+            _twoFingerSpread = distance;
         }
     }
 }

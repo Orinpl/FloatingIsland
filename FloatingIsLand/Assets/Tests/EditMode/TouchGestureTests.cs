@@ -16,9 +16,17 @@ namespace FloatingIsLand.Tests
     {
         private const float Slop = 10f;
 
+        /// <summary>双指三选一的判定门槛，与 <see cref="TouchGestureTracker.TwoFingerModeSlopPixels"/> 的默认值一致。</summary>
+        private const float ModeSlop = 12f;
+
         private static TouchGestureTracker NewTracker()
         {
-            return new TouchGestureTracker { TapSlopPixels = Slop, TapMaxSeconds = 0.6f };
+            return new TouchGestureTracker
+            {
+                TapSlopPixels = Slop,
+                TapMaxSeconds = 0.6f,
+                TwoFingerModeSlopPixels = ModeSlop,
+            };
         }
 
         [Test]
@@ -206,7 +214,7 @@ namespace FloatingIsLand.Tests
         [Test]
         public void 按下必定早于第一个平移量至少一帧()
         {
-            // 这是「拖建筑」能抢在相机之前认领这次拖动的前提（见 InputArbiter.PanConsumedByGameplay）：
+            // 这是「拖建筑」能抢在相机之前认领这次拖动的前提（见 InputArbiter.TouchBuildMode）：
             // 玩法层在落指帧就能定归属，而平移量要等累计位移过阈值才出现。
             // 这条一旦破了，相机会先跟着手指动一帧再交接，表现为建筑拖起来时画面抖一下。
             TouchGestureTracker tracker = NewTracker();
@@ -266,6 +274,167 @@ namespace FloatingIsLand.Tests
 
             TouchGesture allGone = tracker.Step(TouchFrame.None(0.1f));
             Assert.IsTrue(allGone.PressEnded);
+        }
+
+        // ── 双指三选一 ────────────────────────────────────────────────────────
+        //
+        // 三种双指手势必须互斥。人手画不出纯粹的旋转，不掐掉另外两条通道的话，
+        // 玩家转一下视角，镜头会同时被拉近、被抬高——这正是改版前的手感问题。
+
+        [Test]
+        public void 双指反向划归成绕转且左上右下为顺时针()
+        {
+            // 左手在左侧上划、右手在右侧下滑 = 两指连线顺时针转。
+            // TwistDegrees 逆时针为正，所以这一下必须是负的——相机据此绕建筑逆时针公转，
+            // 玩家看到的才是建筑顺时针转（GameplayCameraController.OrbitAroundTarget）。
+            TouchGestureTracker tracker = NewTracker();
+            var left = new Vector2(400f, 400f);
+            var right = new Vector2(700f, 400f);
+            var up = new Vector2(0f, 30f);
+            var down = new Vector2(0f, -30f);
+
+            tracker.Step(TouchFrame.Two(left, Vector2.zero, right, Vector2.zero, 0f));
+            TouchGesture turned = tracker.Step(
+                TouchFrame.Two(left + up, up, right + down, down, 0.02f));
+
+            Assert.AreEqual(TwoFingerMode.Twist, turned.Mode);
+            Assert.Less(turned.TwistDegrees, 0f, "左上右下 = 顺时针 = 负角");
+            Assert.AreEqual(Vector2.zero, turned.TwoFingerDrag, "绕转期间不能顺带滑屏/升降");
+            Assert.AreEqual(0f, turned.PinchDelta, 1e-3f, "绕转期间不能顺带缩放");
+        }
+
+        [Test]
+        public void 双指同向划归成同向拖()
+        {
+            TouchGestureTracker tracker = NewTracker();
+            var a = new Vector2(400f, 300f);
+            var b = new Vector2(600f, 300f);
+            var move = new Vector2(0f, 20f);
+
+            tracker.Step(TouchFrame.Two(a, Vector2.zero, b, Vector2.zero, 0f));
+            TouchGesture dragged = tracker.Step(TouchFrame.Two(a + move, move, b + move, move, 0.02f));
+
+            Assert.AreEqual(TwoFingerMode.Drag, dragged.Mode);
+            Assert.AreEqual(move, dragged.TwoFingerDrag);
+            Assert.AreEqual(0f, dragged.TwistDegrees, 1e-3f);
+        }
+
+        [Test]
+        public void 双指外拉归成缩放()
+        {
+            TouchGestureTracker tracker = NewTracker();
+            var a = new Vector2(400f, 300f);
+            var b = new Vector2(600f, 300f);
+
+            tracker.Step(TouchFrame.Two(a, Vector2.zero, b, Vector2.zero, 0f));
+            TouchGesture apart = tracker.Step(
+                TouchFrame.Two(a, Vector2.zero, b + new Vector2(40f, 0f), new Vector2(40f, 0f), 0.02f));
+
+            Assert.AreEqual(TwoFingerMode.Pinch, apart.Mode);
+            Assert.AreEqual(40f, apart.PinchDelta, 1e-3f);
+            Assert.AreEqual(0f, apart.TwistDegrees, 1e-3f);
+        }
+
+        [Test]
+        public void 位移不到门槛前三条通道都不出量()
+        {
+            // 两根手指刚落下的头几帧必然是抖的，这时候就选边会经常选错
+            TouchGestureTracker tracker = NewTracker();
+            var a = new Vector2(400f, 300f);
+            var b = new Vector2(600f, 300f);
+            var tiny = new Vector2(0f, 3f);
+
+            tracker.Step(TouchFrame.Two(a, Vector2.zero, b, Vector2.zero, 0f));
+            TouchGesture jitter = tracker.Step(TouchFrame.Two(a + tiny, tiny, b + tiny, tiny, 0.02f));
+
+            Assert.AreEqual(TwoFingerMode.None, jitter.Mode);
+            Assert.AreEqual(Vector2.zero, jitter.TwoFingerDrag);
+            Assert.AreEqual(0f, jitter.PinchDelta, 1e-3f);
+            Assert.AreEqual(0f, jitter.TwistDegrees, 1e-3f);
+        }
+
+        [Test]
+        public void 分类锁定后中途手抖不会改判()
+        {
+            // 缩放到一半手腕跟着转了一点，镜头不能突然开始绕着建筑转
+            TouchGestureTracker tracker = NewTracker();
+            var a = new Vector2(400f, 300f);
+            var b = new Vector2(600f, 300f);
+
+            tracker.Step(TouchFrame.Two(a, Vector2.zero, b, Vector2.zero, 0f));
+            TouchGesture locked = tracker.Step(
+                TouchFrame.Two(a, Vector2.zero, b + new Vector2(40f, 0f), new Vector2(40f, 0f), 0.02f));
+            Assert.AreEqual(TwoFingerMode.Pinch, locked.Mode);
+
+            // 第二根手指绕到正上方：单看这一帧是个大转角，但通道已经锁死在缩放上
+            var above = new Vector2(400f, 540f);
+            TouchGesture wobble = tracker.Step(
+                TouchFrame.Two(a, Vector2.zero, above, above - (b + new Vector2(40f, 0f)), 0.04f));
+
+            Assert.AreEqual(TwoFingerMode.Pinch, wobble.Mode);
+            Assert.AreEqual(0f, wobble.TwistDegrees, 1e-3f, "锁定的是缩放，转角不能漏出去");
+        }
+
+        [Test]
+        public void 同向拖记下锁定时的两指间距且中途不变()
+        {
+            // 建造模式靠这个间距分流「滑屏 / 升降」。如果每帧现算，手在滑动途中稍微张合一点
+            // 就会在两种行为之间来回跳——所以必须是锁定那一刻的快照。
+            TouchGestureTracker tracker = NewTracker();
+            var a = new Vector2(300f, 300f);
+            var b = new Vector2(500f, 300f);
+            var move = new Vector2(0f, 20f);
+
+            tracker.Step(TouchFrame.Two(a, Vector2.zero, b, Vector2.zero, 0f));
+            TouchGesture locked = tracker.Step(TouchFrame.Two(a + move, move, b + move, move, 0.02f));
+
+            Assert.AreEqual(TwoFingerMode.Drag, locked.Mode);
+            Assert.AreEqual(200f, locked.Spread, 1e-3f, "锁定时两指相距 200 像素");
+
+            // 继续滑的同时把两指张到 600：间距快照不能跟着变
+            var spread = new Vector2(900f, 320f);
+            TouchGesture later = tracker.Step(
+                TouchFrame.Two(a + move, Vector2.zero, spread, spread - (b + move), 0.04f));
+
+            Assert.AreEqual(TwoFingerMode.Drag, later.Mode);
+            Assert.AreEqual(200f, later.Spread, 1e-3f, "滑动途中张开手指不能改判成升降");
+        }
+
+        [Test]
+        public void 分类之前没有间距快照()
+        {
+            TouchGestureTracker tracker = NewTracker();
+            var a = new Vector2(300f, 300f);
+            var b = new Vector2(500f, 300f);
+            var tiny = new Vector2(0f, 2f);
+
+            tracker.Step(TouchFrame.Two(a, Vector2.zero, b, Vector2.zero, 0f));
+            TouchGesture jitter = tracker.Step(TouchFrame.Two(a + tiny, tiny, b + tiny, tiny, 0.02f));
+
+            Assert.AreEqual(TwoFingerMode.None, jitter.Mode);
+            Assert.AreEqual(0f, jitter.Spread, 1e-4f);
+        }
+
+        [Test]
+        public void 松掉一根手指后重新分类()
+        {
+            // 先同向拖锁成 Drag，松开一根再按回去，下一次该按新意图（缩放）判
+            TouchGestureTracker tracker = NewTracker();
+            var a = new Vector2(400f, 300f);
+            var b = new Vector2(600f, 300f);
+            var move = new Vector2(0f, 20f);
+
+            tracker.Step(TouchFrame.Two(a, Vector2.zero, b, Vector2.zero, 0f));
+            Assert.AreEqual(TwoFingerMode.Drag,
+                tracker.Step(TouchFrame.Two(a + move, move, b + move, move, 0.02f)).Mode);
+
+            tracker.Step(TouchFrame.One(a, Vector2.zero, 0.04f));
+
+            tracker.Step(TouchFrame.Two(a, Vector2.zero, b, Vector2.zero, 0.06f));
+            TouchGesture again = tracker.Step(
+                TouchFrame.Two(a, Vector2.zero, b + new Vector2(40f, 0f), new Vector2(40f, 0f), 0.08f));
+
+            Assert.AreEqual(TwoFingerMode.Pinch, again.Mode, "上一次的分类不能粘住下一次");
         }
 
         [Test]
