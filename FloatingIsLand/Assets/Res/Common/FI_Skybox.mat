@@ -28,8 +28,8 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _CloudAltitude: 0.203
-    - _CloudCoverage: 0.475
+    - _CloudAltitude: 0.188
+    - _CloudCoverage: 0.484
     - _CloudFadeSpeed: 1.03
     - _CloudFadeStrength: 0.307
     - _CloudGroup: 1
@@ -40,13 +40,21 @@ Material:
     - _CloudSpread: 0.1405
     - _Contrast: 1
     - _Exposure: 1
+    - _GlobalFogBaseHeight: 108.8
+    - _GlobalFogDensity: 0
+    - _GlobalFogGroup: 1
+    - _GlobalFogHeightFalloff: 40.4
+    - _GlobalFogMaxOpacity: 1
+    - _GlobalFogSkyFalloff: 0.228
+    - _GlobalFogSkyOpacity: 0.434
+    - _GlobalFogStartDistance: 1.6
     - _HorizonGlowStrength: 1
     - _HorizonLevel: -0.15
     - _HorizonWidth: 0.0232
     - _IslandCount: 8
     - _IslandDepth: 0.2126
     - _IslandGroup: 1
-    - _IslandOpacity: 0.814
+    - _IslandOpacity: 0.368
     - _IslandScale: 0.684
     - _OceanGradientPower: 0.75
     - _OceanVariation: 0.025
@@ -55,22 +63,23 @@ Material:
     - _SkyGradientPower: 0.8
     - _WindBreakup: 0.743
     - _WindCount: 8
-    - _WindCurvature: 0.0135
-    - _WindFadeDuration: 0.45
+    - _WindCurvature: 0.0169
+    - _WindFadeDuration: 0.24
     - _WindGroup: 1
-    - _WindIntensity: 0.235
+    - _WindIntensity: 0.088
     - _WindLength: 0.1188
     - _WindPositionX: 0.578
-    - _WindPositionY: 0.03
-    - _WindSpeed: 0.03
+    - _WindPositionY: -0.013
+    - _WindSpeed: 0.015
     - _WindTaper: 0.65
     - _WindVerticalSpread: 0.0682
     - _WindWaveCount: 0.967
     - _WindWaveSpeed: 1
-    - _WindWidth: 0.00167
+    - _WindWidth: 0.00544
     m_Colors:
     - _CloudColor: {r: 1, g: 0.95, b: 0.82, a: 1}
     - _CloudShadowColor: {r: 0.56, g: 0.72, b: 0.8, a: 1}
+    - _GlobalFogColor: {r: 0.40922037, g: 0.5977699, b: 0.7169812, a: 1}
     - _GrassColor: {r: 0.25, g: 0.72, b: 0.18, a: 1}
     - _GrassLightColor: {r: 0.58, g: 0.86, b: 0.2, a: 1}
     - _HorizonGlowColor: {r: 0.027320892, g: 0.5394797, b: 0.57112503, a: 1}

@@ -1,5 +1,7 @@
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
+using FloatingIsLand.View.Environment;
 
 public sealed class FI_SkyboxShaderGUI : FI_LitShaderGUI
 {
@@ -31,6 +33,25 @@ public sealed class FI_SkyboxShaderGUI : FI_LitShaderGUI
             editor.RangeProperty(Find("_OceanGradientPower"), "海水渐变曲线");
             editor.RangeProperty(Find("_OceanVariation"), "海水细微变化");
         });
+
+        bool globalFogEnabled = DrawFeatureToggle("_GlobalFogGroup", "全局高度雾");
+        if (globalFogEnabled)
+        {
+            using (new EditorGUI.IndentLevelScope())
+            {
+                editor.ColorProperty(Find("_GlobalFogColor"), "雾颜色");
+                editor.RangeProperty(Find("_GlobalFogDensity"), "雾密度");
+                editor.FloatProperty(Find("_GlobalFogBaseHeight"), "雾基准高度");
+                editor.FloatProperty(Find("_GlobalFogHeightFalloff"), "高度衰减距离");
+                editor.FloatProperty(Find("_GlobalFogStartDistance"), "起雾距离");
+                editor.RangeProperty(Find("_GlobalFogMaxOpacity"), "最大雾不透明度");
+                editor.RangeProperty(Find("_GlobalFogSkyOpacity"), "天空地平线雾量");
+                editor.RangeProperty(Find("_GlobalFogSkyFalloff"), "天空雾垂直范围");
+                EditorGUILayout.HelpBox(
+                    "这些参数会全局作用于 FI/Lit 与 FI/Sail Wind；距离越远、视线越深入雾层，雾越浓。",
+                    MessageType.Info);
+            }
+        }
 
         bool cloudsEnabled = DrawFeatureToggle("_CloudGroup", "云");
         if (cloudsEnabled)
@@ -125,6 +146,8 @@ public sealed class FI_SkyboxShaderGUI : FI_LitShaderGUI
                 SetupMaterialKeywords(material);
             }
         }
+
+        GlobalHeightFogController.PublishFromSkybox();
     }
 
     protected override void SetupMaterialKeywords(Material material)
@@ -155,6 +178,24 @@ public sealed class FI_SkyboxShaderGUI : FI_LitShaderGUI
         else
         {
             material.DisableKeyword(keyword);
+        }
+    }
+}
+
+[InitializeOnLoad]
+internal static class FI_GlobalHeightFogEditorSync
+{
+    static FI_GlobalHeightFogEditorSync()
+    {
+        RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
+        RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
+    }
+
+    private static void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
+    {
+        if (!EditorApplication.isPlaying)
+        {
+            GlobalHeightFogController.PublishFromSkybox();
         }
     }
 }

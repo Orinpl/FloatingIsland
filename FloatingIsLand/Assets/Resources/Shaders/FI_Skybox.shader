@@ -18,6 +18,16 @@ Shader "FI/Skybox Procedural"
         _OceanGradientPower ("Ocean Gradient", Range(0.1, 4)) = 0.75
         _OceanVariation ("Ocean Variation", Range(0, 0.15)) = 0.025
 
+        _GlobalFogGroup ("Global Height Fog", Float) = 1
+        _GlobalFogColor ("Fog Color", Color) = (0.66, 0.82, 0.86, 1)
+        _GlobalFogDensity ("Fog Density", Range(0, 0.1)) = 0.012
+        _GlobalFogBaseHeight ("Fog Base Height", Float) = 0
+        [Min(0.01)] _GlobalFogHeightFalloff ("Fog Height Falloff", Float) = 80
+        [Min(0)] _GlobalFogStartDistance ("Fog Start Distance", Float) = 40
+        _GlobalFogMaxOpacity ("Fog Maximum Opacity", Range(0, 1)) = 0.85
+        _GlobalFogSkyOpacity ("Sky Horizon Opacity", Range(0, 1)) = 0.35
+        _GlobalFogSkyFalloff ("Sky Horizon Falloff", Range(0.01, 0.5)) = 0.12
+
         _CloudGroup ("Clouds", Float) = 1
         [HDR] _CloudColor ("Cloud Color", Color) = (1, 0.95, 0.82, 1)
         _CloudShadowColor ("Cloud Shadow", Color) = (0.56, 0.72, 0.80, 1)
@@ -47,7 +57,7 @@ Shader "FI/Skybox Procedural"
         _WindIntensity ("Wind Intensity", Range(0, 1)) = 0.32
         _WindCount ("Wind Stroke Count", Range(1, 8)) = 4
         _WindPositionX ("Wind Horizontal Position", Range(0, 1)) = 0
-        _WindPositionY ("Wind Vertical Position", Range(0.03, 0.4)) = 0.14
+        _WindPositionY ("Wind Vertical Position", Range(-0.4, 0.4)) = 0.14
         _WindVerticalSpread ("Wind Vertical Spread", Range(0, 0.18)) = 0.1
         _WindWidth ("Wind Width", Range(0.0005, 0.015)) = 0.004
         _WindLength ("Wind Stroke Length", Range(0.03, 0.3)) = 0.13
@@ -104,6 +114,7 @@ Shader "FI/Skybox Procedural"
             half4 _RockColor;
             half4 _ShallowWaterColor;
             half4 _WindColor;
+            half4 _GlobalFogColor;
             float _SkyGradientPower;
             float _Exposure;
             float _Saturation;
@@ -113,6 +124,10 @@ Shader "FI/Skybox Procedural"
             float _HorizonGlowStrength;
             float _OceanGradientPower;
             float _OceanVariation;
+            float _GlobalFogGroup;
+            float _GlobalFogMaxOpacity;
+            float _GlobalFogSkyOpacity;
+            float _GlobalFogSkyFalloff;
             float _CloudCoverage;
             float _CloudScale;
             float _CloudSoftness;
@@ -364,9 +379,16 @@ Shader "FI/Skybox Procedural"
                 strokes += FI_WindTrailStroke(azimuth, latitude, _WindPositionX + 0.70 + windTime, windBaseHeight + _WindVerticalSpread * 0.78, 1.26, 0.94, 14.1) * step(5.5, _WindCount);
                 strokes += FI_WindTrailStroke(azimuth, latitude, _WindPositionX + 0.82 + windTime, windBaseHeight - _WindVerticalSpread * 0.28, 0.68, 0.66, 16.8) * step(6.5, _WindCount);
                 strokes += FI_WindTrailStroke(azimuth, latitude, _WindPositionX + 0.93 + windTime, windBaseHeight + _WindVerticalSpread * 0.35, 1.08, 0.84, 19.5) * step(7.5, _WindCount);
-                float windSkyMask = smoothstep(horizonLatitude + 0.005, horizonLatitude + 0.025, latitude);
-                color = lerp(color, _WindColor.rgb, saturate(strokes) * windSkyMask * _WindIntensity);
+                color = lerp(color, _WindColor.rgb, saturate(strokes) * _WindIntensity);
 #endif
+
+                // Keep the infinitely distant sky consistent with the color that
+                // scene geometry converges to under the global height fog.
+                float skyFogHeight = max(latitude - horizonLatitude, 0.0);
+                float skyFogMask = exp2(-skyFogHeight / max(_GlobalFogSkyFalloff, 0.01));
+                float skyFogAmount = saturate(_GlobalFogGroup) * _GlobalFogSkyOpacity *
+                    _GlobalFogMaxOpacity * skyFogMask;
+                color = lerp(color, _GlobalFogColor.rgb, saturate(skyFogAmount));
 
                 half luminance = dot(color, half3(0.2126, 0.7152, 0.0722));
                 color = lerp(luminance.xxx, color, _Saturation);
