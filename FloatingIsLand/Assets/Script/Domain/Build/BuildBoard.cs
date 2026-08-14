@@ -230,9 +230,21 @@ namespace FloatingIsLand.Domain.Build
             _rules = rules ?? throw new ArgumentNullException(nameof(rules));
             _buildingByCell = new Dictionary<long, PlacedBuilding>();
             _elementByCell = new Dictionary<long, PlacedElement>();
+            _layerYGrids = map.LayerHeightsInGrids(rules.CellSize);
 
             LoadElements();
         }
+
+        /// <summary>
+        /// 逐层高度表（格数，来自地图的 layerHeights ÷ 格边长）；null = 地图没配，
+        /// 球形范围判定退回 GameConfig.layerHeightFactor 的统一系数口径。计分/范围校验统一从这里取。
+        /// </summary>
+        public IReadOnlyList<float> LayerYGrids
+        {
+            get { return _layerYGrids; }
+        }
+
+        private readonly float[] _layerYGrids;
 
         /// <summary>把快照里的元素展开成占用格索引。占地越界/压虚空只警告不抛——地图是编辑期产物，宁可少占也别让整局起不来。</summary>
         private void LoadElements()
@@ -454,7 +466,7 @@ namespace FloatingIsLand.Domain.Build
                 {
                     continue;
                 }
-                if (RangeMath.InRange(cells, layer, element.Cells, element.Layer, element.Def.Radius, _rules.LayerHeightFactor))
+                if (RangeMath.InRange(cells, layer, element.Cells, element.Layer, element.Def.Radius, _rules.LayerHeightFactor, _layerYGrids))
                 {
                     return true;
                 }

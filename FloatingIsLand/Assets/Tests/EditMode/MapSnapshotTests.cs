@@ -214,6 +214,41 @@ namespace FloatingIsLand.Tests
             Assert.IsFalse(loaded.Elements[0].HasWindParams);
         }
 
+        // ---------- 逐层高度（地图编辑器逐层填写，贴合岛屿台地） ----------
+
+        [Test]
+        public void 逐层高度存读一轮后保持()
+        {
+            var original = new MapSnapshot(1, 8, 8, 3, new List<MapCell>(), null, new[] { 0f, 3.2f, 4.5f });
+
+            MapSnapshot loaded = MapJson.Load("test", MapJson.Save(original));
+
+            Assert.IsNotNull(loaded.LayerHeights);
+            Assert.AreEqual(3, loaded.LayerHeights.Count);
+            Assert.AreEqual(0f, loaded.LayerHeights[0], 1e-4f);
+            Assert.AreEqual(3.2f, loaded.LayerHeights[1], 1e-4f);
+            Assert.AreEqual(4.5f, loaded.LayerHeights[2], 1e-4f);
+
+            // 换算成计分用的格数：高度差 ÷ 格边长
+            float[] grids = loaded.LayerHeightsInGrids(2f);
+            Assert.AreEqual(1.6f, grids[1], 1e-4f);
+        }
+
+        [Test]
+        public void 老地图不带逐层高度可以直接读()
+        {
+            MapSnapshot loaded = MapJson.Load("test", MapJson.Save(new MapSnapshot(1, 8, 8, 2, new List<MapCell>())));
+            Assert.IsNull(loaded.LayerHeights);
+            Assert.IsNull(loaded.LayerHeightsInGrids(2f));
+        }
+
+        [Test]
+        public void 逐层高度条数与层数不符时抛异常()
+        {
+            Assert.Throws<ArgumentException>(() =>
+                new MapSnapshot(1, 8, 8, 2, new List<MapCell>(), null, new[] { 0f, 2f, 4f }));
+        }
+
         [Test]
         public void 非法风参数读取时抛异常()
         {

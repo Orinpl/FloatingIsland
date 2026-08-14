@@ -207,7 +207,9 @@ namespace FloatingIsLand.Domain.Wind
                 cells.Add(pair.Key, new WindCellState(passes, resultDir, resultForce, anyLogistics));
             }
 
-            return new WindField(map.Width, map.Length, streams, cells, logisticsByLayer);
+            // 地图配了逐层高度就换算成格数带给风场：物流风的球形覆盖判定按真实高度差走
+            return new WindField(map.Width, map.Length, streams, cells, logisticsByLayer,
+                map.LayerHeightsInGrids(rules.CellSize));
         }
 
         private static long Key(MapSnapshot map, int x, int z, int layer)

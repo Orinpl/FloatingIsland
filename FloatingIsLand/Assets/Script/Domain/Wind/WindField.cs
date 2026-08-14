@@ -47,17 +47,22 @@ namespace FloatingIsLand.Domain.Wind
         private readonly int _width;
         private readonly int _length;
 
+        /// <summary>逐层高度表（格数）；null = 地图没配，范围判定退回统一系数口径。</summary>
+        private readonly IReadOnlyList<float> _layerYGrids;
+
         internal WindField(
             int width, int length,
             IReadOnlyList<WindStream> streams,
             Dictionary<long, WindCellState> cells,
-            Dictionary<int, List<CellCoord>> logisticsCellsByLayer)
+            Dictionary<int, List<CellCoord>> logisticsCellsByLayer,
+            IReadOnlyList<float> layerYGrids = null)
         {
             _width = width;
             _length = length;
             _streams = streams;
             _cells = cells;
             _logisticsCellsByLayer = logisticsCellsByLayer;
+            _layerYGrids = layerYGrids;
         }
 
         /// <summary>全部风股（渲染流线 / 互联结算用）。</summary>
@@ -103,7 +108,7 @@ namespace FloatingIsLand.Domain.Wind
             }
             foreach (KeyValuePair<int, List<CellCoord>> pair in _logisticsCellsByLayer)
             {
-                if (RangeMath.InRange(cells, layer, pair.Value, pair.Key, radius, layerHeightFactor))
+                if (RangeMath.InRange(cells, layer, pair.Value, pair.Key, radius, layerHeightFactor, _layerYGrids))
                 {
                     return true;
                 }

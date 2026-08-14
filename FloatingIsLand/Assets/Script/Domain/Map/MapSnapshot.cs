@@ -52,18 +52,41 @@ namespace FloatingIsLand.Domain.Map
 
         private readonly MapElementPlacement[] _elements;
 
+        /// <summary>
+        /// 每层的世界高度（米，下标 = 层号；由地图编辑器逐层填写，用来贴合岛屿各级台地）。
+        /// null = 老地图没配，表现/计分退回「统一层高」口径（EGB 网格 verticalGridHeight / GameConfig.layerHeightFactor）。
+        /// </summary>
+        public IReadOnlyList<float> LayerHeights
+        {
+            get { return _layerHeights; }
+        }
+
+        private readonly float[] _layerHeights;
+
         /// <param name="cells">已刷地块；越界坐标、重复坐标一律抛异常——地图数据是产线产物，坏数据要当场炸而不是静默吞掉。</param>
         public MapSnapshot(int stageId, int width, int length, int layerCount, IReadOnlyList<MapCell> cells)
-            : this(stageId, width, length, layerCount, cells, null)
+            : this(stageId, width, length, layerCount, cells, null, null)
+        {
+        }
+
+        /// <param name="cells">已刷地块；越界坐标、重复坐标一律抛异常。</param>
+        /// <param name="elements">已落位的地图元素；锚点格越界抛异常。</param>
+        public MapSnapshot(
+            int stageId, int width, int length, int layerCount,
+            IReadOnlyList<MapCell> cells,
+            IReadOnlyList<MapElementPlacement> elements)
+            : this(stageId, width, length, layerCount, cells, elements, null)
         {
         }
 
         /// <param name="cells">已刷地块；越界坐标、重复坐标一律抛异常。</param>
         /// <param name="elements">已落位的地图元素；锚点格越界抛异常（占地是否越界由摆放期校验，这里只保证锚点可寻址）。</param>
+        /// <param name="layerHeights">逐层世界高度（米）；null/空 = 不配（统一层高口径），配了长度必须等于层数。</param>
         public MapSnapshot(
             int stageId, int width, int length, int layerCount,
             IReadOnlyList<MapCell> cells,
-            IReadOnlyList<MapElementPlacement> elements)
+            IReadOnlyList<MapElementPlacement> elements,
+            IReadOnlyList<float> layerHeights)
         {
             if (width <= 0 || length <= 0)
             {
@@ -124,6 +147,43 @@ namespace FloatingIsLand.Domain.Map
                 }
                 _elements[i] = element;
             }
+
+            if (layerHeights != null && layerHeights.Count > 0)
+            {
+                if (layerHeights.Count != layerCount)
+                {
+                    throw new ArgumentException(
+                        $"地图 [stage {stageId}] 的逐层高度有 {layerHeights.Count} 条，但层数是 {layerCount}——两者必须一致。");
+                }
+                _layerHeights = new float[layerHeights.Count];
+                for (int i = 0; i < layerHeights.Count; i++)
+                {
+                    float h = layerHeights[i];
+                    if (float.IsNaN(h) || float.IsInfinity(h))
+                    {
+                        throw new ArgumentException($"地图 [stage {stageId}] 第 {i} 层的高度非法：{h}。");
+                    }
+                    _layerHeights[i] = h;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 逐层高度换算成**格数**（计分的球形范围用：层差 = 高度差 ÷ 格边长）。
+        /// 没配逐层高度返回 null——调用方退回 GameConfig.layerHeightFactor 的统一系数口径。
+        /// </summary>
+        public float[] LayerHeightsInGrids(float cellSize)
+        {
+            if (_layerHeights == null || cellSize <= 0f)
+            {
+                return null;
+            }
+            var grids = new float[_layerHeights.Length];
+            for (int i = 0; i < _layerHeights.Length; i++)
+            {
+                grids[i] = _layerHeights[i] / cellSize;
+            }
+            return grids;
         }
 
         /// <summary>坐标是否在地图尺寸内。注意"在界内"不等于"刷过"。</summary>

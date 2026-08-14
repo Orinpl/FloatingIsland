@@ -25,14 +25,16 @@ namespace FloatingIsLand.ViewEGB.EditorTools
     ///     在鼠标处（与游戏内建造同一份摆放口径），占地按配表 footprint 校验，点击落位、
     ///     可选中/转向/删除。写的全是地图 JSON 数据，运行时 WorldRenderer 再按数据实例化；
     ///   · 风源（elements 里的 windSource）——「风源」工具点击放置/选中，在面板上改
-    ///     朝向/强度/长度，Scene 视图里用**运行时同一份 <see cref="WindSimulator"/>** 画风的传播预览。
+    ///     朝向/强度/长度。Scene 视图里**全部风**都画传播预览（运行时同一条链：BuildBoard →
+    ///     WindSystem → WindSimulator）：手工风实色即真相，随机风按「预览种子」半透明演示。
     ///
     /// 只读的参考层：载入地图时自动实例化对应 Stage 的岛屿 Prefab 并用 <see cref="IslandFitter"/>
     /// 对位（HideAndDontSave 临时实例，编辑动不到 Prefab 资产，也不会存进场景）。
     ///
-    /// 高度层：层数由本编辑器管理（正本随地图 JSON 的 layerCount，添加/删除顶层按钮增删），
-    /// 不依赖 EGB 场景网格的 verticalGridsCount——坐标全走 GridGeometry，层高取网格 verticalGridHeight。
-    /// 每层可单独勾选显隐，勾选的层才渲染（地形 overlay / 元素 / 风预览一并过滤）；笔刷与摆放只作用于当前编辑层。
+    /// 高度层：层数与逐层高度由本编辑器管理（正本随地图 JSON 的 layerCount / layerHeights），
+    /// 不依赖 EGB 场景网格的垂直层配置——坐标全走 GridGeometry。每层一行「层号 | 高度（米）| 显示」：
+    /// 高度逐层独立填写（贴合岛屿各级台地，计分的球形范围同步按真实高度差折算），
+    /// 勾选「显示」的层才渲染（地形 overlay / 元素 / 风预览一并过滤）；笔刷与摆放只作用于当前编辑层。
     ///
     /// 为什么在 ViewEGB/Editor：编辑器必须读 EGB 组件的网格参数才能与运行时对齐，而
     /// using SoulGames 只允许出现在 ViewEGB/（GRID_INTEGRATION §4）。
@@ -48,6 +50,9 @@ namespace FloatingIsLand.ViewEGB.EditorTools
         /// <summary>手工风参数的兜底默认（配表没加载上时用）。</summary>
         private const int FallbackWindForce = 2;
         private const int FallbackWindLength = 12;
+
+        /// <summary>橡皮擦在调色板里的假 Id（不是配表元素；选中它 = 左键连擦地形）。</summary>
+        private const string EraserBrushId = "__eraser";
 
         /// <summary>Scene 视图绘制高度：占地框贴地，风预览抬高一点避免被岛面吃掉。</summary>
         private const float OutlineY = 0.08f;
@@ -68,6 +73,8 @@ namespace FloatingIsLand.ViewEGB.EditorTools
         private static readonly string[] ToolLabels = { "浏览", "笔刷", "风源" };
 
         private static readonly string[] RotationLabels = { "0°", "90°", "180°", "270°" };
+
+        private static readonly string[] WindModeLabels = { "手工风（固定）", "随机风（每局随机）" };
 
         /// <summary>八向标签，下标 = <see cref="Dir8"/> 数值（E 起逆时针）。</summary>
         private static readonly string[] DirLabels = { "东 →", "东北 ↗", "北 ↑", "西北 ↖", "西 ←", "西南 ↙", "南 ↓", "东南 ↘" };
@@ -109,6 +116,19 @@ namespace FloatingIsLand.ViewEGB.EditorTools
 
         /// <summary>逐层显隐（下标 = 层号）。勾选的层才渲染：地形 overlay、元素模型/占地框、风预览一并过滤。</summary>
         [SerializeField] private List<bool> layerVisible = new List<bool> { true };
+
+        /// <summary>逐层世界高度（米，下标 = 层号）。正本随地图 JSON 的 layerHeights：载入覆盖、存盘写回。</summary>
+        [SerializeField] private List<float> layerHeightsMeters = new List<float> { 0f };
+
+        /// <summary>给 GridGeometry 用的逐层高度数组（与 <see cref="layerHeightsMeters"/> 同步重建）。</summary>
+        private float[] _layerOffsetCache;
+
+        /// <summary>
+        /// 随机风的预览种子：没固化手工参数的风源按它展开演示（与运行时同一套
+        /// <see cref="WindSystem"/> 随机逻辑）。运行时每局种子不同，这里只是「某一局的样子」；
+        /// 手工风不受种子影响。
+        /// </summary>
+        [SerializeField] private int windPreviewSeed = 1;
 
         /// <summary>编辑中的地形层：(x, z, layer) → elementId。只有这里有的格子才会存盘。</summary>
         private readonly Dictionary<Vector3Int, string> _painted = new Dictionary<Vector3Int, string>();
@@ -276,15 +296,15 @@ namespace FloatingIsLand.ViewEGB.EditorTools
                 return;
             }
 
-            // 调色板两组：isTerrain=TRUE 的地形（拖动连刷）与多格地图元素（点击落位）。
-            // windSource 不进元素组——它带风参数，用专门的「风源」工具编辑。
+            // 调色板两组：isTerrain=TRUE 的地形（拖动连刷）与地图元素（点击落位）。
+            // windSource 也在元素组里（落位走 PlaceWindSource，带默认手工风参数）；参数编辑在选中面板/风源工具。
             foreach (MapElementRow row in Tables.MapElement.All)
             {
                 if (row.isTerrain)
                 {
                     _terrainRows.Add(row);
                 }
-                else if (!string.Equals(row.elementId, BuildRuleSet.WindSourceElementId, StringComparison.Ordinal))
+                else
                 {
                     _elementRows.Add(row);
                 }
@@ -320,13 +340,15 @@ namespace FloatingIsLand.ViewEGB.EditorTools
                 geometry = default(GridGeometry);
                 return false;
             }
+            EnsureLayerListSize();
             geometry = new GridGeometry(
                 _grid.transform.position,
                 _grid.GetGridWidth(),
                 _grid.GetGridLength(),
                 _grid.GetCellSize(),
                 _grid.GetVerticalGridHeight(),
-                _grid.GetGridOriginType() == GridOrigin.Center);
+                _grid.GetGridOriginType() == GridOrigin.Center,
+                _layerOffsetCache);
             return geometry.IsValid;
         }
 
@@ -474,7 +496,7 @@ namespace FloatingIsLand.ViewEGB.EditorTools
 
         // ---------- 高度层 ----------
 
-        /// <summary>层数与 layerVisible 列表对齐，编辑层夹进合法区间。</summary>
+        /// <summary>层数与显隐/高度两个列表对齐，编辑层夹进合法区间。新层的高度默认 = 上一层 + 网格层高。</summary>
         private void EnsureLayerListSize()
         {
             editLayerCount = Mathf.Max(1, editLayerCount);
@@ -486,7 +508,33 @@ namespace FloatingIsLand.ViewEGB.EditorTools
             {
                 layerVisible.RemoveRange(editLayerCount, layerVisible.Count - editLayerCount);
             }
+
+            float spacing = _grid != null ? Mathf.Max(0.01f, _grid.GetVerticalGridHeight()) : 2f;
+            while (layerHeightsMeters.Count < editLayerCount)
+            {
+                layerHeightsMeters.Add(layerHeightsMeters.Count == 0
+                    ? 0f
+                    : layerHeightsMeters[layerHeightsMeters.Count - 1] + spacing);
+            }
+            if (layerHeightsMeters.Count > editLayerCount)
+            {
+                layerHeightsMeters.RemoveRange(editLayerCount, layerHeightsMeters.Count - editLayerCount);
+            }
+            RebuildLayerOffsetCache();
+
             layer = Mathf.Clamp(layer, 0, editLayerCount - 1);
+        }
+
+        private void RebuildLayerOffsetCache()
+        {
+            if (_layerOffsetCache == null || _layerOffsetCache.Length != layerHeightsMeters.Count)
+            {
+                _layerOffsetCache = new float[layerHeightsMeters.Count];
+            }
+            for (int i = 0; i < layerHeightsMeters.Count; i++)
+            {
+                _layerOffsetCache[i] = layerHeightsMeters[i];
+            }
         }
 
         private bool IsLayerVisible(int l)
@@ -500,7 +548,7 @@ namespace FloatingIsLand.ViewEGB.EditorTools
 
             using (new EditorGUILayout.HorizontalScope())
             {
-                EditorGUILayout.LabelField("高度层", $"{editLayerCount} 层（层高 {_grid.GetVerticalGridHeight()} 米）");
+                EditorGUILayout.LabelField("高度层", $"{editLayerCount} 层（高度随地图 JSON 保存）");
                 if (GUILayout.Button("添加一层", GUILayout.Width(70f)))
                 {
                     editLayerCount++;
@@ -519,35 +567,44 @@ namespace FloatingIsLand.ViewEGB.EditorTools
                 }
             }
 
-            using (new EditorGUI.DisabledScope(editLayerCount <= 1))
+            // 每层一行：层号 | 高度（米，逐层独立，用来贴合岛屿各级台地）| 显示 toggle | 切换编辑层。
+            // 勾选「显示」的层才渲染（地形/元素/风预览一并过滤）；▶ = 当前编辑层
+            for (int l = 0; l < editLayerCount; l++)
             {
-                EditorGUI.BeginChangeCheck();
-                layer = EditorGUILayout.IntSlider("编辑层", layer, 0, editLayerCount - 1);
-                if (EditorGUI.EndChangeCheck())
+                using (new EditorGUILayout.HorizontalScope())
                 {
-                    // 正在编辑的层必须看得见，否则刷了也不知道刷哪了
-                    layerVisible[layer] = true;
-                    RefreshDisplayForLayers();
-                }
-            }
+                    bool isEditing = l == layer;
+                    EditorGUILayout.LabelField(isEditing ? $"▶ 第 {l} 层" : $"    第 {l} 层", GUILayout.Width(72f));
 
-            // 逐层显隐勾选：勾上的层才渲染
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                EditorGUILayout.LabelField("显示", GUILayout.Width(EditorGUIUtility.labelWidth - 4f));
-                bool changed = false;
-                for (int l = 0; l < editLayerCount; l++)
-                {
-                    bool visible = GUILayout.Toggle(layerVisible[l], $"第{l}层", EditorStyles.miniButton);
+                    EditorGUILayout.LabelField("高度", GUILayout.Width(32f));
+                    EditorGUI.BeginChangeCheck();
+                    float height = EditorGUILayout.FloatField(layerHeightsMeters[l], GUILayout.Width(56f));
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        layerHeightsMeters[l] = height;
+                        RebuildLayerOffsetCache();
+                        _dirty = true;
+                        RefreshDisplayForLayers();
+                    }
+                    EditorGUILayout.LabelField("米", GUILayout.Width(18f));
+
+                    bool visible = GUILayout.Toggle(layerVisible[l], "显示", GUILayout.Width(48f));
                     if (visible != layerVisible[l])
                     {
                         layerVisible[l] = visible;
-                        changed = true;
+                        RefreshDisplayForLayers();
                     }
-                }
-                if (changed)
-                {
-                    RefreshDisplayForLayers();
+
+                    using (new EditorGUI.DisabledScope(isEditing))
+                    {
+                        if (GUILayout.Button("编辑此层", GUILayout.Width(66f)))
+                        {
+                            layer = l;
+                            // 正在编辑的层必须看得见，否则刷了也不知道刷哪了
+                            layerVisible[l] = true;
+                            RefreshDisplayForLayers();
+                        }
+                    }
                 }
             }
         }
@@ -638,7 +695,7 @@ namespace FloatingIsLand.ViewEGB.EditorTools
 
             BuildRuleSet rules = Rules();
 
-            EditorGUILayout.LabelField("地形（左键拖动连刷 / Shift+左键擦）", EditorStyles.miniLabel);
+            EditorGUILayout.LabelField("地形（左键拖动连刷 / Shift+左键快捷擦）", EditorStyles.miniLabel);
             foreach (MapElementRow row in _terrainRows)
             {
                 bool selected = row.elementId == brushElementId;
@@ -646,6 +703,14 @@ namespace FloatingIsLand.ViewEGB.EditorTools
                 if (GUILayout.Toggle(selected, content, EditorStyles.miniButton) && !selected)
                 {
                     brushElementId = row.elementId;
+                    DestroyGhost();
+                }
+            }
+            {
+                bool selected = brushElementId == EraserBrushId;
+                if (GUILayout.Toggle(selected, "橡皮擦（删除格子）", EditorStyles.miniButton) && !selected)
+                {
+                    brushElementId = EraserBrushId;
                     DestroyGhost();
                 }
             }
@@ -734,13 +799,31 @@ namespace FloatingIsLand.ViewEGB.EditorTools
             }
             EditorGUILayout.LabelField("风源数量", $"{windCount} 个（手工参数 {authoredCount} 个，其余运行时随机）");
 
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUI.BeginChangeCheck();
+                windPreviewSeed = EditorGUILayout.IntField("随机风预览种子", windPreviewSeed);
+                bool seedChanged = EditorGUI.EndChangeCheck();
+                if (GUILayout.Button("换一个", GUILayout.Width(60f)))
+                {
+                    windPreviewSeed = UnityEngine.Random.Range(1, int.MaxValue);
+                    seedChanged = true;
+                }
+                if (seedChanged)
+                {
+                    RebuildWindPreview();
+                    SceneView.RepaintAll();
+                }
+            }
+            EditorGUILayout.LabelField(" ", "随机风源按预览种子演示（半透明），运行时每局种子不同；手工风不受影响。", EditorStyles.miniLabel);
+
             if (_selectedWind < 0)
             {
                 EditorGUILayout.HelpBox("在 Scene 视图里点一个风源以编辑；点空格子会放置一个新风源。", MessageType.Info);
             }
         }
 
-        /// <summary>选中的风源：参数编辑（任何工具模式下都显示，浏览模式点中的也在这里改）。</summary>
+        /// <summary>选中的风源：手工/随机切换 + 参数编辑（任何工具模式下都显示，浏览模式点中的也在这里改）。</summary>
         private void DrawSelectedWindPanel()
         {
             if (_selectedWind < 0 || _selectedWind >= _elements.Count || !IsWindSource(_elements[_selectedWind]))
@@ -752,40 +835,77 @@ namespace FloatingIsLand.ViewEGB.EditorTools
             MapElementPlacement el = _elements[_selectedWind];
             BuildRuleSet rules = Rules();
             int maxLevel = rules != null ? rules.MaxWindLevel : 5;
+            bool authored = el.HasWindParams;
 
-            int dir = el.HasWindParams ? el.WindDir : (int)Dir8.E;
-            int force = el.HasWindParams ? el.WindForce : DefaultWindForce(rules);
-            int length = el.HasWindParams ? el.WindLength : DefaultWindLength(rules);
-
+            EditorGUILayout.Space(2);
             EditorGUILayout.LabelField("选中风源", $"({el.X}, {el.Z}) 层 {el.Layer}");
-            if (!el.HasWindParams)
-            {
-                EditorGUILayout.HelpBox("此风源还没有手工参数（运行时按局种子随机）。改动任一项即固化为手工风。", MessageType.Warning);
-            }
 
-            EditorGUI.BeginChangeCheck();
-            dir = EditorGUILayout.Popup("朝向", Mathf.Clamp(dir, 0, 7), DirLabels);
-            force = EditorGUILayout.IntSlider("强度（风力）", Mathf.Clamp(force, 1, maxLevel), 1, maxLevel);
-            length = Mathf.Clamp(EditorGUILayout.IntField("长度（格）", length), 1, 999);
-            if (EditorGUI.EndChangeCheck())
+            // 手工/随机自由切换。随机 → 手工时把**当前预览流**的参数固化下来：切换瞬间风路不跳，所见即所得
+            int mode = GUILayout.Toolbar(authored ? 0 : 1, WindModeLabels);
+            if ((mode == 0) != authored)
             {
-                _elements[_selectedWind] = new MapElementPlacement(
-                    el.ElementId, el.X, el.Z, el.Layer, el.Rotation, dir, force, length);
-                MarkWindDirty();
-            }
-
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                if (GUILayout.Button("删除选中风源"))
+                if (mode == 0)
                 {
-                    RemoveWindSource(_selectedWind);
+                    WindStream stream = FindPreviewStream(_selectedWind);
+                    int dir = stream != null ? (int)stream.OriginDir : (int)Dir8.E;
+                    int force = stream != null ? stream.Force : DefaultWindForce(rules);
+                    int length = stream != null ? stream.InitialLength : DefaultWindLength(rules);
+                    _elements[_selectedWind] = new MapElementPlacement(
+                        el.ElementId, el.X, el.Z, el.Layer, el.Rotation, dir, force, length);
                 }
-                if (el.HasWindParams && GUILayout.Button("还原为随机风"))
+                else
                 {
                     _elements[_selectedWind] = new MapElementPlacement(el.ElementId, el.X, el.Z, el.Layer, el.Rotation);
+                }
+                MarkWindDirty();
+                return; // 数据已换，下一帧按新状态画
+            }
+
+            if (authored)
+            {
+                EditorGUI.BeginChangeCheck();
+                int dir = EditorGUILayout.Popup("朝向", Mathf.Clamp(el.WindDir, 0, 7), DirLabels);
+                int force = EditorGUILayout.IntSlider("强度（风力）", Mathf.Clamp(el.WindForce, 1, maxLevel), 1, maxLevel);
+                int length = Mathf.Clamp(EditorGUILayout.IntField("长度（格）", el.WindLength), 1, 999);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    _elements[_selectedWind] = new MapElementPlacement(
+                        el.ElementId, el.X, el.Z, el.Layer, el.Rotation, dir, force, length);
                     MarkWindDirty();
                 }
             }
+            else
+            {
+                WindStream stream = FindPreviewStream(_selectedWind);
+                EditorGUILayout.LabelField("当前预览",
+                    stream != null
+                        ? $"{DirLabels[(int)stream.OriginDir]}  力{stream.Force} 长{stream.InitialLength}（换种子会变）"
+                        : "（无预览）",
+                    EditorStyles.miniLabel);
+                EditorGUILayout.HelpBox("随机风：进游戏时按局种子随机朝向/强度/长度，每局不同。要固定就切「手工风」——会把当前预览的参数固化。", MessageType.Info);
+            }
+
+            if (GUILayout.Button("删除选中风源"))
+            {
+                RemoveWindSource(_selectedWind);
+            }
+        }
+
+        /// <summary>该元素对应的预览流（无预览或没匹配到返回 null）。</summary>
+        private WindStream FindPreviewStream(int elementIndex)
+        {
+            if (_windPreview == null)
+            {
+                return null;
+            }
+            for (int s = 0; s < _windStreamElementIndex.Count && s < _windPreview.Streams.Count; s++)
+            {
+                if (_windStreamElementIndex[s] == elementIndex)
+                {
+                    return _windPreview.Streams[s];
+                }
+            }
+            return null;
         }
 
         private void DrawFileSection()
@@ -964,7 +1084,7 @@ namespace FloatingIsLand.ViewEGB.EditorTools
                 DrawBrushGizmo(geometry, hx, hz);
             }
 
-            bool erase = e.shift;
+            bool erase = e.shift || brushElementId == EraserBrushId;
             switch (e.type)
             {
                 case EventType.MouseDown:
@@ -1040,13 +1160,25 @@ namespace FloatingIsLand.ViewEGB.EditorTools
                 case EventType.MouseDown:
                     if (e.button == 0 && !e.alt && onGrid)
                     {
+                        // 风源与普通元素都能点选/删除；落位时风源走 PlaceWindSource（带默认手工风参数）
+                        int windHit = FindWindSourceAt(hx, hz, layer);
                         int hit = FindPlacedElementAt(hx, hz, layer);
                         if (e.shift)
                         {
-                            if (hit >= 0)
+                            if (windHit >= 0)
+                            {
+                                RemoveWindSource(windHit);
+                            }
+                            else if (hit >= 0)
                             {
                                 RemovePlacedElement(hit);
                             }
+                        }
+                        else if (windHit >= 0)
+                        {
+                            _selectedWind = windHit;
+                            _selectedElement = -1;
+                            Repaint();
                         }
                         else if (hit >= 0)
                         {
@@ -1056,10 +1188,17 @@ namespace FloatingIsLand.ViewEGB.EditorTools
                         }
                         else if (valid)
                         {
-                            _elements.Add(new MapElementPlacement(def.ElementId, hx, hz, layer, rotation));
-                            _selectedElement = _elements.Count - 1;
-                            _selectedWind = -1;
-                            MarkElementsDirty();
+                            if (string.Equals(def.ElementId, BuildRuleSet.WindSourceElementId, StringComparison.Ordinal))
+                            {
+                                PlaceWindSource(hx, hz);
+                            }
+                            else
+                            {
+                                _elements.Add(new MapElementPlacement(def.ElementId, hx, hz, layer, rotation));
+                                _selectedElement = _elements.Count - 1;
+                                _selectedWind = -1;
+                                MarkElementsDirty();
+                            }
                         }
                         e.Use();
                     }
@@ -1372,7 +1511,7 @@ namespace FloatingIsLand.ViewEGB.EditorTools
                 corner + new Vector3(span, 0f, 0f),
             };
 
-            bool erase = Event.current.shift;
+            bool erase = Event.current.shift || brushElementId == EraserBrushId;
             Color fill = erase ? new Color(1f, 0.3f, 0.3f, 0.15f) : new Color(1f, 1f, 1f, 0.15f);
             Color outline = erase ? new Color(1f, 0.4f, 0.4f, 0.9f) : new Color(1f, 1f, 1f, 0.9f);
             Handles.DrawSolidRectangleWithOutline(verts, fill, outline);
@@ -1443,11 +1582,29 @@ namespace FloatingIsLand.ViewEGB.EditorTools
             }
         }
 
-        /// <summary>风源标记 + 手工风的传播路径（真实 <see cref="WindSimulator"/> 结果）。</summary>
+        /// <summary>
+        /// 风源标记 + 全部风的传播路径（真实 <see cref="WindSimulator"/> 结果）。
+        /// 手工风实色；随机风按预览种子演示、半透明区分。
+        /// </summary>
         private void DrawWindOverlays(GridGeometry geometry)
         {
             BuildRuleSet rules = Rules();
             int maxLevel = rules != null ? rules.MaxWindLevel : 5;
+
+            // 元素下标 → 预览流：标记的箭头/力度和路径都从流上取（随机风也有得画）
+            Dictionary<int, WindStream> streamByElement = null;
+            if (_windPreview != null)
+            {
+                streamByElement = new Dictionary<int, WindStream>();
+                for (int s = 0; s < _windPreview.Streams.Count && s < _windStreamElementIndex.Count; s++)
+                {
+                    int elementIndex = _windStreamElementIndex[s];
+                    if (elementIndex >= 0)
+                    {
+                        streamByElement[elementIndex] = _windPreview.Streams[s];
+                    }
+                }
+            }
 
             // 每个风源一个标记（只画勾选层上的）
             for (int i = 0; i < _elements.Count; i++)
@@ -1461,17 +1618,34 @@ namespace FloatingIsLand.ViewEGB.EditorTools
                 Vector3 center = geometry.CellCenter(el.X, el.Z, el.Layer) + new Vector3(0f, WindMarkerY, 0f);
                 float radius = geometry.CellSize * 0.55f;
                 bool selected = i == _selectedWind;
+                bool authored = el.HasWindParams;
 
-                Color color = el.HasWindParams
-                    ? WindColor(el.WindForce, maxLevel)
-                    : new Color(0.6f, 0.6f, 0.6f, 0.9f);
+                WindStream stream = null;
+                if (streamByElement != null)
+                {
+                    streamByElement.TryGetValue(i, out stream);
+                }
+
+                Color color;
+                if (stream != null)
+                {
+                    color = WindColor(stream.Force, maxLevel);
+                    if (!authored)
+                    {
+                        color.a *= 0.55f;
+                    }
+                }
+                else
+                {
+                    color = new Color(0.6f, 0.6f, 0.6f, 0.9f);
+                }
                 Handles.color = color;
                 Handles.DrawWireDisc(center, Vector3.up, radius);
                 Handles.DrawWireDisc(center, Vector3.up, radius * 0.15f);
 
-                if (el.HasWindParams)
+                if (stream != null)
                 {
-                    Vector3 dir = DirVector(el.WindDir);
+                    Vector3 dir = DirVector((int)stream.OriginDir);
                     Handles.ArrowHandleCap(0, center,
                         Quaternion.LookRotation(dir), geometry.CellSize * 1.4f, EventType.Repaint);
                 }
@@ -1484,14 +1658,21 @@ namespace FloatingIsLand.ViewEGB.EditorTools
 
                 Handles.BeginGUI();
                 Vector2 screen = HandleUtility.WorldToGUIPoint(center);
-                string label = el.HasWindParams
-                    ? $"风源 {DirLabels[Mathf.Clamp(el.WindDir, 0, 7)]}  力{el.WindForce} 长{el.WindLength}"
-                    : "风源（运行时随机）";
-                GUI.Label(new Rect(screen.x + 12f, screen.y - 24f, 220f, 18f), label, EditorStyles.whiteMiniLabel);
+                string label;
+                if (stream != null)
+                {
+                    string desc = $"{DirLabels[(int)stream.OriginDir]}  力{stream.Force} 长{stream.InitialLength}";
+                    label = authored ? $"风源 {desc}" : $"风源(随机·预览) {desc}";
+                }
+                else
+                {
+                    label = "风源（无预览）";
+                }
+                GUI.Label(new Rect(screen.x + 12f, screen.y - 24f, 240f, 18f), label, EditorStyles.whiteMiniLabel);
                 Handles.EndGUI();
             }
 
-            // 手工风的传播路径
+            // 传播路径：全部风都画（手工实色，随机半透明）
             if (_windPreview == null)
             {
                 return;
@@ -1504,7 +1685,10 @@ namespace FloatingIsLand.ViewEGB.EditorTools
                 {
                     continue;
                 }
-                bool selected = s < _windStreamElementIndex.Count && _windStreamElementIndex[s] == _selectedWind;
+                int elementIndex = s < _windStreamElementIndex.Count ? _windStreamElementIndex[s] : -1;
+                bool authored = elementIndex >= 0 && elementIndex < _elements.Count
+                                && _elements[elementIndex].HasWindParams;
+                bool selected = elementIndex >= 0 && elementIndex == _selectedWind;
 
                 var points = new Vector3[stream.Path.Count];
                 for (int p = 0; p < stream.Path.Count; p++)
@@ -1514,7 +1698,12 @@ namespace FloatingIsLand.ViewEGB.EditorTools
                                 + new Vector3(0f, WindPathY, 0f);
                 }
 
-                Handles.color = selected ? new Color(1f, 0.9f, 0.2f, 1f) : WindColor(stream.Force, maxLevel);
+                Color pathColor = selected ? new Color(1f, 0.9f, 0.2f, 1f) : WindColor(stream.Force, maxLevel);
+                if (!authored && !selected)
+                {
+                    pathColor.a *= 0.55f;
+                }
+                Handles.color = pathColor;
                 Handles.DrawAAPolyLine(selected ? 7f : 4f, points);
 
                 // 末端箭头：沿最后一步的出向
@@ -1608,7 +1797,11 @@ namespace FloatingIsLand.ViewEGB.EditorTools
             SceneView.RepaintAll();
         }
 
-        /// <summary>用运行时同一份 <see cref="WindSimulator"/> 重算手工风的传播——预览即真相。</summary>
+        /// <summary>
+        /// 重算风预览——与运行时**同一条链**：BuildBoard 展开元素 → <see cref="WindSystem"/>
+        /// 展开风源（手工参数优先，其余按 <see cref="windPreviewSeed"/> 随机）→ WindSimulator 传播。
+        /// 所以载入的地图上每个风源都有路径可看：手工风就是运行时的样子，随机风是「按预览种子的某一局」。
+        /// </summary>
         private void RebuildWindPreview()
         {
             _windPreview = null;
@@ -1625,18 +1818,16 @@ namespace FloatingIsLand.ViewEGB.EditorTools
                 return;
             }
 
-            var seeds = new List<WindSeed>(4);
+            bool anyWind = false;
             for (int i = 0; i < _elements.Count; i++)
             {
-                MapElementPlacement el = _elements[i];
-                if (!IsWindSource(el) || !el.HasWindParams || !geometry.Contains(el.X, el.Z))
+                if (IsWindSource(_elements[i]))
                 {
-                    continue;
+                    anyWind = true;
+                    break;
                 }
-                seeds.Add(new WindSeed(new CellCoord(el.X, el.Z), el.Layer, (Dir8)el.WindDir, el.WindForce, el.WindLength));
-                _windStreamElementIndex.Add(i);
             }
-            if (seeds.Count == 0)
+            if (!anyWind)
             {
                 return;
             }
@@ -1654,29 +1845,32 @@ namespace FloatingIsLand.ViewEGB.EditorTools
 
             try
             {
-                _windPreview = WindSimulator.Recompute(snapshot, seeds, NoBuildings.Instance, rules);
+                var board = new BuildBoard(snapshot, rules);
+                var windSystem = new WindSystem(board, windPreviewSeed);
+                _windPreview = windSystem.Field;
             }
             catch (Exception e)
             {
                 Debug.LogError("[地图编辑器] 风预览模拟失败：" + e.Message);
-            }
-        }
-
-        /// <summary>编辑器里没有任何建筑：风帆/物流点查询恒为空。</summary>
-        private sealed class NoBuildings : IWindBuildingQuery
-        {
-            public static readonly NoBuildings Instance = new NoBuildings();
-
-            public bool TryGetSailTurn(int x, int z, int layer, out TurnDir turn)
-            {
-                turn = TurnDir.Left;
-                return false;
+                return;
             }
 
-            public bool TryGetLogisticsPoint(int x, int z, int layer, out int pointId)
+            // 流 → 元素下标：按起点格反查（一格至多一个风源，摆放期已挡重叠）
+            IReadOnlyList<WindStream> streams = _windPreview.Streams;
+            for (int s = 0; s < streams.Count; s++)
             {
-                pointId = 0;
-                return false;
+                WindStream stream = streams[s];
+                int elementIndex = -1;
+                for (int i = 0; i < _elements.Count; i++)
+                {
+                    MapElementPlacement el = _elements[i];
+                    if (IsWindSource(el) && el.X == stream.Origin.X && el.Z == stream.Origin.Z && el.Layer == stream.Layer)
+                    {
+                        elementIndex = i;
+                        break;
+                    }
+                }
+                _windStreamElementIndex.Add(elementIndex);
             }
         }
 
@@ -1821,7 +2015,7 @@ namespace FloatingIsLand.ViewEGB.EditorTools
                 cells.Add(new MapCell(kv.Key.x, kv.Key.y, kv.Key.z, kv.Value));
             }
             return new MapSnapshot(
-                stageId, geometry.Width, geometry.Length, editLayerCount, cells, _elements);
+                stageId, geometry.Width, geometry.Length, editLayerCount, cells, _elements, layerHeightsMeters);
         }
 
         /// <summary>显示用快照：只含勾选层的地形（overlay 只画这份；元素不进来，overlay 不用它们）。</summary>
@@ -2024,13 +2218,18 @@ namespace FloatingIsLand.ViewEGB.EditorTools
             _selectedWind = -1;
             _selectedElement = -1;
 
-            // 层数以存档为准，显隐全部重置为可见
+            // 层数与逐层高度以存档为准，显隐全部重置为可见；老地图没配高度就按网格层高等距铺
             editLayerCount = Mathf.Max(1, snapshot.LayerCount);
             layerVisible.Clear();
+            layerHeightsMeters.Clear();
+            float spacing = _grid != null ? Mathf.Max(0.01f, _grid.GetVerticalGridHeight()) : 2f;
+            bool hasHeights = snapshot.LayerHeights != null && snapshot.LayerHeights.Count == editLayerCount;
             for (int i = 0; i < editLayerCount; i++)
             {
                 layerVisible.Add(true);
+                layerHeightsMeters.Add(hasHeights ? snapshot.LayerHeights[i] : i * spacing);
             }
+            RebuildLayerOffsetCache();
             layer = Mathf.Clamp(layer, 0, editLayerCount - 1);
 
             foreach (MapCell cell in snapshot.Cells)

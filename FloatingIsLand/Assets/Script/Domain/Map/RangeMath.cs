@@ -5,7 +5,10 @@ namespace FloatingIsLand.Domain.Map
 {
     /// <summary>
     /// 影响范围判定（GAME_DESIGN 决策 26）：范围是**球形**，用三维欧氏距离判定，
-    /// 距离 = √(水平格距² + (高度层差 × 层高折算系数 k)²)，k = GameConfig.layerHeightFactor。
+    /// 距离 = √(水平格距² + 层差²)。层差有两种口径：
+    ///   · 地图配了逐层高度（<see cref="MapSnapshot.LayerHeights"/>）→ 用真实高度差换算的格数
+    ///     （<paramref name="layerYGrids"/>，= 高度差 ÷ 格边长），画面对齐台地后计分跟着对；
+    ///   · 没配（老地图）→ 层差 × 统一系数 k，k = GameConfig.layerHeightFactor。
     /// 早期文档里的「平面切比雪夫」口径已废弃，配表注释以本文件为准。
     ///
     /// 半径「自占地边缘起算」：两个多格物体之间取各自占用格的最小距离，
@@ -16,17 +19,29 @@ namespace FloatingIsLand.Domain.Map
     public static class RangeMath
     {
         /// <summary>两组占用格之间的最小三维距离（格）。任一组为空返回 <see cref="float.PositiveInfinity"/>。</summary>
+        /// <param name="layerYGrids">逐层高度表（格数，下标 = 层号）；null 或下标越界时退回统一系数口径。</param>
         public static float MinDistance(
             IReadOnlyList<CellCoord> a, int layerA,
             IReadOnlyList<CellCoord> b, int layerB,
-            float layerHeightFactor)
+            float layerHeightFactor,
+            IReadOnlyList<float> layerYGrids = null)
         {
             if (a == null || b == null || a.Count == 0 || b.Count == 0)
             {
                 return float.PositiveInfinity;
             }
 
-            float dy = (layerA - layerB) * layerHeightFactor;
+            float dy;
+            if (layerYGrids != null
+                && layerA >= 0 && layerA < layerYGrids.Count
+                && layerB >= 0 && layerB < layerYGrids.Count)
+            {
+                dy = layerYGrids[layerA] - layerYGrids[layerB];
+            }
+            else
+            {
+                dy = (layerA - layerB) * layerHeightFactor;
+            }
             float dySquared = dy * dy;
 
             float best = float.PositiveInfinity;
@@ -53,7 +68,8 @@ namespace FloatingIsLand.Domain.Map
         public static bool InRange(
             IReadOnlyList<CellCoord> a, int layerA,
             IReadOnlyList<CellCoord> b, int layerB,
-            int radius, float layerHeightFactor)
+            int radius, float layerHeightFactor,
+            IReadOnlyList<float> layerYGrids = null)
         {
             if (radius <= 0)
             {
@@ -61,7 +77,7 @@ namespace FloatingIsLand.Domain.Map
             }
             // 浮点比较放宽一点：半径 5 想包含 (3,4) 这种恰好等于 5 的整格距离，
             // 不留容差会被 sqrt 的舍入误差挡在门外。
-            return MinDistance(a, layerA, b, layerB, layerHeightFactor) <= radius + 1e-4f;
+            return MinDistance(a, layerA, b, layerB, layerHeightFactor, layerYGrids) <= radius + 1e-4f;
         }
     }
 }

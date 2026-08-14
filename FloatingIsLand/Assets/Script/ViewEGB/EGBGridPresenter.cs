@@ -34,6 +34,9 @@ namespace FloatingIsLand.ViewEGB
         /// <summary>当前局内地图；<see cref="BindTerrain"/> 绑定，用于悬停的层归属与层数。</summary>
         private MapSnapshot _terrain;
 
+        /// <summary>地图逐层高度的缓存数组（米）；null = 地图没配，等距口径。BindTerrain 时重建。</summary>
+        private float[] _layerYOffsets;
+
         public int LayerCount
         {
             // 快照的层数是正本——EGB 的 verticalGridsCount 只是场景骨架配置（恒为 1），
@@ -61,7 +64,8 @@ namespace FloatingIsLand.ViewEGB
                     gridSystem.GetGridLength(),
                     gridSystem.GetCellSize(),
                     gridSystem.GetVerticalGridHeight(),
-                    gridSystem.GetGridOriginType() == GridOrigin.Center);
+                    gridSystem.GetGridOriginType() == GridOrigin.Center,
+                    _layerYOffsets);
             }
         }
 
@@ -92,6 +96,16 @@ namespace FloatingIsLand.ViewEGB
         public void BindTerrain(MapSnapshot snapshot)
         {
             _terrain = snapshot;
+
+            _layerYOffsets = null;
+            if (snapshot != null && snapshot.LayerHeights != null && snapshot.LayerHeights.Count > 0)
+            {
+                _layerYOffsets = new float[snapshot.LayerHeights.Count];
+                for (int i = 0; i < _layerYOffsets.Length; i++)
+                {
+                    _layerYOffsets[i] = snapshot.LayerHeights[i];
+                }
+            }
         }
 
         /// <summary>

@@ -330,11 +330,11 @@ namespace FloatingIsLand.Domain.Build
                 {
                     continue;
                 }
-                if (!RangeMath.InRange(cells, layer, element.Cells, element.Layer, radius, _rules.LayerHeightFactor))
+                if (!RangeMath.InRange(cells, layer, element.Cells, element.Layer, radius, _rules.LayerHeightFactor, _board.LayerYGrids))
                 {
                     continue;
                 }
-                float distance = RangeMath.MinDistance(cells, layer, element.Cells, element.Layer, _rules.LayerHeightFactor);
+                float distance = RangeMath.MinDistance(cells, layer, element.Cells, element.Layer, _rules.LayerHeightFactor, _board.LayerYGrids);
                 hits.Add(new RangeHit(null, element, distance, element.Id));
             }
             hits.Sort(HitOrder);
@@ -351,11 +351,11 @@ namespace FloatingIsLand.Domain.Build
                 {
                     continue;
                 }
-                if (!RangeMath.InRange(cells, layer, building.Cells, building.Layer, radius, _rules.LayerHeightFactor))
+                if (!RangeMath.InRange(cells, layer, building.Cells, building.Layer, radius, _rules.LayerHeightFactor, _board.LayerYGrids))
                 {
                     continue;
                 }
-                float distance = RangeMath.MinDistance(cells, layer, building.Cells, building.Layer, _rules.LayerHeightFactor);
+                float distance = RangeMath.MinDistance(cells, layer, building.Cells, building.Layer, _rules.LayerHeightFactor, _board.LayerYGrids);
                 hits.Add(new RangeHit(building, null, distance, building.Id));
             }
             hits.Sort(HitOrder);
@@ -468,12 +468,12 @@ namespace FloatingIsLand.Domain.Build
                 {
                     continue;
                 }
-                if (!RangeMath.InRange(cells, layer, element.Cells, element.Layer, radius, _rules.LayerHeightFactor))
+                if (!RangeMath.InRange(cells, layer, element.Cells, element.Layer, radius, _rules.LayerHeightFactor, _board.LayerYGrids))
                 {
                     continue;
                 }
 
-                float distance = RangeMath.MinDistance(cells, layer, element.Cells, element.Layer, _rules.LayerHeightFactor);
+                float distance = RangeMath.MinDistance(cells, layer, element.Cells, element.Layer, _rules.LayerHeightFactor, _board.LayerYGrids);
                 int dockCount = CountDocksOwnedBy(element);
 
                 bool better = distance < bestDistance - 1e-4f
@@ -545,12 +545,12 @@ namespace FloatingIsLand.Domain.Build
                     continue;
                 }
                 // 半径用船坞自己的，与 ScoreDockAnchor 完全一致——两边不一致会让"第 N 座"数错，分直接算歪
-                if (!RangeMath.InRange(dock.Cells, dock.Layer, element.Cells, element.Layer, dock.Blueprint.Radius, _rules.LayerHeightFactor))
+                if (!RangeMath.InRange(dock.Cells, dock.Layer, element.Cells, element.Layer, dock.Blueprint.Radius, _rules.LayerHeightFactor, _board.LayerYGrids))
                 {
                     continue;
                 }
 
-                float distance = RangeMath.MinDistance(dock.Cells, dock.Layer, element.Cells, element.Layer, _rules.LayerHeightFactor);
+                float distance = RangeMath.MinDistance(dock.Cells, dock.Layer, element.Cells, element.Layer, _rules.LayerHeightFactor, _board.LayerYGrids);
                 if (distance < bestDistance - 1e-4f)
                 {
                     best = element;

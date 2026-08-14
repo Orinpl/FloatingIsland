@@ -90,7 +90,8 @@ namespace FloatingIsLand.Config
                 initialWindLengthMax: Tables.WindConfig.initialWindLengthMax,
                 windExtendLength: Tables.LogisticsConfig.windExtendLength,
                 windExtendMaxPerWind: Tables.LogisticsConfig.windExtendMaxPerWind,
-                logisticsWindLinkScore: Tables.LogisticsConfig.windLinkScore);
+                logisticsWindLinkScore: Tables.LogisticsConfig.windLinkScore,
+                cellSize: Tables.GameConfig.cellSize);
         }
 
         /// <summary>装配 Level 表（一关内的建筑组序列）。</summary>

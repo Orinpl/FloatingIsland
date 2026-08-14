@@ -26,13 +26,26 @@ namespace FloatingIsLand.View
         public readonly int Length;
         public readonly float CellSize;
 
-        /// <summary>层间世界高度（EGB 的 verticalGridHeight）。</summary>
+        /// <summary>层间世界高度（EGB 的 verticalGridHeight）。没配逐层高度表时按它等距。</summary>
         public readonly float LayerHeight;
 
         /// <summary>true = EGB 的 GridOrigin.Center（网格以 transform 为中心），false = GridOrigin.Default（transform 在 min 角）。</summary>
         public readonly bool CenterOrigin;
 
+        /// <summary>
+        /// 逐层世界高度（米，下标 = 层号，来自地图 JSON 的 layerHeights）。
+        /// null 或下标越界的层退回 <see cref="LayerHeight"/> × 层号的等距口径——老地图/建图前的场景不受影响。
+        /// </summary>
+        public readonly float[] LayerYOffsets;
+
         public GridGeometry(Vector3 gridPosition, int width, int length, float cellSize, float layerHeight, bool centerOrigin)
+            : this(gridPosition, width, length, cellSize, layerHeight, centerOrigin, null)
+        {
+        }
+
+        public GridGeometry(
+            Vector3 gridPosition, int width, int length, float cellSize, float layerHeight, bool centerOrigin,
+            float[] layerYOffsets)
         {
             GridPosition = gridPosition;
             Width = width;
@@ -40,6 +53,7 @@ namespace FloatingIsLand.View
             CellSize = cellSize;
             LayerHeight = layerHeight;
             CenterOrigin = centerOrigin;
+            LayerYOffsets = layerYOffsets;
         }
 
         /// <summary>参数是否可用于坐标换算（cellSize 为 0 会除零，尺寸为 0 说明还没接线）。</summary>
@@ -48,12 +62,15 @@ namespace FloatingIsLand.View
             get { return Width > 0 && Length > 0 && CellSize > 0f; }
         }
 
-        /// <summary>指定层的原点（该层 (0,0) 格的角点）。复刻 CalculateGridOrigin。</summary>
+        /// <summary>指定层的原点（该层 (0,0) 格的角点）。复刻 CalculateGridOrigin；有逐层高度表时 Y 用表值。</summary>
         public Vector3 LayerOrigin(int layer)
         {
             float offsetX = CenterOrigin ? (CellSize * Width / 2f) * -1f : 0f;
             float offsetZ = CenterOrigin ? (CellSize * Length / 2f) * -1f : 0f;
-            return GridPosition + new Vector3(offsetX, LayerHeight * layer, offsetZ);
+            float y = LayerYOffsets != null && layer >= 0 && layer < LayerYOffsets.Length
+                ? LayerYOffsets[layer]
+                : LayerHeight * layer;
+            return GridPosition + new Vector3(offsetX, y, offsetZ);
         }
 
         /// <summary>格子角点（min 角）的世界坐标。</summary>

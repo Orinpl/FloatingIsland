@@ -27,8 +27,11 @@ namespace FloatingIsLand.Domain.Build
             get { return _elements; }
         }
 
-        /// <summary>层高折算系数 k（GameConfig.layerHeightFactor），球形范围判定用。</summary>
+        /// <summary>层高折算系数 k（GameConfig.layerHeightFactor），球形范围判定用（地图没配逐层高度时的退路）。</summary>
         public float LayerHeightFactor { get; }
+
+        /// <summary>格子边长（米，GameConfig.cellSize）。把地图的逐层高度（米）换算成计分用的格数。</summary>
+        public float CellSize { get; }
 
         /// <summary>巨型风车通用加分：范围内任意建筑获得；有专属条目的建筑用专属分替代不叠加（§6.3）。</summary>
         public int GiantWindmillGenericScore { get; }
@@ -108,7 +111,8 @@ namespace FloatingIsLand.Domain.Build
             int initialWindLengthMax = 0,
             int windExtendLength = 0,
             int windExtendMaxPerWind = 0,
-            int logisticsWindLinkScore = 0)
+            int logisticsWindLinkScore = 0,
+            float cellSize = 2f)
         {
             IReadOnlyList<BuildingBlueprint> blueprintSource = blueprints ?? Array.Empty<BuildingBlueprint>();
             _blueprints = new BuildingBlueprint[blueprintSource.Count];
@@ -151,6 +155,7 @@ namespace FloatingIsLand.Domain.Build
             WindExtendLength = windExtendLength;
             WindExtendMaxPerWind = windExtendMaxPerWind;
             LogisticsWindLinkScore = logisticsWindLinkScore;
+            CellSize = cellSize > 0f ? cellSize : 2f;
         }
 
         /// <summary>按变体 Id 取蓝图；不存在返回 null。</summary>

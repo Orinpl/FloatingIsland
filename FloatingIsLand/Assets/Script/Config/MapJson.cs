@@ -25,6 +25,10 @@ namespace FloatingIsLand.Config
     /// d/f/len 是风源的手工风参数（d=Dir8 风向 0~7，f=风力，len=风长），只有地图编辑器
     /// 授权过的风源才有（f&gt;0 即授权标志）；缺失 = 运行时按局种子随机（老地图/自动散布的口径）。
     ///
+    /// layerHeights 是逐层世界高度（米，下标 = 层号，长度必须等于 layerCount）：
+    /// <code>"layerHeights": [ 0.0, 3.2 ]</code>
+    /// 由地图编辑器逐层填写，用来贴合岛屿各级台地；缺失 = 老地图，退回统一层高口径。
+    ///
     /// 存盘时按 (layer, z, x) 排序，保证同一张图两次保存字节一致——否则 git diff 全是噪音。
     /// </summary>
     public static class MapJson
@@ -104,8 +108,10 @@ namespace FloatingIsLand.Config
 
             try
             {
-                // MapSnapshot 构造函数负责越界/重复/空 id 的校验，坏地图在这里炸
-                return new MapSnapshot(dto.stageId, dto.width, dto.length, dto.layerCount <= 0 ? 1 : dto.layerCount, cells, elements);
+                // MapSnapshot 构造函数负责越界/重复/空 id/层高条数的校验，坏地图在这里炸
+                return new MapSnapshot(
+                    dto.stageId, dto.width, dto.length, dto.layerCount <= 0 ? 1 : dto.layerCount,
+                    cells, elements, dto.layerHeights);
             }
             catch (ArgumentException e)
             {
@@ -127,12 +133,23 @@ namespace FloatingIsLand.Config
             var sortedElements = new List<MapElementPlacement>(snapshot.Elements);
             sortedElements.Sort(CompareElements);
 
+            float[] layerHeights = null;
+            if (snapshot.LayerHeights != null && snapshot.LayerHeights.Count > 0)
+            {
+                layerHeights = new float[snapshot.LayerHeights.Count];
+                for (int i = 0; i < layerHeights.Length; i++)
+                {
+                    layerHeights[i] = snapshot.LayerHeights[i];
+                }
+            }
+
             var dto = new MapDto
             {
                 stageId = snapshot.StageId,
                 width = snapshot.Width,
                 length = snapshot.Length,
                 layerCount = snapshot.LayerCount,
+                layerHeights = layerHeights,
                 cells = new CellDto[sorted.Count],
                 elements = new ElementDto[sortedElements.Count],
             };
@@ -184,6 +201,11 @@ namespace FloatingIsLand.Config
             public int width;
             public int length;
             public int layerCount;
+
+            /// <summary>逐层世界高度（米，下标 = 层号）。null = 老地图，统一层高口径。</summary>
+            [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+            public float[] layerHeights;
+
             public CellDto[] cells;
             public ElementDto[] elements;
         }
