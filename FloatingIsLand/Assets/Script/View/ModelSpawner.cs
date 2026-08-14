@@ -178,7 +178,8 @@ namespace FloatingIsLand.View
         /// 不能靠 <c>Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard")</c> 这种写法挑 Shader：
         /// 只要装了 URP 包，那个 Shader.Find 就找得到、永远轮不到 Standard；而 URP 的 Shader 在 Built-in 下
         /// 所有 SubShader 都会被跳过，最终落到错误着色器 —— 渲染出来是纯品红。
-        /// 本工程装了 URP 包但**没启用**（ProjectSettings 里没有管线资产），正是这种情况。
+        /// 本工程现在已启用 URP（ProjectSettings 里挂了管线资产），但判据仍然按运行时实际管线取，
+        /// 这样管线再被摘掉时白模也不会跟着变品红。
         /// </summary>
         private static bool UsingScriptableRenderPipeline
         {

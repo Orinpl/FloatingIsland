@@ -42,9 +42,16 @@ namespace FloatingIsLand.EditorTools
             "Assets/SplitPreview",
         };
 
+        /// <summary>
+        /// Everything the audit lists. Wider than <see cref="ConvertRoots"/> on purpose — the
+        /// report is allowed to name material this tool will never rewrite, and staying silent
+        /// about third-party material on a Built-in shader is how it goes unnoticed until
+        /// something renders magenta.
+        /// </summary>
         private static readonly string[] MaterialRoots =
         {
             "Assets/Res",
+            "Assets/SplitPreview",
             "Assets/cicheng",
         };
 
@@ -64,6 +71,7 @@ namespace FloatingIsLand.EditorTools
             var sb = new StringBuilder();
             var offenders = new List<string>();
             var strays = new List<string>();
+            var foreign = new List<string>();
             var bound = new HashSet<Material>();
 
             sb.AppendLine("=== Renderer bindings in prefabs ===");
@@ -123,9 +131,22 @@ namespace FloatingIsLand.EditorTools
                 string line = $"{material.shader.name,-24} | {path}{(orphan ? "   [orphan]" : string.Empty)}";
                 sb.AppendLine(line);
 
-                if (IsUnderConvertRoots(path) && !IsAuthoredShader(material.shader))
+                if (IsAuthoredShader(material.shader))
+                {
+                    continue;
+                }
+
+                // Split by whether a menu can actually repair it, so the actionable count can
+                // reach zero. Lumping the two together would leave the total permanently at 2
+                // (third-party material this tool refuses to rewrite), and a count that never
+                // reaches zero is a count nobody reads.
+                if (IsUnderConvertRoots(path))
                 {
                     strays.Add(line);
+                }
+                else
+                {
+                    foreign.Add(line);
                 }
             }
 
@@ -145,10 +166,19 @@ namespace FloatingIsLand.EditorTools
                 sb.AppendLine(stray);
             }
 
+            sb.AppendLine();
+            sb.AppendLine(
+                $"=== Outside the convert scope, not repaired by any menu: {foreign.Count} ===");
+            foreach (string entry in foreign)
+            {
+                sb.AppendLine(entry);
+            }
+
             File.WriteAllText(ReportPath, sb.ToString());
             Debug.Log(
                 $"[FI] Material audit written to {ReportPath} " +
-                $"({offenders.Count} bad bindings, {strays.Count} assets on a non-project shader).");
+                $"({offenders.Count} bad bindings, {strays.Count} assets on a non-project shader, " +
+                $"{foreign.Count} outside the convert scope).");
         }
 
         /// <summary>
@@ -229,12 +259,17 @@ namespace FloatingIsLand.EditorTools
         }
 
         /// <summary>
-        /// Turns the normal map on for every bound material that actually has one.
+        /// Turns the normal map on for every material that actually has one.
         ///
         /// Assigning _BumpMap is not enough: FI_Lit gates the sampling behind the
         /// _NORMALMAP shader_feature, and FI_LitShaderGUI drives that keyword from
         /// _NormalMapGroup. A material with a bump texture but the group left at 0 silently
         /// renders flat, which is easy to mistake for the normal map being broken.
+        ///
+        /// Deliberately not restricted to FI_Lit the way <see cref="ConvertToFiLit"/> is:
+        /// FI_SailWind declares the same _NormalMapGroup / _BumpMap / _NORMALMAP triple, so
+        /// the fix is correct for the whole FI shader family. The _NormalMapGroup guard below
+        /// is what keeps that from becoming a licence to write into anything at all.
         /// </summary>
         [MenuItem("Tools/FI/Enable Normal Maps On Item Materials")]
         public static void EnableNormalMaps()
@@ -242,11 +277,21 @@ namespace FloatingIsLand.EditorTools
             var log = new StringBuilder();
             int changed = 0;
             int skipped = 0;
+            int group = Undo.GetCurrentGroup();
 
             foreach (Material material in CollectConvertibleMaterials())
             {
                 string path = AssetDatabase.GetAssetPath(material);
-                if (string.IsNullOrEmpty(path) || !material.HasProperty("_BumpMap"))
+
+                // _NormalMapGroup has to be checked too, not just _BumpMap. Built-in Standard
+                // declares _BumpMap but no _NormalMapGroup, and it reaches this loop now that
+                // orphans are in scope — an unconverted mat/ copy is exactly that shape. Without
+                // this guard such a material half-applies: SetFloat logs an error and does
+                // nothing, while EnableKeyword sticks, because _NORMALMAP is also Standard's own
+                // keyword name. The result is a material that claims a normal map it never samples.
+                if (string.IsNullOrEmpty(path)
+                    || !material.HasProperty("_BumpMap")
+                    || !material.HasProperty("_NormalMapGroup"))
                 {
                     continue;
                 }
@@ -265,6 +310,7 @@ namespace FloatingIsLand.EditorTools
                     continue;
                 }
 
+                Undo.RecordObject(material, "Enable Normal Maps");
                 material.SetFloat("_NormalMapGroup", 1f);
                 material.EnableKeyword("_NORMALMAP");
                 EditorUtility.SetDirty(material);
@@ -273,6 +319,7 @@ namespace FloatingIsLand.EditorTools
             }
 
             AssetDatabase.SaveAssets();
+            Undo.CollapseUndoOperations(group);
             Debug.Log($"[FI] Normal maps enabled on {changed} material(s), {skipped} already ok / no bump map.\n{log}");
         }
 
@@ -281,10 +328,15 @@ namespace FloatingIsLand.EditorTools
         /// then every material asset under <see cref="ConvertRoots"/> that the renderer walk
         /// did not already reach.
         ///
-        /// Order matters for <see cref="ConvertToFiLit"/>. Renderer-bound materials come first
-        /// because they are the ones with a tuned donor to inherit from; the orphans that
-        /// follow are usually those donors' own duplicates under mat/, which have nothing to
-        /// inherit and land on shader defaults either way.
+        /// The order of these two loops is a correctness invariant of <see cref="ConvertToFiLit"/>,
+        /// not a preference. Every donor in <see cref="BuildDonorMap"/> is itself one of the
+        /// orphans under mat/, and the map holds live Material references that are read lazily
+        /// inside the conversion loop. Visiting renderer-bound materials first guarantees each
+        /// consumer reads its donor while the donor is still in its authored state. Flip the
+        /// loops and donors get converted to FI_Lit-with-defaults first, the shader check on
+        /// the donor then passes, and every consumer is "seeded" from defaults — the tuned look
+        /// is lost and the run reports success, because the seeded counter cannot tell the
+        /// difference.
         /// </summary>
         private static List<Material> CollectConvertibleMaterials()
         {
@@ -372,7 +424,7 @@ namespace FloatingIsLand.EditorTools
         private static Dictionary<Material, Material> BuildDonorMap()
         {
             var map = new Dictionary<Material, Material>();
-            foreach (string guid in AssetDatabase.FindAssets("t:Model", new[] { "Assets/Res" }))
+            foreach (string guid in AssetDatabase.FindAssets("t:Model", ConvertRoots))
             {
                 string fbxPath = AssetDatabase.GUIDToAssetPath(guid);
                 var importer = AssetImporter.GetAtPath(fbxPath) as ModelImporter;
