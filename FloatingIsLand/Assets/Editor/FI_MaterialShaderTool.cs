@@ -165,6 +165,54 @@ namespace FloatingIsLand.EditorTools
             Debug.Log($"[FI] Converted {converted} material(s) to FI_Lit ({seeded} seeded from tuned donors):\n{log}");
         }
 
+        /// <summary>
+        /// Turns the normal map on for every bound material that actually has one.
+        ///
+        /// Assigning _BumpMap is not enough: FI_Lit gates the sampling behind the
+        /// _NORMALMAP shader_feature, and FI_LitShaderGUI drives that keyword from
+        /// _NormalMapGroup. A material with a bump texture but the group left at 0 silently
+        /// renders flat, which is easy to mistake for the normal map being broken.
+        /// </summary>
+        [MenuItem("Tools/FI/Enable Normal Maps On Item Materials")]
+        public static void EnableNormalMaps()
+        {
+            var log = new StringBuilder();
+            int changed = 0;
+            int skipped = 0;
+
+            foreach (Material material in CollectBoundMaterials())
+            {
+                string path = AssetDatabase.GetAssetPath(material);
+                if (string.IsNullOrEmpty(path) || !material.HasProperty("_BumpMap"))
+                {
+                    continue;
+                }
+
+                if (material.GetTexture("_BumpMap") == null)
+                {
+                    skipped++;
+                    continue;
+                }
+
+                bool alreadyOn = material.GetFloat("_NormalMapGroup") > 0.5f
+                                 && material.IsKeywordEnabled("_NORMALMAP");
+                if (alreadyOn)
+                {
+                    skipped++;
+                    continue;
+                }
+
+                material.SetFloat("_NormalMapGroup", 1f);
+                material.EnableKeyword("_NORMALMAP");
+                EditorUtility.SetDirty(material);
+                changed++;
+                log.AppendLine($"  {path}");
+            }
+
+            AssetDatabase.SaveAssets();
+            Debug.Log($"[FI] Normal maps enabled on {changed} material(s), {skipped} already ok / no bump map.\n{log}");
+        }
+
         /// <summary>All materials referenced by a renderer under <see cref="PrefabRoots"/>.</summary>
         private static List<Material> CollectBoundMaterials()
         {

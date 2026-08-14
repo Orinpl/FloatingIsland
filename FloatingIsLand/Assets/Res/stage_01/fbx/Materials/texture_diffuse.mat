@@ -13,6 +13,7 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _IBL_USE_BUILTIN
+  - _NORMALMAP
   - _SMOOTH_NORMAL_OFF
   m_InvalidKeywords: []
   m_LightmapFlags: 4
@@ -104,7 +105,7 @@ Material:
     - _MatCapIntensity: 0.5
     - _Metallic: 0
     - _Mode: 0
-    - _NormalMapGroup: 0
+    - _NormalMapGroup: 1
     - _OcclusionStrength: 1
     - _OutlineColorMix: 0.2
     - _OutlineGroup: 0
