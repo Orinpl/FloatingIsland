@@ -11,7 +11,8 @@ namespace FloatingIsLand.ViewEGB.EditorTools
 {
     /// <summary>
     /// 把地图格子的地形语义烘进岛屿模型自己的漫反射贴图：
-    /// greenField（可建农田）格子铺草方格块、island 格子铺泥土块，悬崖侧面保留原贴图。
+    /// greenField（可建农田）格子铺鲜绿草方格；island 格子第 1 关铺灰绿野草、
+    /// 2/3 关保留原贴图；悬崖侧面一律保留原贴图。
     ///
     /// 为什么是烘贴图而不是叠面片：TerrainOverlayRenderer 那层是建造模式的 UI 语义色，
     /// 常态下不显示；用户要的是岛屿模型本体在任何时候都能看出哪里能种田。
@@ -42,13 +43,17 @@ namespace FloatingIsLand.ViewEGB.EditorTools
                 UnityTableLoader.LoadFromResources();
             }
 
-            Color32[][] grass = LoadTiles("grass", 4);
-            Color32[][] dirt = LoadTiles("dirt", 4);
-            if (grass == null || dirt == null)
+            Color32[][] grassBase = LoadTiles("grass", 4);
+            if (grassBase == null)
             {
-                Debug.LogError($"[烘焙] 读不到 {TileDir} 下的草/泥贴图块，中止。");
+                Debug.LogError($"[烘焙] 读不到 {TileDir} 下的草贴图块，中止。");
                 return;
             }
+
+            // 同一套草块、两档色调：农田格提饱和提亮（鲜绿、一眼可辨"这里能种田"），
+            // 普通地面收灰压暗（灰绿野草）。同源笔触保证风格统一，色差只来自这两个变换。
+            Color32[][] vividGrass = TintTiles(grassBase, saturation: 1.28f, brightness: 1.06f);
+            Color32[][] mutedGrass = TintTiles(grassBase, saturation: 0.52f, brightness: 0.90f);
 
             var log = new StringBuilder();
             int done = 0;
@@ -58,7 +63,7 @@ namespace FloatingIsLand.ViewEGB.EditorTools
                 {
                     continue;
                 }
-                if (BakeStage(stage.stageId, stage.prefabPath, stage.islandCellSpan, grass, dirt, log))
+                if (BakeStage(stage.stageId, stage.prefabPath, stage.islandCellSpan, vividGrass, mutedGrass, log))
                 {
                     done++;
                 }
@@ -72,7 +77,7 @@ namespace FloatingIsLand.ViewEGB.EditorTools
         }
 
         private static bool BakeStage(int stageId, string prefabPath, int cellSpan,
-            Color32[][] grass, Color32[][] dirt, StringBuilder log)
+            Color32[][] vividGrass, Color32[][] mutedGrass, StringBuilder log)
         {
             string assetId = prefabPath.Substring(prefabPath.LastIndexOf('/') + 1); // stage_01
             string mapPath = $"Assets/Resources/Maps/stage_{stageId}.json";         // 地图文件不补零
@@ -85,6 +90,9 @@ namespace FloatingIsLand.ViewEGB.EditorTools
                 log.AppendLine($"[skip] {assetId}: 缺 {(File.Exists(mapPath) ? srcPath : mapPath)}");
                 return false;
             }
+
+            // 只有第 1 关把普通地面也铺成灰绿野草；2/3 关地面保留 AI 原贴图，只画农田格
+            bool paintIsland = stageId == 1;
 
             MapSnapshot map = MapJson.Load($"stage_{stageId}", File.ReadAllText(mapPath));
             float cellSize = Tables.GameConfig.cellSize;
@@ -198,11 +206,11 @@ namespace FloatingIsLand.ViewEGB.EditorTools
                             Color32[][] tiles;
                             if (element == "greenField")
                             {
-                                tiles = grass; grassPx++;
+                                tiles = vividGrass; grassPx++; // 农田格：鲜绿
                             }
-                            else if (element == "island")
+                            else if (element == "island" && paintIsland)
                             {
-                                tiles = dirt; dirtPx++;
+                                tiles = mutedGrass; dirtPx++; // 普通地面：灰绿野草（仅第 1 关）
                             }
                             else
                             {
@@ -267,6 +275,32 @@ namespace FloatingIsLand.ViewEGB.EditorTools
                 EditorUtility.SetDirty(m);
             }
             return targets.Count;
+        }
+
+        /// <summary>
+        /// 对整套贴图块做饱和度/亮度变换（绕灰点缩放）。同一套笔触出两档色调，
+        /// 比另画一套素材更能保证风格统一——色差全部来自这两个参数。
+        /// </summary>
+        private static Color32[][] TintTiles(Color32[][] tiles, float saturation, float brightness)
+        {
+            var result = new Color32[tiles.Length][];
+            for (int i = 0; i < tiles.Length; i++)
+            {
+                var src = tiles[i];
+                var dst = new Color32[src.Length];
+                for (int p = 0; p < src.Length; p++)
+                {
+                    Color32 c = src[p];
+                    float gray = 0.299f * c.r + 0.587f * c.g + 0.114f * c.b;
+                    dst[p] = new Color32(
+                        (byte)Mathf.Clamp(Mathf.RoundToInt((gray + (c.r - gray) * saturation) * brightness), 0, 255),
+                        (byte)Mathf.Clamp(Mathf.RoundToInt((gray + (c.g - gray) * saturation) * brightness), 0, 255),
+                        (byte)Mathf.Clamp(Mathf.RoundToInt((gray + (c.b - gray) * saturation) * brightness), 0, 255),
+                        255);
+                }
+                result[i] = dst;
+            }
+            return result;
         }
 
         private static Color32[][] LoadTiles(string prefix, int count)
