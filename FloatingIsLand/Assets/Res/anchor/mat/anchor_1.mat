@@ -105,7 +105,7 @@ Material:
     - _MatCapIntensity: 0.5
     - _Metallic: 0
     - _Mode: 0
-    - _NormalMapGroup: 0
+    - _NormalMapGroup: 1
     - _OcclusionStrength: 1
     - _OutlineColorMix: 0.2
     - _OutlineGroup: 0
